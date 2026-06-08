@@ -1,0 +1,115 @@
+name: Build downloads
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    name: Windows desktop package
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Build desktop zip
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}"
+          if (-not $version -or $version -eq "${{ github.sha }}") { $version = "manual-${{ github.run_number }}" }
+          ./scripts/build-windows.ps1 -Version $version
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: codex-world-console-windows
+          path: release/*.zip
+
+  android:
+    name: Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android packages
+        run: |
+          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+
+      - name: Prepare WebView assets
+        run: |
+          rm -rf android/app/src/main/assets/www
+          mkdir -p android/app/src/main/assets/www
+          cp index.html app.js styles.css android/app/src/main/assets/www/
+          cp Earth-taskbar-natural-20260521.ico android/app/src/main/assets/www/ || true
+          if [ -d wallpapers ]; then cp -R wallpapers android/app/src/main/assets/www/wallpapers; fi
+
+      - name: Build debug APK
+        working-directory: android
+        run: |
+          if [ -n "${{ vars.WORLD_CONSOLE_URL }}" ]; then
+            gradle :app:assembleDebug -PworldConsoleUrl="${{ vars.WORLD_CONSOLE_URL }}"
+          else
+            gradle :app:assembleDebug
+          fi
+
+      - name: Rename APK
+        run: |
+          mkdir -p release
+          version="${{ github.ref_name }}"
+          if [ -z "$version" ] || [ "$version" = "${{ github.sha }}" ]; then version="manual-${{ github.run_number }}"; fi
+          cp android/app/build/outputs/apk/debug/app-debug.apk "release/Codex-World-Console-Android-$version-debug.apk"
+
+      - name: Upload Android artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: codex-world-console-android
+          path: release/*.apk
+
+  github-release:
+    name: Publish GitHub release
+    needs: [windows, android]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+          merge-multiple: true
+
+      - name: Publish release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-artifacts/*
+          body: |
+            ## Downloads
+
+            - Windows desktop: download `Codex-World-Console-Windows-*.zip`, unzip it, then run `Codex World Console.exe`.
+            - Android: download `Codex-World-Console-Android-*-debug.apk`.
+
+            The Android build is a WebView shell. Set the repository variable `WORLD_CONSOLE_URL` before building if you want it to open a hosted console URL instead of bundled static assets.

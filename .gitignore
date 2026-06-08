@@ -1,0 +1,42 @@
+# Runtime/cache output
+cache/
+__pycache__/
+*.py[cod]
+server*.log
+server-*.log
+
+# Browser/test profiles and screenshots
+chrome-*/
+chrome-check-profile*/
+chrome-market-scroll-profile*/
+chrome-test-profile*/
+market-*.png
+narrow-*.png
+right-column-check-*.png
+*.tmp
+
+# Local backups kept outside the published app
+backup-before-*/
+backup-control-*/
+
+# Old icon/art explorations; keep Earth-taskbar-natural-20260521.* for releases
+Earth-transparent*
+Earth-titlebar*
+Earth-taskbar-clear*
+Earth-taskbar-natural-mock*
+Earth-20260520-173131.ico
+Earth.ico
+codex-world-event.ico
+
+# Build output
+build/
+dist/
+release/
+*.spec.local
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/

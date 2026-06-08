@@ -1,0 +1,2 @@
+# The app itself uses the Python standard library.
+# Build jobs install packaging tools separately.

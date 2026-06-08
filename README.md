@@ -1,0 +1,67 @@
+# Codex World Console
+
+Codex World Console is a local world-event and markets console. The desktop build starts a local Python server, then opens the UI in an app-style browser window.
+
+## Downloads
+
+Open the repository's **Releases** page:
+
+- **Windows desktop**: download `Codex-World-Console-Windows-*.zip`, unzip it, then run `Codex World Console.exe`.
+- **Android**: download `Codex-World-Console-Android-*-debug.apk`.
+
+The Android build is a WebView shell. By default it uses bundled static assets; set the repository variable `WORLD_CONSOLE_URL` before building if you want the APK to open a hosted console URL.
+
+## Run Locally
+
+Requirements:
+
+- Windows 10/11
+- Python 3.11 or newer
+- Microsoft Edge or Google Chrome
+
+Run:
+
+```powershell
+python world_console.py
+```
+
+Or double-click:
+
+```text
+Start-WorldConsole.vbs
+```
+
+The default local URL is:
+
+```text
+http://127.0.0.1:8797/index.html
+```
+
+## Publish Downloads On GitHub
+
+1. Push this folder to a GitHub repository.
+2. Create a version tag, for example:
+
+```powershell
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+3. GitHub Actions will build:
+
+- Windows desktop zip
+- Android debug APK
+
+4. The tag build publishes both files to GitHub Releases automatically.
+
+Manual builds are also available from **Actions -> Build downloads -> Run workflow**. Manual builds upload artifacts but only tag builds create a public Release.
+
+## GitHub Pages Preview
+
+The `Deploy GitHub Pages preview` workflow publishes a static preview of the UI. This is useful for screenshots and Android WebView tests, but the full dynamic app still needs the local Python backend used by the desktop build.
+
+## Notes
+
+- The app itself uses only the Python standard library.
+- Desktop release packaging uses PyInstaller in GitHub Actions.
+- Android debug APKs are installable but not Play Store release-signed. Add a signing keystore workflow later if you want production Android releases.

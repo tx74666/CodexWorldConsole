@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Codex World Console</title>
+  <link rel="icon" href="Earth-taskbar-natural-20260521.ico?v=earth-taskbar-natural-1" sizes="any">
+  <link rel="shortcut icon" href="Earth-taskbar-natural-20260521.ico?v=earth-taskbar-natural-1">
+  <link rel="stylesheet" href="styles.css?v=market-ask-depth-214">
+</head>
+<body>
+  <canvas id="matrix" aria-hidden="true"></canvas>
+  <main class="console-shell">
+    <header class="topbar">
+      <div class="brand-block">
+        <div class="kicker">CODEX // WORLD CONSOLE</div>
+        <h1 data-i18n="appTitle">World Event Console</h1>
+      </div>
+      <div class="status-strip">
+        <div class="status-unit">
+          <span class="status-label" data-i18n="localTime">Local Time</span>
+          <strong id="localTime">--:--:--</strong>
+        </div>
+        <div class="status-unit" hidden aria-hidden="true">
+          <span class="status-label" data-i18n="reports">Reports</span>
+          <strong id="eventCount">--</strong>
+        </div>
+      </div>
+    </header>
+
+    <section class="main-grid">
+      <div class="left-column">
+        <article class="map-panel">
+          <div class="panel-head map-head">
+            <div>
+              <h2 id="mapPanelTitle" data-i18n="eventMap">Event Map</h2>
+              <p id="mapPanelSubhead" data-i18n="mapSubhead">Reports and city stats share the same map without crowding.</p>
+            </div>
+            <div class="map-menu">
+              <button id="mapMenuToggle" class="icon-button menu-toggle" type="button" aria-label="Map menu" aria-expanded="false" aria-controls="mapActionMenu">
+                <span></span>
+                <span></span>
+                <span></span>
+              </button>
+              <div id="mapActionMenu" class="map-menu-panel" hidden>
+                <button id="refreshEvents" class="menu-row menu-row-with-meta" type="button">
+                  <span data-refresh-label>Refresh</span>
+                  <span id="marketRefreshTime" class="menu-row-meta">--</span>
+                </button>
+                <div class="menu-row-pair">
+                  <button id="languageToggle" class="menu-row" type="button">中文</button>
+                  <button id="translationToggle" class="menu-square-toggle" type="button" aria-label="Selection translation" aria-pressed="false"></button>
+                </div>
+                <div class="menu-section-title" data-i18n="style">Style</div>
+                <div id="themePicker" class="theme-picker" aria-label="Style"></div>
+                <div class="menu-section-title" data-i18n="colorKey">Color key</div>
+                <div class="legend-list" aria-label="Map color key">
+                  <span><i class="legend-dot security-dot"></i><b data-i18n="security">Security</b></span>
+                  <span><i class="legend-dot diplomacy-dot"></i><b data-i18n="diplomacy">Diplomacy</b></span>
+                  <span><i class="legend-dot general-dot"></i><b data-i18n="general">General</b></span>
+                  <span><i class="legend-dot stats-dot"></i><b data-i18n="stats">Stats</b></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="map-toolbar">
+            <div class="segmented" aria-label="Map mode">
+              <button class="mode-button active" data-map-mode="events" data-i18n="reports">Reports</button>
+              <button class="mode-button" data-map-mode="stats" data-i18n="stats">Stats</button>
+              <button class="mode-button" data-map-mode="markets" data-i18n="markets">Markets</button>
+            </div>
+          </div>
+          <div class="map-stage">
+            <canvas id="worldMap"></canvas>
+            <div id="eventPins" class="event-pins"></div>
+            <div id="marketBoard" class="market-board" hidden></div>
+            <div class="scanline"></div>
+          </div>
+        </article>
+
+        <article class="city-panel">
+          <div class="panel-head">
+            <div>
+              <h2 id="secondaryPanelTitle" data-i18n="cityStats">City Stats</h2>
+              <p id="secondaryPanelSubhead" data-i18n="cityStatsSubhead">Weather, temperature, and local time together.</p>
+            </div>
+            <span id="weatherSource">Weather</span>
+          </div>
+          <div id="cityGrid" class="city-grid"></div>
+        </article>
+      </div>
+
+      <aside class="right-column">
+        <article class="report-panel">
+          <div class="panel-head">
+            <div>
+              <h2 id="reportLocation" data-i18n="global">Global</h2>
+              <p id="reportMeta" data-i18n="waitingForReports">Waiting for reports</p>
+            </div>
+            <span id="reportSeverity" class="severity">--</span>
+          </div>
+          <h3 id="reportTitle" data-i18n="loadingWorldBrief">Loading world brief...</h3>
+          <p id="reportSummary" data-i18n="collectingReports">The console is collecting headlines and locating them on the map.</p>
+          <figure id="reportImageFrame" class="report-image" hidden>
+            <img id="reportImage" alt="">
+          </figure>
+          <div id="placeReports" class="place-reports"></div>
+          <a id="reportLink" href="#" target="_blank" rel="noreferrer">Open source</a>
+        </article>
+
+        <article class="feed-panel">
+          <div class="panel-head">
+            <div>
+              <h2 id="feedTitle" data-i18n="reportStream">Report Stream</h2>
+              <p id="eventSource">Live RSS when available</p>
+            </div>
+            <span id="feedClock">--</span>
+          </div>
+          <div id="feed" class="feed"></div>
+        </article>
+      </aside>
+    </section>
+  </main>
+  <script src="app.js?v=market-ask-depth-214"></script>
+</body>
+</html>
