@@ -4,10 +4,13 @@ Codex World Console is a local world-event and markets console. The desktop buil
 
 ## Downloads
 
-Open the repository's **Releases** page:
+The current public release is available on GitHub:
 
-- **Windows desktop**: download `Codex-World-Console-Windows-*.zip`, unzip it, then run `Codex World Console.exe`.
-- **Android**: download `Codex-World-Console-Android-*-debug.apk`.
+- Release page: <https://github.com/tx74666/CodexWorldConsole/releases/tag/v0.1.1>
+- Windows desktop ZIP: <https://github.com/tx74666/CodexWorldConsole/releases/download/v0.1.1/Codex-World-Console-Windows-v0.1.1.zip>
+- Android APK: <https://github.com/tx74666/CodexWorldConsole/releases/download/v0.1.1/Codex-World-Console-Android-v0.1.1-debug.apk>
+
+For Windows, unzip the desktop ZIP, then run `Codex World Console.exe`.
 
 The Android build is a WebView shell. By default it uses bundled static assets; set the repository variable `WORLD_CONSOLE_URL` before building if you want the APK to open a hosted console URL.
 
