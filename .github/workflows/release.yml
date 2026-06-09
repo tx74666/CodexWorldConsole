@@ -68,7 +68,7 @@ jobs:
           cp Earth-taskbar-natural-20260521.ico android/app/src/main/assets/www/ || true
           if [ -d wallpapers ]; then cp -R wallpapers android/app/src/main/assets/www/wallpapers; fi
 
-      - name: Build debug APK
+      - name: Build Android APK
         working-directory: android
         run: |
           if [ -n "${{ vars.WORLD_CONSOLE_URL }}" ]; then
@@ -82,7 +82,7 @@ jobs:
           mkdir -p release
           version="${{ github.ref_name }}"
           if [ -z "$version" ] || [ "$version" = "${{ github.sha }}" ]; then version="manual-${{ github.run_number }}"; fi
-          cp android/app/build/outputs/apk/debug/app-debug.apk "release/Codex-World-Console-Android-$version-debug.apk"
+          cp android/app/build/outputs/apk/debug/app-debug.apk "release/Codex-World-Console-Android-$version.apk"
 
       - name: Upload Android artifact
         uses: actions/upload-artifact@v4
@@ -109,7 +109,9 @@ jobs:
           body: |
             ## Downloads
 
-            - Windows desktop: download `Codex-World-Console-Windows-*.zip`, unzip it, then run `Codex World Console.exe`.
-            - Android: download `Codex-World-Console-Android-*-debug.apk`.
+            Choose one file:
 
-            The Android build is a WebView shell. Set the repository variable `WORLD_CONSOLE_URL` before building if you want it to open a hosted console URL instead of bundled static assets.
+            - Windows: download `Codex-World-Console-Windows-*.zip`, unzip it, then run `Codex World Console.exe`.
+            - Android: download `Codex-World-Console-Android-*.apk`, install it, then open Codex World Console.
+
+            The Android APK is a WebView preview build with bundled console files. For a hosted Android build, set `WORLD_CONSOLE_URL` before building.

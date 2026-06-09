@@ -1,18 +1,25 @@
 # Codex World Console
 
-Codex World Console is a local world-event and markets console. The desktop build starts a local Python server, then opens the UI in an app-style browser window.
+Codex World Console is a local world-event and markets console.
 
 ## Downloads
 
-The current public release is available on GitHub:
+Choose your device, download one file, then open it.
 
-- Release page: <https://github.com/tx74666/CodexWorldConsole/releases/tag/v0.1.1>
-- Windows desktop ZIP: <https://github.com/tx74666/CodexWorldConsole/releases/download/v0.1.1/Codex-World-Console-Windows-v0.1.1.zip>
-- Android APK: <https://github.com/tx74666/CodexWorldConsole/releases/download/v0.1.1/Codex-World-Console-Android-v0.1.1-debug.apk>
+| Device | Download | Open |
+| --- | --- | --- |
+| Windows | [Desktop ZIP](https://github.com/tx74666/CodexWorldConsole/releases/download/v0.1.2/Codex-World-Console-Windows-v0.1.2.zip) | Unzip it, then run `Codex World Console.exe`. |
+| Android | [APK](https://github.com/tx74666/CodexWorldConsole/releases/download/v0.1.2/Codex-World-Console-Android-v0.1.2.apk) | Install the APK, then open Codex World Console. |
 
-For Windows, unzip the desktop ZIP, then run `Codex World Console.exe`.
+All downloads are also on the [v0.1.2 release page](https://github.com/tx74666/CodexWorldConsole/releases/tag/v0.1.2).
 
-The Android build is a WebView shell. By default it uses bundled static assets; set the repository variable `WORLD_CONSOLE_URL` before building if you want the APK to open a hosted console URL.
+Need the source code instead? Use GitHub's green **Code** button, then **Download ZIP**.
+
+## First Run
+
+Windows starts a local server automatically and opens the console window.
+
+The Android APK is a WebView preview build with bundled console files. For a hosted Android build, set `WORLD_CONSOLE_URL` before building.
 
 ## Run Locally
 
@@ -53,7 +60,7 @@ git push origin v0.1.0
 3. GitHub Actions will build:
 
 - Windows desktop zip
-- Android debug APK
+- Android APK
 
 4. The tag build publishes both files to GitHub Releases automatically.
 
@@ -67,4 +74,4 @@ The `Pages` workflow validates that the static UI files used by the Android WebV
 
 - The app itself uses only the Python standard library.
 - Desktop release packaging uses PyInstaller in GitHub Actions.
-- Android debug APKs are installable but not Play Store release-signed. Add a signing keystore workflow later if you want production Android releases.
+- Android APKs are installable but not Play Store release-signed. Add a signing keystore workflow later if you want production Android releases.
