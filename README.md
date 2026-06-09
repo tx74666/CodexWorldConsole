@@ -56,9 +56,9 @@ git push origin v0.1.0
 
 Manual builds are also available from **Actions -> Build downloads -> Run workflow**. Manual builds upload artifacts but only tag builds create a public Release.
 
-## GitHub Pages Preview
+## Static Preview Check
 
-The `Deploy GitHub Pages preview` workflow publishes a static preview of the UI. This is useful for screenshots and Android WebView tests, but the full dynamic app still needs the local Python backend used by the desktop build.
+The `Pages` workflow validates that the static UI files used by the Android WebView preview are present. Release downloads work without enabling GitHub Pages. The full dynamic app still needs the local Python backend used by the desktop build.
 
 ## Notes
 

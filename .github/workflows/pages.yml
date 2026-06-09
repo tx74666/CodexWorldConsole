@@ -1,48 +1,32 @@
-name: Deploy GitHub Pages preview
+name: Pages
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - main
-      - master
+  workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  validate:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Prepare static preview
+      - name: Validate static preview source
         run: |
-          mkdir -p _site
-          cp index.html app.js styles.css _site/
-          cp Earth-taskbar-natural-20260521.ico _site/ || true
-          if [ -d wallpapers ]; then cp -R wallpapers _site/wallpapers; fi
+          test -f index.html
+          test -f app.js
+          test -f styles.css
 
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: _site
-
-      - name: Deploy Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Print release download page
+        run: |
+          echo "Downloads: https://github.com/${{ github.repository }}/releases/latest"
