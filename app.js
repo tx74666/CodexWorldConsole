@@ -6502,6 +6502,7 @@ function renderNoRecentEvents() {
   els.reportLink.hidden = true;
   els.reportLink.style.visibility = "hidden";
   els.placeReports.innerHTML = "";
+  renderCities();
   renderFeed();
   drawWorld();
   positionEventPins();
@@ -6536,6 +6537,7 @@ function selectEvent(id) {
   els.reportLink.hidden = !event.url;
   els.reportLink.style.visibility = event.url ? "visible" : "hidden";
   renderPlaceReports(related, event.id);
+  renderCities();
   renderFeed();
   drawWorld();
   positionEventPins();
