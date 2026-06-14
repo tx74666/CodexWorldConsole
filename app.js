@@ -1,12 +1,12 @@
-const cities = [
-  { id: "shanghai", name: "Shanghai", zhName: "上海", country: "China", zhCountry: "中國", lat: 31.2304, lon: 121.4737, zone: "Asia/Shanghai" },
-  { id: "tokyo", name: "Tokyo", zhName: "東京", country: "Japan", zhCountry: "日本", lat: 35.6762, lon: 139.6503, zone: "Asia/Tokyo" },
-  { id: "singapore", name: "Singapore", zhName: "新加坡", country: "Singapore", zhCountry: "新加坡", lat: 1.3521, lon: 103.8198, zone: "Asia/Singapore" },
-  { id: "dubai", name: "Dubai", zhName: "杜拜", country: "UAE", zhCountry: "阿聯酋", lat: 25.2048, lon: 55.2708, zone: "Asia/Dubai" },
-  { id: "london", name: "London", zhName: "倫敦", country: "UK", zhCountry: "英國", lat: 51.5072, lon: -0.1276, zone: "Europe/London" },
-  { id: "newyork", name: "New York", zhName: "紐約", country: "USA", zhCountry: "美國", lat: 40.7128, lon: -74.0060, zone: "America/New_York" },
-  { id: "saopaulo", name: "Sao Paulo", zhName: "聖保羅", country: "Brazil", zhCountry: "巴西", lat: -23.5558, lon: -46.6396, zone: "America/Sao_Paulo" },
-  { id: "sydney", name: "Sydney", zhName: "悉尼", country: "Australia", zhCountry: "澳大利亞", lat: -33.8688, lon: 151.2093, zone: "Australia/Sydney" }
+﻿const cities = [
+  { id: "shanghai", name: "Shanghai", zhName: "ä¸Šæµ·", country: "China", zhCountry: "ä¸­åœ‹", lat: 31.2304, lon: 121.4737, zone: "Asia/Shanghai" },
+  { id: "tokyo", name: "Tokyo", zhName: "æ±äº¬", country: "Japan", zhCountry: "æ—¥æœ¬", lat: 35.6762, lon: 139.6503, zone: "Asia/Tokyo" },
+  { id: "singapore", name: "Singapore", zhName: "æ–°åŠ å¡", country: "Singapore", zhCountry: "æ–°åŠ å¡", lat: 1.3521, lon: 103.8198, zone: "Asia/Singapore" },
+  { id: "dubai", name: "Dubai", zhName: "æœæ‹œ", country: "UAE", zhCountry: "é˜¿è¯é…‹", lat: 25.2048, lon: 55.2708, zone: "Asia/Dubai" },
+  { id: "london", name: "London", zhName: "å€«æ•¦", country: "UK", zhCountry: "è‹±åœ‹", lat: 51.5072, lon: -0.1276, zone: "Europe/London" },
+  { id: "newyork", name: "New York", zhName: "ç´ç´„", country: "USA", zhCountry: "ç¾Žåœ‹", lat: 40.7128, lon: -74.0060, zone: "America/New_York" },
+  { id: "saopaulo", name: "Sao Paulo", zhName: "è–ä¿ç¾…", country: "Brazil", zhCountry: "å·´è¥¿", lat: -23.5558, lon: -46.6396, zone: "America/Sao_Paulo" },
+  { id: "sydney", name: "Sydney", zhName: "æ‚‰å°¼", country: "Australia", zhCountry: "æ¾³å¤§åˆ©äºž", lat: -33.8688, lon: 151.2093, zone: "Australia/Sydney" }
 ];
 
 const fallbackWeather = {
@@ -60,10 +60,10 @@ const cityPhotoSubjects = {
     { label: "Brooklyn Bridge", page: "Brooklyn_Bridge" }
   ],
   saopaulo: [
-    { label: "Sao Paulo", page: "São_Paulo" },
+    { label: "Sao Paulo", page: "SÃ£o_Paulo" },
     { label: "Paulista Avenue", page: "Paulista_Avenue" },
     { label: "Ibirapuera Park", page: "Ibirapuera_Park" },
-    { label: "São Paulo Museum of Art", page: "São_Paulo_Museum_of_Art" }
+    { label: "SÃ£o Paulo Museum of Art", page: "SÃ£o_Paulo_Museum_of_Art" }
   ],
   sydney: [
     { label: "Sydney", page: "Sydney" },
@@ -112,49 +112,49 @@ const fallbackMarketAssets = [
     group: "indices",
     symbol: "^GSPC",
     name: "S&P 500",
-    zhName: "标普500",
+    zhName: "æ ‡æ™®500",
     value: 5320,
     unit: "pts",
     change: 24,
     changePct: 0.45,
     history: [5070, 5108, 5088, 5142, 5168, 5150, 5212, 5240, 5226, 5288, 5320],
     summary: "The broad U.S. equity benchmark. It is the quickest read on global risk appetite.",
-    zhSummary: "美国大盘基准，最适合快速判断全球风险偏好。"
+    zhSummary: "ç¾Žå›½å¤§ç›˜åŸºå‡†ï¼Œæœ€é€‚åˆå¿«é€Ÿåˆ¤æ–­å…¨çƒé£Žé™©åå¥½ã€‚"
   },
   {
     id: "nasdaq",
     group: "indices",
     symbol: "^IXIC",
     name: "Nasdaq Composite",
-    zhName: "纳斯达克综合指数",
+    zhName: "çº³æ–¯è¾¾å…‹ç»¼åˆæŒ‡æ•°",
     value: 16860,
     unit: "pts",
     change: 96,
     changePct: 0.57,
     history: [15920, 16080, 16010, 16240, 16360, 16290, 16480, 16620, 16570, 16750, 16860],
     summary: "Technology and AI-linked growth shares carry the strongest signal here.",
-    zhSummary: "科技股和 AI 相关成长股的动向在这里最明显。"
+    zhSummary: "ç§‘æŠ€è‚¡å’Œ AI ç›¸å…³æˆé•¿è‚¡çš„åŠ¨å‘åœ¨è¿™é‡Œæœ€æ˜Žæ˜¾ã€‚"
   },
   {
     id: "hangseng",
     group: "indices",
     symbol: "^HSI",
     name: "Hang Seng",
-    zhName: "恒生指数",
+    zhName: "æ’ç”ŸæŒ‡æ•°",
     value: 19680,
     unit: "pts",
     change: -82,
     changePct: -0.41,
     history: [18760, 19020, 19210, 19140, 19480, 19820, 19740, 19920, 19870, 19760, 19680],
     summary: "Hong Kong is a useful pressure gauge for China-linked global capital.",
-    zhSummary: "香港市场适合观察中国相关资金的温度。"
+    zhSummary: "é¦™æ¸¯å¸‚åœºé€‚åˆè§‚å¯Ÿä¸­å›½ç›¸å…³èµ„é‡‘çš„æ¸©åº¦ã€‚"
   },
   {
     id: "usd_cny",
     group: "fx",
     symbol: "CNY=X",
     name: "USD/CNY",
-    zhName: "美元/人民币",
+    zhName: "ç¾Žå…ƒ/äººæ°‘å¸",
     value: 7.22,
     unit: "",
     decimals: 4,
@@ -162,14 +162,14 @@ const fallbackMarketAssets = [
     changePct: 0.14,
     history: [7.18, 7.19, 7.20, 7.19, 7.21, 7.22, 7.21, 7.23, 7.22, 7.21, 7.22],
     summary: "A direct read on dollar strength against the renminbi.",
-    zhSummary: "直接观察美元兑人民币强弱。"
+    zhSummary: "ç›´æŽ¥è§‚å¯Ÿç¾Žå…ƒå…‘äººæ°‘å¸å¼ºå¼±ã€‚"
   },
   {
     id: "eur_usd",
     group: "fx",
     symbol: "EURUSD=X",
     name: "EUR/USD",
-    zhName: "欧元/美元",
+    zhName: "æ¬§å…ƒ/ç¾Žå…ƒ",
     value: 1.087,
     unit: "",
     decimals: 4,
@@ -177,56 +177,56 @@ const fallbackMarketAssets = [
     changePct: -0.18,
     history: [1.102, 1.098, 1.095, 1.092, 1.094, 1.090, 1.088, 1.091, 1.089, 1.086, 1.087],
     summary: "The main dollar pair, useful for seeing whether the dollar move is broad.",
-    zhSummary: "最主要的美元货币对，用来判断美元强弱是不是全面发生。"
+    zhSummary: "æœ€ä¸»è¦çš„ç¾Žå…ƒè´§å¸å¯¹ï¼Œç”¨æ¥åˆ¤æ–­ç¾Žå…ƒå¼ºå¼±æ˜¯ä¸æ˜¯å…¨é¢å‘ç”Ÿã€‚"
   },
   {
     id: "gold",
     group: "commodities",
     symbol: "GC=F",
     name: "Gold",
-    zhName: "黄金",
+    zhName: "é»„é‡‘",
     value: 2395,
     unit: "USD/oz",
     change: 18,
     changePct: 0.76,
     history: [2290, 2312, 2304, 2340, 2358, 2336, 2368, 2380, 2374, 2388, 2395],
     summary: "Gold often moves with real-rate expectations and safe-haven demand.",
-    zhSummary: "黄金通常反映实际利率预期和避险需求。"
+    zhSummary: "é»„é‡‘é€šå¸¸åæ˜ å®žé™…åˆ©çŽ‡é¢„æœŸå’Œé¿é™©éœ€æ±‚ã€‚"
   },
   {
     id: "oil",
     group: "commodities",
     symbol: "CL=F",
     name: "WTI Crude",
-    zhName: "WTI 原油",
+    zhName: "WTI åŽŸæ²¹",
     value: 78.4,
     unit: "USD/bbl",
     change: -0.6,
     changePct: -0.76,
     history: [82.1, 81.4, 80.2, 79.8, 80.5, 79.1, 78.7, 77.9, 78.6, 79.0, 78.4],
     summary: "Oil connects geopolitics, inflation pressure, and demand expectations.",
-    zhSummary: "原油把地缘政治、通胀压力和需求预期连接在一起。"
+    zhSummary: "åŽŸæ²¹æŠŠåœ°ç¼˜æ”¿æ²»ã€é€šèƒ€åŽ‹åŠ›å’Œéœ€æ±‚é¢„æœŸè¿žæŽ¥åœ¨ä¸€èµ·ã€‚"
   },
   {
     id: "btc",
     group: "commodities",
     symbol: "BTC-USD",
     name: "Bitcoin",
-    zhName: "比特币",
+    zhName: "æ¯”ç‰¹å¸",
     value: 67200,
     unit: "USD",
     change: 820,
     changePct: 1.24,
     history: [61600, 62800, 62100, 64000, 64600, 63800, 65500, 66100, 65200, 66400, 67200],
     summary: "Bitcoin is the high-beta edge of global liquidity sentiment.",
-    zhSummary: "比特币更像全球流动性情绪里波动最大的那一端。"
+    zhSummary: "æ¯”ç‰¹å¸æ›´åƒå…¨çƒæµåŠ¨æ€§æƒ…ç»ªé‡Œæ³¢åŠ¨æœ€å¤§çš„é‚£ä¸€ç«¯ã€‚"
   },
   {
     id: "nvidia",
     group: "companies",
     symbol: "NVDA",
     name: "NVIDIA",
-    zhName: "英伟达",
+    zhName: "è‹±ä¼Ÿè¾¾",
     value: 1240,
     unit: "USD",
     change: 18,
@@ -234,14 +234,14 @@ const fallbackMarketAssets = [
     marketCap: 3050000000000,
     history: [1100, 1128, 1114, 1156, 1180, 1168, 1194, 1212, 1205, 1222, 1240],
     summary: "The clearest single-stock proxy for the AI infrastructure trade.",
-    zhSummary: "最能代表 AI 基础设施交易的单一股票。"
+    zhSummary: "æœ€èƒ½ä»£è¡¨ AI åŸºç¡€è®¾æ–½äº¤æ˜“çš„å•ä¸€è‚¡ç¥¨ã€‚"
   },
   {
     id: "microsoft",
     group: "companies",
     symbol: "MSFT",
     name: "Microsoft",
-    zhName: "微软",
+    zhName: "å¾®è½¯",
     value: 430,
     unit: "USD",
     change: 2.8,
@@ -249,14 +249,14 @@ const fallbackMarketAssets = [
     marketCap: 3200000000000,
     history: [408, 412, 410, 416, 421, 420, 424, 426, 423, 428, 430],
     summary: "Cloud and AI software demand make Microsoft a core mega-cap read.",
-    zhSummary: "云和 AI 软件需求让微软成为核心大型科技股观察点。"
+    zhSummary: "äº‘å’Œ AI è½¯ä»¶éœ€æ±‚è®©å¾®è½¯æˆä¸ºæ ¸å¿ƒå¤§åž‹ç§‘æŠ€è‚¡è§‚å¯Ÿç‚¹ã€‚"
   },
   {
     id: "apple",
     group: "companies",
     symbol: "AAPL",
     name: "Apple",
-    zhName: "苹果",
+    zhName: "è‹¹æžœ",
     value: 192,
     unit: "USD",
     change: -1.6,
@@ -264,14 +264,14 @@ const fallbackMarketAssets = [
     marketCap: 2950000000000,
     history: [186, 188, 187, 191, 194, 193, 195, 194, 193, 194, 192],
     summary: "Apple is still the cleanest consumer-tech mega-cap signal.",
-    zhSummary: "苹果仍然是消费科技大型股里最清晰的信号。"
+    zhSummary: "è‹¹æžœä»ç„¶æ˜¯æ¶ˆè´¹ç§‘æŠ€å¤§åž‹è‚¡é‡Œæœ€æ¸…æ™°çš„ä¿¡å·ã€‚"
   },
   {
     id: "tsmc",
     group: "companies",
     symbol: "TSM",
     name: "TSMC",
-    zhName: "台积电",
+    zhName: "å°ç§¯ç”µ",
     value: 164,
     unit: "USD",
     change: 1.9,
@@ -279,9 +279,1020 @@ const fallbackMarketAssets = [
     marketCap: 850000000000,
     history: [150, 153, 151, 155, 158, 157, 160, 162, 161, 163, 164],
     summary: "TSMC anchors the semiconductor supply chain signal.",
-    zhSummary: "台积电是半导体供应链最关键的观察点。"
+    zhSummary: "å°ç§¯ç”µæ˜¯åŠå¯¼ä½“ä¾›åº”é“¾æœ€å…³é”®çš„è§‚å¯Ÿç‚¹ã€‚"
   }
 ];
+
+const fallbackEarningSources = [
+  {
+    id: "linkedIn-jobs",
+    title: "LinkedIn Jobs",
+    zhTitle: "LinkedIn æ‹›è˜",
+    category: "job-board",
+    region: "Global",
+    zhRegion: "å…¨çƒ",
+    platform: "LinkedIn",
+    remote: true,
+    payout: "Variable",
+    zhPayout: "è§†å…¬å¸ä¸ŽèŒä½è€Œå®š",
+    difficulty: "medium",
+    priority: 96,
+    tags: ["job-board", "networking", "recruiter"],
+    link: "https://www.linkedin.com/jobs/",
+    summary: "Most useful for senior-to-director roles: leverage recruiter visibility and referral chains.",
+    zhSummary: "é€‚åˆä¸­é«˜é˜¶èŒä½ï¼šå¯åˆ©ç”¨æ‹›è˜è€…æ›å…‰å’Œå†…æŽ¨å…³ç³»é“¾ã€‚",
+    actions: [
+      "Add 2-3 clear role keywords to job title search",
+      "Enable job alerts with one location and one remote preference",
+      "Comment on 2 industry posts a day to appear active"
+    ],
+    zhActions: [
+      "åœ¨èŒä½æœç´¢ä¸­å›ºå®š2-3ä¸ªæ ¸å¿ƒå…³é”®è¯",
+      "åˆ†åˆ«å¼€ 1 ä¸ªæœ¬åœ°åŒ–å’Œ 1 ä¸ªè¿œç¨‹å²—ä½æé†’",
+      "æ¯å¤©è¯„è®º2æ¡è¡Œä¸šåŠ¨æ€æå‡è´¦å·æ´»è·ƒ"
+    ]
+  },
+  {
+    id: "indeed-jobs",
+    title: "Indeed",
+    zhTitle: "Indeed",
+    category: "job-board",
+    region: "Global",
+    zhRegion: "å…¨çƒ",
+    platform: "Indeed",
+    remote: true,
+    payout: "Variable",
+    zhPayout: "è§†å…¬å¸ä¸ŽèŒä½è€Œå®š",
+    difficulty: "low",
+    priority: 92,
+    tags: ["job-board", "entry", "easy-start"],
+    link: "https://www.indeed.com/",
+    summary: "Fastest place to collect newly posted roles with direct application flows.",
+    zhSummary: "é€‚åˆå¿«é€ŸåŒæ­¥å¤§é‡å²—ä½ï¼Œç›´æŽ¥ç”³è¯·ä½“éªŒé¡ºç•…ã€‚",
+    actions: [
+      "Collect 5 role titles and one daily location set",
+      "Use title + skill + city format for filters",
+      "Record response times by recruiter and keep best 3 only"
+    ],
+    zhActions: [
+      "å›ºå®š5ä¸ªç›®æ ‡èŒä½å…³é”®è¯+1ä¸ªåœ°åŒº",
+      "ç­›é€‰å™¨ä¿æŒâ€œèŒä½ + æŠ€èƒ½ + åŸŽå¸‚â€æ ¼å¼",
+      "è®°å½•å¯¹æ–¹å›žå¤æ—¶æ•ˆï¼Œä¿ç•™æœ€å¿«å›žåº”çš„3ä¸ªæ¸ é“"
+    ]
+  },
+  {
+    id: "wellfound-jobs",
+    title: "Wellfound (Former AngelList)",
+    zhTitle: "Wellfoundï¼ˆåŽŸ AngelListï¼‰",
+    category: "job-board",
+    region: "Global",
+    zhRegion: "å…¨çƒ",
+    platform: "Wellfound",
+    remote: true,
+    payout: "Variable + equity",
+    zhPayout: "è§†å…¬å¸ä¸ŽèŒä½è€Œå®šï¼ˆå¸¸å«æœŸæƒï¼‰",
+    difficulty: "medium",
+    priority: 82,
+    tags: ["job-board", "startup", "equity"],
+    link: "https://wellfound.com/jobs",
+    summary: "Best for startup pipeline and product-led engineering/business roles with small teams.",
+    zhSummary: "é€‚åˆå°å›¢é˜Ÿ/åˆåˆ›å…¬å¸ï¼Œå¸¸è§è‚¡æƒæˆ–æˆé•¿åž‹æ¿€åŠ±ã€‚",
+    actions: [
+      "Follow 30+ target startup tags",
+      "Update one short founder-style cover note",
+      "Prioritize roles with explicit stack and growth stage"
+    ],
+    zhActions: [
+      "å…³æ³¨ 30 ä¸ªä»¥ä¸Šç›®æ ‡å…¬å¸æ ‡ç­¾",
+      "å‡†å¤‡ä¸€æ®µç²¾ç®€çš„åˆ›å§‹äººé£Žæ ¼åŠ¨æœºä¿¡",
+      "ä¼˜å…ˆçœ‹å²—ä½è¦æ±‚ä¸Žå…¬å¸é˜¶æ®µæ¸…æ™°çš„ JD"
+    ]
+  },
+  {
+    id: "upwork-gig",
+    title: "Upwork",
+    zhTitle: "Upwork",
+    category: "freelance",
+    region: "Global",
+    zhRegion: "å…¨çƒ",
+    platform: "Upwork",
+    remote: true,
+    payout: "Hourly / fixed",
+    zhPayout: "æŒ‰å°æ—¶æˆ–å›ºå®šé¡¹ç›®",
+    difficulty: "low",
+    priority: 90,
+    tags: ["freelance", "client-work", "portfolio"],
+    link: "https://www.upwork.com/",
+    summary: "Quickest way to convert skills into real invoices with a visible client workflow.",
+    zhSummary: "æŠ€èƒ½è½¬çŽ°é‡‘æœ€å¿«çš„è‡ªç”±èŒä¸šå…¥å£ä¹‹ä¸€ï¼Œå®¢æˆ·æµç¨‹é—­çŽ¯æ¸…æ™°ã€‚",
+    actions: [
+      "Create 3 concrete sample packages with fixed prices",
+      "Set availability + timezone in profile",
+      "Bid on 3 projects/day and reply within 30 minutes"
+    ],
+    zhActions: [
+      "åˆ›å»º3ä¸ªæ ‡å‡†åŒ–æœåŠ¡åŒ…å’Œå›ºå®šæŠ¥ä»·",
+      "å®Œå–„å¯ç”¨æ—¶æ®µä¸Žæ—¶åŒº",
+      "æ¯å¤©è·Ÿè¿›3ä¸ªé¡¹ç›®ï¼Œå°½é‡30åˆ†é’Ÿå†…å›žå¤"
+    ]
+  },
+  {
+    id: "fiverr-gig",
+    title: "Fiverr",
+    zhTitle: "Fiverr",
+    category: "freelance",
+    region: "Global",
+    zhRegion: "å…¨çƒ",
+    platform: "Fiverr",
+    remote: true,
+    payout: "Gig-based",
+    zhPayout: "æŒ‰ä»»åŠ¡è®¡è´¹",
+    difficulty: "low",
+    priority: 78,
+    tags: ["freelance", "micro-task", "portfolio"],
+    link: "https://www.fiverr.com/",
+    summary: "Good for short task monetization and packaging niche expertise into digital gigs.",
+    zhSummary: "é€‚åˆç”¨å°è€Œå¿«çš„ä»»åŠ¡æ‰¿æŽ¥æŠ€èƒ½åž‹å˜çŽ°ã€‚",
+    actions: [
+      "Start with 3 micro-services with one clear pain point",
+      "Use before/after examples in first 2 lines",
+      "Test one new gig title weekly"
+    ],
+    zhActions: [
+      "å…ˆåš3ä¸ªèšç„¦1ä¸ªç—›ç‚¹çš„å¾®æœåŠ¡",
+      "æœåŠ¡æè¿°å‰2è¡Œæ”¾â€œæ”¹é€ å‰åŽâ€ç¤ºä¾‹",
+      "æ¯å‘¨æµ‹è¯•1ä¸ªæ–°Gigæ ‡é¢˜"
+    ]
+  },
+  {
+    id: "remoteok-tech",
+    title: "RemoteOK",
+    zhTitle: "RemoteOK",
+    category: "remote",
+    region: "Global",
+    zhRegion: "å…¨çƒ",
+    platform: "RemoteOK",
+    remote: true,
+    payout: "Variable",
+    zhPayout: "è§†å…¬å¸ä¸Žè§’è‰²è€Œå®š",
+    difficulty: "medium",
+    priority: 84,
+    tags: ["remote", "tech", "salaried"],
+    link: "https://remoteok.com/",
+    summary: "Strong source for remote tech roles, especially for full-time global teams.",
+    zhSummary: "é¢å‘è¿œç¨‹æŠ€æœ¯å²—ä½ï¼Œé€‚åˆé•¿æœŸå…¨èŒå²—ä½å¸ƒå±€ã€‚",
+    actions: [
+      "Keep one tech stack + one role pair for filters",
+      "Apply in batches across timezone groups",
+      "Capture time-to-response trend weekly"
+    ],
+    zhActions: [
+      "å›ºå®š1å¥—æŠ€æœ¯æ ˆ+1ä¸ªå²—ä½ç»„åˆç­›é€‰",
+      "æŒ‰æ—¶åŒºåˆ†ç»„æ‰¹é‡æŠ•é€’",
+      "æ¯å‘¨è·Ÿè¸ªä¸€æ¬¡å¹³å‡å“åº”æ—¶é•¿"
+    ]
+  },
+  {
+    id: "weworkremotely",
+    title: "We Work Remotely",
+    zhTitle: "We Work Remotely",
+    category: "remote",
+    region: "Global",
+    zhRegion: "å…¨çƒ",
+    platform: "We Work Remotely",
+    remote: true,
+    payout: "Variable",
+    zhPayout: "è§†å…¬å¸ä¸Žè§’è‰²è€Œå®š",
+    difficulty: "medium",
+    priority: 80,
+    tags: ["remote", "design", "engineering", "ops"],
+    link: "https://weworkremotely.com/",
+    summary: "High-quality remote roles, often in engineering, support, design, and ops.",
+    zhSummary: "å²—ä½è´¨é‡ç›¸å¯¹è¾ƒé«˜ï¼Œå¸¸è§å·¥ç¨‹ã€è®¾è®¡ã€è¿è¥æ–¹å‘ã€‚",
+    actions: [
+      "Filter one remote + one contract-only queue",
+      "Store required stack and matching project examples",
+      "Shortlist 8 roles and tailor each resume version"
+    ],
+    zhActions: [
+      "å»º1ä¸ªè¿œç¨‹å…¨èŒå’Œ1ä¸ªçŸ­çº¦å²—ä½é˜Ÿåˆ—",
+      "æ•´ç†å¿…éœ€æŠ€èƒ½æ ˆ+å¯¹åº”é¡¹ç›®æ¡ˆä¾‹",
+      "ä¸€æ¬¡æ€§æŒ‘8ä¸ªå²—ä½åšå®šåˆ¶åŒ–ç®€åŽ†"
+    ]
+  },
+  {
+    id: "toptal-gig",
+    title: "Toptal",
+    zhTitle: "Toptal",
+    category: "freelance",
+    region: "Global",
+    zhRegion: "å…¨çƒ",
+    platform: "Toptal",
+    remote: true,
+    payout: "Premium project + retainer",
+    zhPayout: "é«˜ç«¯é¡¹ç›®æˆ–é•¿æœŸé¡¾é—®åˆä½œ",
+    difficulty: "high",
+    priority: 72,
+    tags: ["freelance", "premium", "screening"],
+    link: "https://www.toptal.com/",
+    summary: "Higher-bar platform for premium freelancers with strict profile screening.",
+    zhSummary: "é—¨æ§›è¾ƒé«˜ä½†å•ä»·æ›´å¥½ï¼Œé‡è§†ä½œå“ä¸Žæ²Ÿé€šä¸€è‡´æ€§ã€‚",
+    actions: [
+      "Prepare one flagship case and one teardown case",
+      "Rehearse short technical explanation in 90 seconds",
+      "Build a one-page fee and SLA statement"
+    ],
+    zhActions: [
+      "å‡†å¤‡1ä¸ªä¸»æ¡ˆä¾‹+1ä¸ªé—®é¢˜åˆ†æžæ¡ˆä¾‹",
+      "ç»ƒä¹ 90ç§’æŠ€æœ¯è§£è¯´ç‰ˆæœ¬",
+      "ç»™è‡ªå·±å‡†å¤‡1é¡µæŠ¥ä»·ä¸ŽæœåŠ¡SLA"
+    ]
+  },
+  {
+    id: "local-gigs",
+    title: "Local freelance teams / communities",
+    zhTitle: "æœ¬åœ°è‡ªç”±èŒä¸šå›¢é˜Ÿ/ç¤¾ç¾¤",
+    category: "local",
+    region: "Local",
+    zhRegion: "æœ¬åœ°",
+    platform: "Discord, Telegram, å¾®ä¿¡ç¾¤",
+    remote: false,
+    payout: "Negotiated",
+    zhPayout: "å¯è®®ä»·ï¼Œçµæ´»ç»“ç®—",
+    difficulty: "low",
+    priority: 68,
+    tags: ["local", "network", "small-project"],
+    link: "https://www.google.com/search?q=local+freelance+jobs",
+    summary: "Often lower friction for fast onboarding, especially for short business projects.",
+    zhSummary: "æœ¬åœ°ç¤¾ç¾¤é€šå¸¸ä¸Šæ‰‹æ›´å¿«ï¼Œé€‚åˆçŸ­å¹³å¿«ä¸šåŠ¡å•ã€‚",
+    actions: [
+      "Post one concise offer card in 2 relevant groups",
+      "Offer 1-2 pilot tasks as no-cost samples",
+      "Capture referrals and warm-intros"
+    ],
+    zhActions: [
+      "åœ¨2ä¸ªç›¸å…³ç¾¤å‘å¸ƒ1å¼ æ¸…æ™°æŠ¥ä»·å¡",
+      "æä¾›1-2ä¸ªå°è§„æ¨¡è¯•å•æ ·æœ¬",
+      "æ¯æ¬¡æˆäº¤åŽè¯·æŽ¨èäººå¹¶è®°å½•è½¬ä»‹ç»"
+    ]
+  }
+,
+  {
+    id: "ziprecruiter-jobs",
+    title: "ZipRecruiter",
+    zhTitle: "ZipRecruiter",
+    category: "job-board",
+    region: "Global",
+    zhRegion: "Global",
+    platform: "ZipRecruiter",
+    remote: true,
+    payout: "Variable",
+    zhPayout: "Variable",
+    difficulty: "medium",
+    priority: 86,
+    tags: ["job-board", "high-volume", "alerts"],
+    link: "https://www.ziprecruiter.com/jobs",
+    summary: "Large platform with fast posting cadence and good support for volume applications across roles.",
+    zhSummary: "Large platform with fast posting cadence and good support for volume applications across roles.",
+    actions: [
+      "Import one job-search keyword pack and save by salary band",
+      "Enable one remote preference and one onsite preference only",
+      "Apply to 5 relevant openings in one focused 30-minute block"
+    ],
+    zhActions: [
+      "Import one job-search keyword pack and save by salary band",
+      "Enable one remote preference and one onsite preference only",
+      "Apply to 5 relevant openings in one focused 30-minute block"
+    ]
+  },
+  {
+    id: "glassdoor-jobs",
+    title: "Glassdoor",
+    zhTitle: "Glassdoor",
+    category: "job-board",
+    region: "Global",
+    zhRegion: "Global",
+    platform: "Glassdoor",
+    remote: true,
+    payout: "Variable",
+    zhPayout: "Variable",
+    difficulty: "medium",
+    priority: 84,
+    tags: ["job-board", "salary", "reviews"],
+    link: "https://www.glassdoor.com/Job/index.htm",
+    summary: "Use employer reviews and salary ranges to pre-score companies before applying.",
+    zhSummary: "Use employer reviews and salary ranges to pre-score companies before applying.",
+    actions: [
+      "Pick 3 target companies and read their salary pages first",
+      "Save 6 roles with clear interview-fit reasons",
+      "Prioritize roles with explicit remote label and transparent compensation"
+    ],
+    zhActions: [
+      "Pick 3 target companies and read their salary pages first",
+      "Save 6 roles with clear interview-fit reasons",
+      "Prioritize roles with explicit remote label and transparent compensation"
+    ]
+  },
+  {
+    id: "flexjobs-jobs",
+    title: "FlexJobs",
+    zhTitle: "FlexJobs",
+    category: "job-board",
+    region: "Global",
+    zhRegion: "Global",
+    platform: "FlexJobs",
+    remote: true,
+    payout: "Variable",
+    zhPayout: "Variable",
+    difficulty: "low",
+    priority: 82,
+    tags: ["job-board", "verified", "remote", "part-time"],
+    link: "https://www.flexjobs.com/",
+    summary: "Good for screened part-time and full-time remote roles with fewer fake postings.",
+    zhSummary: "Good for screened part-time and full-time remote roles with fewer fake postings.",
+    actions: [
+      "Filter one remote + one part-time lane",
+      "Add your top 10 matching skills in every query",
+      "Apply to 3 roles where recruiter response is visible"
+    ],
+    zhActions: [
+      "Filter one remote + one part-time lane",
+      "Add your top 10 matching skills in every query",
+      "Apply to 3 roles where recruiter response is visible"
+    ]
+  },
+  {
+    id: "monster-jobs",
+    title: "Monster",
+    zhTitle: "Monster",
+    category: "job-board",
+    region: "Global",
+    zhRegion: "Global",
+    platform: "Monster",
+    remote: false,
+    payout: "Variable",
+    zhPayout: "Variable",
+    difficulty: "low",
+    priority: 70,
+    tags: ["job-board", "on-demand", "legacy"],
+    link: "https://www.monster.com/",
+    summary: "Useful for traditional hiring pipelines, especially for office and contract roles in bigger companies.",
+    zhSummary: "Useful for traditional hiring pipelines, especially for office and contract roles in bigger companies.",
+    actions: [
+      "Keep one local and one global alert active",
+      "Update location terms after 2 weeks of no response",
+      "Create a template cover note for each hiring lane"
+    ],
+    zhActions: [
+      "Keep one local and one global alert active",
+      "Update location terms after 2 weeks of no response",
+      "Create a template cover note for each hiring lane"
+    ]
+  },
+  {
+    id: "justremote-remote",
+    title: "JustRemote",
+    zhTitle: "JustRemote",
+    category: "remote",
+    region: "Global",
+    zhRegion: "Global",
+    platform: "JustRemote",
+    remote: true,
+    payout: "Variable",
+    zhPayout: "Variable",
+    difficulty: "medium",
+    priority: 83,
+    tags: ["remote", "contract", "tech"],
+    link: "https://justremote.co/",
+    summary: "Curated remote job board with strong startup and product team focus.",
+    zhSummary: "Curated remote job board with strong startup and product team focus.",
+    actions: [
+      "Track timezone match and align meeting-ready windows",
+      "Keep roles filtered by contract length and team size",
+      "Apply quickly and only after role-tech compatibility check"
+    ],
+    zhActions: [
+      "Track timezone match and align meeting-ready windows",
+      "Keep roles filtered by contract length and team size",
+      "Apply quickly and only after role-tech compatibility check"
+    ]
+  },
+  {
+    id: "workingnomads-remote",
+    title: "Working Nomads",
+    zhTitle: "Working Nomads",
+    category: "remote",
+    region: "Global",
+    zhRegion: "Global",
+    platform: "Working Nomads",
+    remote: true,
+    payout: "Variable",
+    zhPayout: "Variable",
+    difficulty: "medium",
+    priority: 79,
+    tags: ["remote", "tech", "lifestyle"],
+    link: "https://www.workingnomads.co/jobs",
+    summary: "Great for remote product, engineering, and support positions with clear remote rules.",
+    zhSummary: "Great for remote product, engineering, and support positions with clear remote rules.",
+    actions: [
+      "Save your top 3 preferred stacks",
+      "Limit search to one contract type at a time",
+      "Rewrite application intro for each job posting style"
+    ],
+    zhActions: [
+      "Save your top 3 preferred stacks",
+      "Limit search to one contract type at a time",
+      "Rewrite application intro for each job posting style"
+    ]
+  },
+  {
+    id: "freelancer-com",
+    title: "Freelancer",
+    zhTitle: "Freelancer",
+    category: "freelance",
+    region: "Global",
+    zhRegion: "Global",
+    platform: "Freelancer",
+    remote: true,
+    payout: "Project-fixed / hourly",
+    zhPayout: "Project-fixed / hourly",
+    difficulty: "medium",
+    priority: 77,
+    tags: ["freelance", "project-work", "portfolio"],
+    link: "https://www.freelancer.com/",
+    summary: "High competition but good for project-based work in many categories.",
+    zhSummary: "High competition but good for project-based work in many categories.",
+    actions: [
+      "Offer one starter package and one premium package",
+      "Publish one case study image in profile gallery",
+      "Bid on 4 relevant projects before end of day"
+    ],
+    zhActions: [
+      "Offer one starter package and one premium package",
+      "Publish one case study image in profile gallery",
+      "Bid on 4 relevant projects before end of day"
+    ]
+  },
+  {
+    id: "peopleperhour-gig",
+    title: "PeoplePerHour",
+    zhTitle: "PeoplePerHour",
+    category: "freelance",
+    region: "Global",
+    zhRegion: "Global",
+    platform: "PeoplePerHour",
+    remote: true,
+    payout: "Gig-based",
+    zhPayout: "Gig-based",
+    difficulty: "medium",
+    priority: 76,
+    tags: ["freelance", "micro-task", "small-business"],
+    link: "https://www.peopleperhour.com/",
+    summary: "Useful for matching short gigs to small business owners with faster decision loops.",
+    zhSummary: "Useful for matching short gigs to small business owners with faster decision loops.",
+    actions: [
+      "Publish 3 narrowly focused offers",
+      "Put turnaround time in the first line",
+      "Invite reviews from every completed first order"
+    ],
+    zhActions: [
+      "Publish 3 narrowly focused offers",
+      "Put turnaround time in the first line",
+      "Invite reviews from every completed first order"
+    ]
+  },
+  {
+    id: "guru-gig",
+    title: "Guru",
+    zhTitle: "Guru",
+    category: "freelance",
+    region: "Global",
+    zhRegion: "Global",
+    platform: "Guru",
+    remote: true,
+    payout: "Project-based",
+    zhPayout: "Project-based",
+    difficulty: "medium",
+    priority: 74,
+    tags: ["freelance", "bidding", "portfolio"],
+    link: "https://www.guru.com/",
+    summary: "Works well for mid-to-long contracts where milestone statements can be reused.",
+    zhSummary: "Works well for mid-to-long contracts where milestone statements can be reused.",
+    actions: [
+      "Prepare one reusable milestone template",
+      "Publish clear revision and delivery policy",
+      "Ask for one testimonial per successful project"
+    ],
+    zhActions: [
+      "Prepare one reusable milestone template",
+      "Publish clear revision and delivery policy",
+      "Ask for one testimonial per successful project"
+    ]
+  },
+  {
+    id: "taskrabbit-local",
+    title: "TaskRabbit",
+    zhTitle: "TaskRabbit",
+    category: "local",
+    region: "Local",
+    zhRegion: "Local",
+    platform: "TaskRabbit",
+    remote: false,
+    payout: "Task fee",
+    zhPayout: "Task fee",
+    difficulty: "low",
+    priority: 70,
+    tags: ["local", "tasking", "onsite"],
+    link: "https://www.taskrabbit.com/",
+    summary: "Good for quick local earning opportunities with fast-first response cycles.",
+    zhSummary: "Good for quick local earning opportunities with fast-first response cycles.",
+    actions: [
+      "Set 2-hour and 24-hour response windows in profile",
+      "Pick one hourly service with clear hourly rate",
+      "Keep a simple before/after photo evidence flow"
+    ],
+    zhActions: [
+      "Set 2-hour and 24-hour response windows in profile",
+      "Pick one hourly service with clear hourly rate",
+      "Keep a simple before/after photo evidence flow"
+    ]
+  },
+  {
+    id: "zhaopin-china",
+    title: "Zhaopin",
+    zhTitle: "Zhaopin",
+    category: "job-board",
+    region: "China",
+    zhRegion: "China",
+    platform: "Zhaopin",
+    remote: true,
+    payout: "Variable",
+    zhPayout: "Variable",
+    difficulty: "medium",
+    priority: 80,
+    tags: ["job-board", "regional", "cn"],
+    link: "https://www.zhaopin.com/",
+    summary: "Mainstream China job platform suitable for traditional and tech roles.",
+    zhSummary: "Mainstream China job platform suitable for traditional and tech roles.",
+    actions: [
+      "Switch between CN-only and remote filters",
+      "Track response windows by company type",
+      "Prepare bilingual title variants for each application"
+    ],
+    zhActions: [
+      "Switch between CN-only and remote filters",
+      "Track response windows by company type",
+      "Prepare bilingual title variants for each application"
+    ]
+  },
+  {
+    id: "liepin-jobs",
+    title: "Liepin",
+    zhTitle: "Liepin",
+    category: "job-board",
+    region: "China",
+    zhRegion: "China",
+    platform: "Liepin",
+    remote: true,
+    payout: "Variable",
+    zhPayout: "Variable",
+    difficulty: "medium",
+    priority: 78,
+    tags: ["job-board", "senior", "cn"],
+    link: "https://www.liepin.com/",
+    summary: "Focused on higher-level roles and career growth opportunities in China.",
+    zhSummary: "Focused on higher-level roles and career growth opportunities in China.",
+    actions: [
+      "Keep one senior-track filter set and one specialist-track set",
+      "Upload one role-fit case document",
+      "Track recruiter response time by day and follow up after 3 days"
+    ],
+    zhActions: [
+      "Keep one senior-track filter set and one specialist-track set",
+      "Upload one role-fit case document",
+      "Track recruiter response time by day and follow up after 3 days"
+    ]
+  },
+  {
+    id: "bosszhipin-jobs",
+    title: "BOSS Zhipin",
+    zhTitle: "BOSS ç›´è˜",
+    category: "job-board",
+    region: "China",
+    zhRegion: "China",
+    platform: "BOSS",
+    remote: true,
+    payout: "Variable",
+    zhPayout: "Variable",
+    difficulty: "medium",
+    priority: 76,
+    tags: ["job-board", "regional", "cn"],
+    link: "https://www.zhipin.com/",
+    summary: "Great for active direct chat style recruitment with quick feedback and relationship momentum.",
+    zhSummary: "Great for active direct chat style recruitment with quick feedback and relationship momentum.",
+    actions: [
+      "Keep one job title and one role grade list only",
+      "Respond within one business day for every recruiter chat",
+      "Track each chat by decision speed and follow-up cadence"
+    ],
+    zhActions: [
+      "Keep one job title and one role grade list only",
+      "Respond within one business day for every recruiter chat",
+      "Track each chat by decision speed and follow-up cadence"
+    ]
+  },
+  {
+    id: "lagou-cn",
+    title: "Lagou",
+    zhTitle: "Lagou",
+    category: "job-board",
+    region: "China",
+    zhRegion: "China",
+    platform: "Lagou",
+    remote: true,
+    payout: "Variable",
+    zhPayout: "Variable",
+    difficulty: "medium",
+    priority: 74,
+    tags: ["job-board", "tech", "startup", "cn"],
+    link: "https://www.lagou.com/",
+    summary: "Strong for tech and product roles in startup environments with fast role turnover.",
+    zhSummary: "Strong for tech and product roles in startup environments with fast role turnover.",
+    actions: [
+      "Prioritize startup and internet roles with clear salary bands",
+      "Upload portfolio links for each role you can prove quickly",
+      "Update one targeted city group each Monday"
+    ],
+    zhActions: [
+      "Prioritize startup and internet roles with clear salary bands",
+      "Upload portfolio links for each role you can prove quickly",
+      "Update one targeted city group each Monday"
+    ]
+  },
+  {
+    id: "remotive-jobs",
+    title: "Remotive",
+    zhTitle: "Remotive",
+    category: "remote",
+    region: "Global",
+    zhRegion: "å…¨çƒ",
+    platform: "Remotive",
+    remote: true,
+    payout: "Variable",
+    zhPayout: "Variable",
+    difficulty: "low",
+    priority: 80,
+    tags: ["remote", "startup", "tech", "curated"],
+    link: "https://remotive.com/remote-jobs",
+    summary: "Remotive curates remote roles from startups and scale-ups with stronger role clarity.",
+    zhSummary: "Remotive æ±‡æ€»äº†å¤§é‡åˆåˆ›å’Œæˆé•¿åž‹å…¬å¸å²—ä½ï¼Œå²—ä½èŒè´£é€šå¸¸æ›´æ¸…æ™°ã€‚",
+    actions: [
+      "Set one skills + one location preference per alert",
+      "Tag each opening with one role level and one stack",
+      "Follow up every qualified opening within 30 minutes"
+    ],
+    zhActions: [
+      "æ¯æ¡æé†’å›ºå®š 1 ä¸ªæŠ€èƒ½æ ‡ç­¾å’Œ 1 ä¸ªåœ°åŒºåå¥½",
+      "æ¯ä¸ªå²—ä½åŠ  1 ä¸ªç­‰çº§ + 1 ä¸ªæŠ€æœ¯æ ˆæ ‡ç­¾",
+      "å¯¹æ¯ä¸ªé«˜åŒ¹é…å²—ä½ 30 åˆ†é’Ÿå†…å®Œæˆå›žå¤"
+    ]
+  },
+  {
+    id: "remote-co",
+    title: "Remote.co",
+    zhTitle: "Remote.co",
+    category: "remote",
+    region: "Global",
+    zhRegion: "å…¨çƒ",
+    platform: "Remote.co",
+    remote: true,
+    payout: "Variable",
+    zhPayout: "æŒ‰å²—ä½",
+    difficulty: "medium",
+    priority: 77,
+    tags: ["remote", "curated", "customer-support", "operations"],
+    link: "https://remote.co/remote-jobs/",
+    summary: "Useful for support, operations, design, and marketing roles with clear posting quality.",
+    zhSummary: "é€‚åˆè¿è¥ã€å®¢æœã€è®¾è®¡å’Œå¸‚åœºå²—ä½ï¼Œå²—ä½è¯´æ˜Žé€šå¸¸è¾ƒå®Œæ•´ã€‚",
+    actions: [
+      "Filter one operational role and one technical role each day",
+      "Use one tailored cover note per team/function",
+      "Collect 3 interview questions likely in each job family"
+    ],
+    zhActions: [
+      "æ¯å¤©å„ç­› 1 ä¸ªè¿è¥æ–¹å‘ä¸Ž 1 ä¸ªæŠ€æœ¯æ–¹å‘å²—ä½",
+      "æ¯ä¸ªèŒèƒ½å®šåˆ¶ 1 ä»½æŠ•é€’è¯´æ˜Ž",
+      "æå‰å‡†å¤‡æ¯ç±»å²—ä½å¸¸è§çš„ 3 é“é¢è¯•é—®é¢˜"
+    ]
+  },
+  {
+    id: "jobspresso-jobs",
+    title: "Jobspresso",
+    zhTitle: "Jobspresso",
+    category: "remote",
+    region: "Global",
+    zhRegion: "å…¨çƒ",
+    platform: "Jobspresso",
+    remote: true,
+    payout: "Variable",
+    zhPayout: "æŒ‰å²—ä½",
+    difficulty: "low",
+    priority: 76,
+    tags: ["remote", "quality", "curated", "admin"],
+    link: "https://jobspresso.co/remote-jobs/",
+    summary: "A curated remote-only board with stable postings for marketing, admin, and support jobs.",
+    zhSummary: "ç¨³å®šçš„è¿œç¨‹å²—ä½èšåˆå…¥å£ï¼Œé€‚åˆå¸‚åœºã€è¡Œæ”¿å’Œå®¢æœç±»ç®€åŒ–æµç¨‹ã€‚",
+    actions: [
+      "Create separate inbox folders for each role stream",
+      "Keep a cover note bank for recurring role templates",
+      "Track weekly response rates and remove low-response keywords"
+    ],
+    zhActions: [
+      "æŒ‰å²—ä½æ–¹å‘å»ºç‹¬ç«‹é‚®ä»¶æ–‡ä»¶å¤¹",
+      "å»ºç«‹é€šç”¨æŠ•é€’æ¨¡æ¿åº“ï¼ˆæ¯ç±»å²—ä½ä¸€ä¸ªï¼‰",
+      "æ¯å‘¨ç»Ÿè®¡å›žå¤çŽ‡ï¼Œå‰”é™¤ä½Žå›žä¿¡å…³é”®è¯"
+    ]
+  },
+  {
+    id: "hired-jobs",
+    title: "Hired",
+    zhTitle: "Hired",
+    category: "job-board",
+    region: "Global",
+    zhRegion: "å…¨çƒ",
+    platform: "Hired",
+    remote: true,
+    payout: "Variable",
+    zhPayout: "æŒ‰å²—ä½",
+    difficulty: "high",
+    priority: 74,
+    tags: ["job-board", "engineering", "tech-senior", "offers"],
+    link: "https://hired.com/",
+    summary: "Candidate-first technical hiring platform; useful for salary-aware applicants in engineering roles.",
+    zhSummary: "å€™é€‰äººå‹å¥½çš„æŠ€æœ¯å²—ä½å¹³å°ï¼Œé€‚åˆå…³æ³¨è–ªèµ„å¼¹æ€§çš„å·¥ç¨‹èŒä½ã€‚",
+    actions: [
+      "Complete full profile and highlight compensation expectations",
+      "Keep responses in 1-hour batches during trading hours",
+      "Choose roles with clear stack and interview timeline in profile page"
+    ],
+    zhActions: [
+      "å®Œæ•´å¡«å†™æŠ€èƒ½ä¸Žè–ªèµ„æœŸæœ›",
+      "åœ¨å·¥ä½œæ—¶æ®µå†…æ¯å°æ—¶å¤„ç†ä¸€æ‰¹å›žå¤",
+      "åªé€‰æŠ€æœ¯æ ˆå’Œé¢è¯•æµç¨‹æ¸…æ™°çš„å²—ä½"
+    ]
+  },
+  {
+    id: "arc-dev",
+    title: "Arc",
+    zhTitle: "Arc",
+    category: "freelance",
+    region: "Global",
+    zhRegion: "å…¨çƒ",
+    platform: "Arc",
+    remote: true,
+    payout: "Project-based",
+    zhPayout: "é¡¹ç›®åˆ¶",
+    difficulty: "medium",
+    priority: 72,
+    tags: ["freelance", "engineering", "high-quality"],
+    link: "https://arc.dev/",
+    summary: "Senior-engineering freelance and contract hiring, often with explicit budgets and durations.",
+    zhSummary: "åå·¥ç¨‹çš„è¿œç¨‹å¤–åŒ…ä¸ŽåˆåŒé¡¹ç›®å¹³å°ï¼Œå¸¸è§é¢„ç®—ä¸Žå‘¨æœŸæ›´æ˜Žç¡®ã€‚",
+    actions: [
+      "Upload one concrete case-study + one measurable metric",
+      "State availability window and communication SLA clearly",
+      "Reply first to roles with defined scope and timeline"
+    ],
+    zhActions: [
+      "ä¸Šä¼ ä¸€ä¸ªæ¡ˆä¾‹ + é‡åŒ–ç»“æžœæ•°æ®",
+      "æ˜Žç¡®å¯ç”¨æ—¶é—´çª—å’Œæ²Ÿé€š SLA",
+      "ä¼˜å…ˆå¤„ç†æœ‰æ˜Žç¡®èŒƒå›´å’Œå‘¨æœŸçš„å²—ä½"
+    ]
+  },
+  {
+    id: "topcoder-gigs",
+    title: "Topcoder",
+    zhTitle: "Topcoder",
+    category: "freelance",
+    region: "Global",
+    zhRegion: "å…¨çƒ",
+    platform: "Topcoder",
+    remote: true,
+    payout: "Contest / project",
+    zhPayout: "ç«žèµ› / é¡¹ç›®åˆ¶",
+    difficulty: "medium",
+    priority: 70,
+    tags: ["freelance", "competitions", "coding", "algorithms"],
+    link: "https://www.topcoder.com/challenges/",
+    summary: "Competition plus workboard model; useful for coding speed and benchmark-style outputs.",
+    zhSummary: "ç«žèµ›ä¸Žä»»åŠ¡å¹¶è¡Œæ¨¡å¼ï¼Œé€‚åˆå±•ç¤ºä»£ç è¾“å‡ºé€Ÿåº¦å’Œæ‰§è¡Œç»“æžœã€‚",
+    actions: [
+      "Join one easy challenge per week",
+      "Post one reusable template pack after first win",
+      "Track submission-to-feedback time by challenge tier"
+    ],
+    zhActions: [
+      "æ¯å‘¨å‚åŠ  1 ä¸ªéš¾åº¦è¾ƒä½Žçš„æŒ‘æˆ˜",
+      "é¦–æ¬¡æ‹¿ä¸‹åŽæ‰“åŒ…å‘å¸ƒä¸€ä¸ªå¯å¤ç”¨æˆæžœ",
+      "æŒ‰æŒ‘æˆ˜ç­‰çº§è®°å½•æäº¤é€šçŸ¥æ—¶å»¶"
+    ]
+  },
+  {
+    id: "ninety-ninedesigns",
+    title: "99designs",
+    zhTitle: "99designs",
+    category: "freelance",
+    region: "Global",
+    zhRegion: "å…¨çƒ",
+    platform: "99designs",
+    remote: true,
+    payout: "Project-based",
+    zhPayout: "é¡¹ç›®åˆ¶",
+    difficulty: "medium",
+    priority: 68,
+    tags: ["freelance", "design", "portfolio"],
+    link: "https://99designs.com/graphics/logos",
+    summary: "Strong for branding, logo, and visual identity work with contest and direct-work options.",
+    zhSummary: "é€‚åˆå“ç‰Œè®¾è®¡ã€logo ä¸Žè§†è§‰è¯†åˆ«ï¼Œæ”¯æŒç«žæ ‡å¼ä¸Žç›´ç­¾ã€‚",
+    actions: [
+      "Create one style preset with 3 core logo directions",
+      "Prepare one package for startups and one for local business",
+      "Follow up with 2 revised rounds within first 5 days"
+    ],
+    zhActions: [
+      "å»ºç«‹ 3 å¥—é£Žæ ¼æ–¹å‘çš„å“ç‰Œææ¡ˆ",
+      "åˆ†åˆ«å‡†å¤‡åˆ›ä¸šå…¬å¸ç‰ˆå’Œæœ¬åœ°å•†å®¶ç‰ˆçš„æœåŠ¡åŒ…",
+      "å‰ 5 å¤©å†…ä¸»åŠ¨æŽ¨è¿› 2 è½®ä¿®æ”¹"
+    ]
+  },
+  {
+    id: "dribbble-jobs",
+    title: "Dribbble",
+    zhTitle: "Dribbble",
+    category: "freelance",
+    region: "Global",
+    zhRegion: "å…¨çƒ",
+    platform: "Dribbble",
+    remote: true,
+    payout: "Project-based",
+    zhPayout: "é¡¹ç›®åˆ¶",
+    difficulty: "low",
+    priority: 67,
+    tags: ["freelance", "design", "portfolio", "visual"],
+    link: "https://dribbble.com/jobs",
+    summary: "Great for design-first talent where portfolio quality drives fast callbacks.",
+    zhSummary: "è®¾è®¡æ–¹å‘æ•ˆæžœæ˜Žæ˜¾ï¼Œä½œå“è´¨é‡é«˜æ—¶å“åº”é€Ÿåº¦å¿«ã€‚",
+    actions: [
+      "Keep portfolio sections by role category",
+      "Publish one process case for each signature style",
+      "Reach out to designers-to-businesses posts with clear scope notes"
+    ],
+    zhActions: [
+      "æŒ‰å²—ä½æ–¹å‘æ‹†åˆ†ä½œå“é›†ç›®å½•",
+      "æ¯ç§ä¸»è¦é£Žæ ¼æ”¾ä¸€ä¸ªæµç¨‹æ¡ˆä¾‹",
+      "å¯¹å•†å®¶å²—ä½è´´æ–‡é™„å¸¦æ˜Žç¡®äº¤ä»˜èŒƒå›´å›žå¤"
+    ]
+  },
+  {
+    id: "toptal-redo",
+    title: "Freelance via Toptal Projects",
+    zhTitle: "Toptal æ‹›è˜é¡¹ç›®",
+    category: "freelance",
+    region: "Global",
+    zhRegion: "å…¨çƒ",
+    platform: "Toptal",
+    remote: true,
+    payout: "Premium project + retainer",
+    zhPayout: "é«˜ç«¯é¡¹ç›®æˆ–é•¿æœŸåˆä½œ",
+    difficulty: "high",
+    priority: 66,
+    tags: ["freelance", "premium", "screening", "long-term"],
+    link: "https://www.toptal.com/projects",
+    summary: "Premium contracting model for proven specialists and repeat clients.",
+    zhSummary: "é«˜ç«¯å¤–åŒ…æ¨¡åž‹ï¼Œé€‚åˆé«˜è´¨é‡æœåŠ¡å’Œç¨³å®šå¤è´­ã€‚",
+    actions: [
+      "Use one flagship case tailored to client vertical",
+      "Attach delivery SLA and timeline in all first responses",
+      "Prioritize long-term contracts only after first milestone fit"
+    ],
+    zhActions: [
+      "æ¯æ¡å›žå¤å¸¦ä¸Šåž‚ç›´è¡Œä¸šä¸»æ¡ˆä¾‹",
+      "ç¬¬ä¸€è½®æ²Ÿé€šå³å£°æ˜Žäº¤ä»˜ SLA ä¸Žå‘¨æœŸ",
+      "åªåœ¨é¦–ä¸ªé‡Œç¨‹ç¢‘å¯æŽ§åŽå†æŽ¨è¿›é•¿æœŸåˆåŒ"
+    ]
+  },
+  {
+    id: "gigs-gitlab",
+    title: "GitLab Jobs",
+    zhTitle: "GitLab Jobs",
+    category: "job-board",
+    region: "Global",
+    zhRegion: "å…¨çƒ",
+    platform: "GitLab",
+    remote: true,
+    payout: "Variable",
+    zhPayout: "æŒ‰å²—ä½",
+    difficulty: "medium",
+    priority: 72,
+    tags: ["job-board", "engineering", "remote", "gitlab"],
+    link: "https://about.gitlab.com/jobs/",
+    summary: "Direct roles from GitLab and often fully distributed hiring workflow.",
+    zhSummary: "ç›´æŽ¥å…¬å¸å†…æŽ¨å…¥å£ï¼Œå·¥ç¨‹å²—ä½ä»¥åˆ†å¸ƒå¼æµç¨‹ä¸ºä¸»ã€‚",
+    actions: [
+      "Open role list and capture 3 direct-fit positions",
+      "Align cover note with remote collaboration evidence",
+      "Prepare interview stories around async workflows"
+    ],
+    zhActions: [
+      "å…ˆç­› 3 ä¸ªåŒ¹é…åº¦é«˜çš„å²—ä½",
+      "çªå‡ºè¿œç¨‹åä½œç»éªŒ",
+      "å‡†å¤‡ä¸Žå¼‚æ­¥åä½œç›¸å…³é¢è¯•æ•…äº‹"
+    ]
+  },
+  {
+    id: "dice-tech-jobs",
+    title: "Dice",
+    zhTitle: "Dice",
+    category: "job-board",
+    region: "Global",
+    zhRegion: "å…¨çƒ",
+    platform: "Dice",
+    remote: false,
+    payout: "Variable",
+    zhPayout: "æŒ‰å²—ä½",
+    difficulty: "medium",
+    priority: 65,
+    tags: ["job-board", "technology", "contract", "onsite"],
+    link: "https://www.dice.com/",
+    summary: "Tech-contract and employer-heavy pipeline, especially strong for stable roles and volume.",
+    zhSummary: "ä»¥ä¼ä¸šæŠ€æœ¯å²—å’ŒåˆåŒå²—ä½ä¸ºä¸»ï¼Œé€‚åˆåšé«˜é¢‘æŠ•é€’ä¸Žå²—ä½ç•™æ„ã€‚",
+    actions: [
+      "Keep one onsite and one remote tech lane",
+      "Store requirements into 3 reusable templates",
+      "Set weekly cadence for contract-to-hire transitions"
+    ],
+    zhActions: [
+      "ä¿ç•™ 1 æ¡çŽ°åœºå’Œ 1 æ¡è¿œç¨‹ç§‘æŠ€å²—ä½çº¿è·¯",
+      "æŠŠè¦æ±‚æ•´ç†æˆ 3 å¥—é€šç”¨æ¨¡æ¿",
+      "æ¯å‘¨å¤ç›˜åˆåŒè½¬æ­£ä¸Žè½¬æ­£çŽ‡"
+    ]
+  },
+  {
+    id: "f51-job",
+    title: "51Job",
+    zhTitle: "å‰ç¨‹æ— å¿§",
+    category: "job-board",
+    region: "China",
+    zhRegion: "ä¸­å›½",
+    platform: "51Job",
+    remote: true,
+    payout: "Variable",
+    zhPayout: "æŒ‰å²—ä½",
+    difficulty: "low",
+    priority: 70,
+    tags: ["job-board", "regional", "cn", "volume"],
+    link: "https://www.51job.com/",
+    summary: "High-volume Chinese platform for mid-market and mainstream company hiring.",
+    zhSummary: "ä¸­å›½é«˜é¢‘æŠ•é€’å¹³å°ï¼Œé€‚åˆä¸­é«˜é¢‘ç”³è¯·å’ŒåŒåŸŽç­›é€‰ã€‚",
+    actions: [
+      "Run one job-hunt wave every weekday morning",
+      "Sort by company tier + hiring speed",
+      "Keep a single tracking sheet with last-reply timestamps"
+    ],
+    zhActions: [
+      "å·¥ä½œæ—¥å‰ç»Ÿä¸€å‘èµ·ä¸€æ¬¡é›†ä¸­æŠ•é€’",
+      "æŒ‰å…¬å¸å±‚çº§ä¸Žæ‹›è˜é€Ÿåº¦æŽ’åº",
+      "ç»´æŠ¤å›žå¤æ—¶é—´è¿½è¸ªè¡¨"
+    ]
+  },
+  {
+    id: "simplyhired-jobs",
+    title: "SimplyHired",
+    zhTitle: "SimplyHired",
+    category: "job-board",
+    region: "Global",
+    zhRegion: "å…¨çƒ",
+    platform: "SimplyHired",
+    remote: false,
+    payout: "Variable",
+    zhPayout: "æŒ‰å²—ä½",
+    difficulty: "low",
+    priority: 64,
+    tags: ["job-board", "salary", "search", "global"],
+    link: "https://www.simplyhired.com/",
+    summary: "Search-intense board for broad openings, useful for finding alternatives fast.",
+    zhSummary: "æœç´¢å¯¼å‘æ‹›è˜å¹³å°ï¼Œé€‚åˆå¿«é€Ÿè¡¥å……å€™é€‰æœºä¼šæ± ã€‚",
+    actions: [
+      "Set one broad keyword alert and one seniority alert",
+      "Track one city and one remote job track",
+      "Archive low-match listings after 2 response cycles"
+    ],
+    zhActions: [
+      "è®¾ç½®ä¸€æ¡å¹¿æ³›å…³é”®è¯å’Œä¸€æ¡çº§åˆ«æé†’",
+      "å»ºç«‹ä¸€æ¡åŸŽå¸‚çº¿å’Œä¸€æ¡è¿œç¨‹çº¿",
+      "è¿žç»­ä¸¤è½®æœªå›žå¤å°±å½’æ¡£æŽ‰ä½ŽåŒ¹é…æ¸…å•"
+    ]
+  }];
 
 const marketGroupOrder = ["metals", "companies", "crypto"];
 const keyMarketIds = ["gold", "nvda", "aapl", "btc"];
@@ -290,103 +1301,103 @@ const currencyOrder = ["USD", "CNY", "EUR", "JPY", "GBP", "CHF", "HKD", "SGD", "
 const requiredCurrencyCodes = currencyOrder.slice();
 const defaultCurrencyAnchors = ["USD", "CNY", "EUR", "JPY", "GBP", "BTC", "XAU"];
 const assetZhNamesBySymbol = {
-  "GOLD": "黄金",
-  "SILVER": "白银",
-  "PLAT": "铂金",
-  "PALLAD": "钯金",
-  "BTC": "比特币",
-  "ETH": "以太坊",
-  "NVDA": "英伟达",
-  "GOOG": "Alphabet（谷歌）",
-  "GOOGL": "Alphabet（谷歌）",
-  "AAPL": "苹果",
-  "MSFT": "微软",
-  "AMZN": "亚马逊",
-  "TSM": "台积电",
-  "AVGO": "博通",
-  "2222.SR": "沙特阿美",
-  "TSLA": "特斯拉",
-  "META": "Meta（脸书）",
-  "005930.KS": "三星电子",
-  "BRK-B": "伯克希尔·哈撒韦",
-  "WMT": "沃尔玛",
-  "LLY": "礼来",
-  "000660.KS": "SK 海力士",
-  "MU": "美光科技",
-  "JPM": "摩根大通",
+  "GOLD": "é»„é‡‘",
+  "SILVER": "ç™½é“¶",
+  "PLAT": "é“‚é‡‘",
+  "PALLAD": "é’¯é‡‘",
+  "BTC": "æ¯”ç‰¹å¸",
+  "ETH": "ä»¥å¤ªåŠ",
+  "NVDA": "è‹±ä¼Ÿè¾¾",
+  "GOOG": "Alphabetï¼ˆè°·æ­Œï¼‰",
+  "GOOGL": "Alphabetï¼ˆè°·æ­Œï¼‰",
+  "AAPL": "è‹¹æžœ",
+  "MSFT": "å¾®è½¯",
+  "AMZN": "äºšé©¬é€Š",
+  "TSM": "å°ç§¯ç”µ",
+  "AVGO": "åšé€š",
+  "2222.SR": "æ²™ç‰¹é˜¿ç¾Ž",
+  "TSLA": "ç‰¹æ–¯æ‹‰",
+  "META": "Metaï¼ˆè„¸ä¹¦ï¼‰",
+  "005930.KS": "ä¸‰æ˜Ÿç”µå­",
+  "BRK-B": "ä¼¯å…‹å¸Œå°” ï¿½ å“ˆæ’’éŸ¦",
+  "WMT": "æ²ƒå°”çŽ›",
+  "LLY": "ç¤¼æ¥",
+  "000660.KS": "SK æµ·åŠ›å£«",
+  "MU": "ç¾Žå…‰ç§‘æŠ€",
+  "JPM": "æ‘©æ ¹å¤§é€š",
   "AMD": "AMD",
-  "XOM": "埃克森美孚",
-  "ASML": "阿斯麦",
+  "XOM": "åŸƒå…‹æ£®ç¾Žå­š",
+  "ASML": "é˜¿æ–¯éº¦",
   "V": "Visa",
-  "INTC": "英特尔",
-  "JNJ": "强生",
-  "ORCL": "甲骨文",
-  "TCEHY": "腾讯",
-  "CSCO": "思科",
-  "COST": "好市多",
-  "MA": "万事达卡",
-  "CAT": "卡特彼勒",
-  "601939.SS": "中国建设银行",
-  "ABBV": "艾伯维",
-  "LRCX": "泛林集团",
-  "CVX": "雪佛龙",
-  "NFLX": "奈飞",
-  "BAC": "美国银行",
-  "UNH": "联合健康",
-  "KO": "可口可乐",
-  "RO.SW": "罗氏",
-  "AMAT": "应用材料",
-  "PG": "宝洁",
-  "601288.SS": "中国农业银行",
+  "INTC": "è‹±ç‰¹å°”",
+  "JNJ": "å¼ºç”Ÿ",
+  "ORCL": "ç”²éª¨æ–‡",
+  "TCEHY": "è…¾è®¯",
+  "CSCO": "æ€ç§‘",
+  "COST": "å¥½å¸‚å¤š",
+  "MA": "ä¸‡äº‹è¾¾å¡",
+  "CAT": "å¡ç‰¹å½¼å‹’",
+  "601939.SS": "ä¸­å›½å»ºè®¾é“¶è¡Œ",
+  "ABBV": "è‰¾ä¼¯ç»´",
+  "LRCX": "æ³›æž—é›†å›¢",
+  "CVX": "é›ªä½›é¾™",
+  "NFLX": "å¥ˆé£ž",
+  "BAC": "ç¾Žå›½é“¶è¡Œ",
+  "UNH": "è”åˆå¥åº·",
+  "KO": "å¯å£å¯ä¹",
+  "RO.SW": "ç½—æ°",
+  "AMAT": "åº”ç”¨ææ–™",
+  "PG": "å®æ´",
+  "601288.SS": "ä¸­å›½å†œä¸šé“¶è¡Œ",
   "PLTR": "Palantir",
-  "ARM": "Arm 控股",
-  "MS": "摩根士丹利",
-  "HSBC": "汇丰控股",
-  "GE": "通用电气",
-  "1398.HK": "中国工商银行",
-  "BABA": "阿里巴巴",
-  "HD": "家得宝",
-  "MRK": "默沙东",
-  "PM": "菲利普莫里斯国际",
-  "GS": "高盛",
-  "AZN": "阿斯利康",
-  "NVS": "诺华",
-  "TXN": "德州仪器",
-  "300750.SZ": "宁德时代",
+  "ARM": "Arm æŽ§è‚¡",
+  "MS": "æ‘©æ ¹å£«ä¸¹åˆ©",
+  "HSBC": "æ±‡ä¸°æŽ§è‚¡",
+  "GE": "é€šç”¨ç”µæ°”",
+  "1398.HK": "ä¸­å›½å·¥å•†é“¶è¡Œ",
+  "BABA": "é˜¿é‡Œå·´å·´",
+  "HD": "å®¶å¾—å®",
+  "MRK": "é»˜æ²™ä¸œ",
+  "PM": "è²åˆ©æ™®èŽ«é‡Œæ–¯å›½é™…",
+  "GS": "é«˜ç››",
+  "AZN": "é˜¿æ–¯åˆ©åº·",
+  "NVS": "è¯ºåŽ",
+  "TXN": "å¾·å·žä»ªå™¨",
+  "300750.SZ": "å®å¾·æ—¶ä»£",
   "GEV": "GE Vernova",
-  "601988.SS": "中国银行",
-  "MC.PA": "路威酩轩",
-  "RY": "加拿大皇家银行",
-  "NESN.SW": "雀巢",
-  "0857.HK": "中国石油",
-  "QCOM": "高通",
-  "KLAC": "科磊",
-  "TM": "丰田",
-  "9984.T": "软银集团",
-  "LIN": "林德",
-  "SHEL": "壳牌",
+  "601988.SS": "ä¸­å›½é“¶è¡Œ",
+  "MC.PA": "è·¯å¨é…©è½©",
+  "RY": "åŠ æ‹¿å¤§çš‡å®¶é“¶è¡Œ",
+  "NESN.SW": "é›€å·¢",
+  "0857.HK": "ä¸­å›½çŸ³æ²¹",
+  "QCOM": "é«˜é€š",
+  "KLAC": "ç§‘ç£Š",
+  "TM": "ä¸°ç”°",
+  "9984.T": "è½¯é“¶é›†å›¢",
+  "LIN": "æž—å¾·",
+  "SHEL": "å£³ç‰Œ",
   "IBM": "IBM",
   "RTX": "RTX",
-  "SIE.DE": "西门子",
-  "600519.SS": "贵州茅台",
-  "0941.HK": "中国移动",
-  "WFC": "富国银行"
+  "SIE.DE": "è¥¿é—¨å­",
+  "600519.SS": "è´µå·žèŒ…å°",
+  "0941.HK": "ä¸­å›½ç§»åŠ¨",
+  "WFC": "å¯Œå›½é“¶è¡Œ"
 };
 const assetZhNamesByName = {
-  "alphabet (google)": "Alphabet（谷歌）",
-  "saudi aramco": "沙特阿美",
-  "meta platforms (facebook)": "Meta（脸书）",
-  "berkshire hathaway": "伯克希尔·哈撒韦",
-  "china construction bank": "中国建设银行",
-  "agricultural bank of china": "中国农业银行",
-  "bank of china": "中国银行",
-  "royal bank of canada": "加拿大皇家银行",
-  "softbank group corp.": "软银集团",
-  "kweichow moutai": "贵州茅台",
-  "china mobile": "中国移动"
+  "alphabet (google)": "Alphabetï¼ˆè°·æ­Œï¼‰",
+  "saudi aramco": "æ²™ç‰¹é˜¿ç¾Ž",
+  "meta platforms (facebook)": "Metaï¼ˆè„¸ä¹¦ï¼‰",
+  "berkshire hathaway": "ä¼¯å…‹å¸Œå°” ï¿½ å“ˆæ’’éŸ¦",
+  "china construction bank": "ä¸­å›½å»ºè®¾é“¶è¡Œ",
+  "agricultural bank of china": "ä¸­å›½å†œä¸šé“¶è¡Œ",
+  "bank of china": "ä¸­å›½é“¶è¡Œ",
+  "royal bank of canada": "åŠ æ‹¿å¤§çš‡å®¶é“¶è¡Œ",
+  "softbank group corp.": "è½¯é“¶é›†å›¢",
+  "kweichow moutai": "è´µå·žèŒ…å°",
+  "china mobile": "ä¸­å›½ç§»åŠ¨"
 };
+const defaultThemeId = "pacific";
 const themeOptions = [
-  { id: "terminal", labelKey: "themeTerminal", colors: ["#42f6b0", "#58b9ff", "#05070a"] },
   { id: "pacific", labelKey: "themePacific", colors: ["#4dd5ff", "#9ee493", "#061827"] },
   { id: "dawn", labelKey: "themeDawn", colors: ["#0f766e", "#2563eb", "#f7efe3"] }
 ];
@@ -417,6 +1428,13 @@ const boardSlots = [
   [15, 22], [37, 18], [63, 20], [84, 24],
   [22, 45], [48, 42], [72, 46],
   [14, 70], [36, 68], [60, 70], [84, 68]
+];
+const MAX_EARNING_OPPORTUNITIES = 10;
+const earningSourceFilters = [
+  { key: "job-board", labelKey: "earningFilterJobBoard" },
+  { key: "freelance", labelKey: "earningFilterFreelance" },
+  { key: "remote", labelKey: "earningFilterRemote" },
+  { key: "local", labelKey: "earningFilterLocal" }
 ];
 const cityBoardSlots = {
   shanghai: [72, 42],
@@ -464,6 +1482,7 @@ const els = {
   secondaryPanel: document.querySelector(".city-panel"),
   secondaryPanelTitle: document.getElementById("secondaryPanelTitle"),
   secondaryPanelSubhead: document.getElementById("secondaryPanelSubhead"),
+  earningFilters: document.getElementById("earningFilters"),
   cityGrid: document.getElementById("cityGrid"),
   weatherSource: document.getElementById("weatherSource"),
   eventSource: document.getElementById("eventSource"),
@@ -508,6 +1527,9 @@ let marketLeadersSnapTimer = 0;
 let marketLeadersPointerDown = false;
 let marketPendingFocusAssetId = "";
 let marketPendingFocusDirection = 0;
+let earningOpportunities = normalizeEarningOpportunities(fallbackEarningSources);
+let selectedEarningId = normalizeEarningId(viewState.selectedEarningId);
+let earningFilters = normalizeEarningFilters(viewState.earningFilters);
 let mapMode = initialMapMode();
 let worldGeoJson = null;
 let labelLayouts = loadLabelLayouts();
@@ -556,7 +1578,7 @@ const translations = {
     eventMap: "Event Map",
     mapSubhead: "Reports and city stats share the same map without crowding.",
     refresh: "Refresh",
-    language: "中文",
+    language: "\u4e2d\u6587",
     colorKey: "Color key",
     security: "Security",
     diplomacy: "Diplomacy",
@@ -606,65 +1628,91 @@ const translations = {
     categoryEconomy: "economy"
   },
   zh: {
-    appTitle: "世界事件控制台",
-    localTime: "本地時間",
-    reports: "事件",
-    eventMap: "事件地圖",
-    mapSubhead: "事件和城市數據共用同一張地圖，避免擁擠。",
-    refresh: "重新整理",
+    appTitle: "ä¸–ç•Œäº‹ä»¶æŽ§åˆ¶å°",
+    localTime: "æœ¬åœ°æ™‚é–“",
+    reports: "äº‹ä»¶",
+    eventMap: "äº‹ä»¶åœ°åœ–",
+    mapSubhead: "äº‹ä»¶å’ŒåŸŽå¸‚æ•¸æ“šå…±ç”¨åŒä¸€å¼µåœ°åœ–ï¼Œé¿å…æ“æ“ ã€‚",
+    refresh: "é‡æ–°æ•´ç†",
     language: "English",
-    colorKey: "顏色說明",
-    security: "安全",
-    diplomacy: "外交",
-    general: "綜合",
-    stats: "數據",
-    cityStats: "城市數據",
-    cityStatsSubhead: "天氣、溫度、濕度、風速與當地時間。",
-    reportStream: "新聞列表",
-    cityPhotoPanel: "城市照片",
-    cityPhotoUpdated: minutes => minutes <= 0 ? "刚刚更新" : `${minutes} 分钟前更新`,
-    cityPhotoRange: "照片范围",
-    cityPhotoLoading: "正在加载城市照片...",
-    cityPhotoFallback: "暂未找到匹配当地时段的城市照片",
-    openSource: "開啟原文",
-    temp: "溫度",
-    hum: "濕度",
-    wind: "風速",
-    local: "當地時間",
-    weather: "天氣",
-    cityMode: "數據",
-    noSummary: "暫無摘要。",
-    localFallbackReports: "離線備用事件",
-    cachedReports: "已載入事件",
-    liveRssReports: "即時來源",
-    liveRssWhenAvailable: "可用時更新即時來源",
-    refreshingReports: "正在更新事件...",
-    cachedWeather: "已取得天氣",
-    localWeather: "本地天氣資料",
-    openMeteoLive: "即時天氣",
-    clear: "晴朗",
-    lightCloud: "少雲",
-    cloudy: "多雲",
-    fog: "霧",
-    rain: "雨",
-    snow: "雪",
-    storm: "風暴",
-    world: "全球",
-    global: "全球",
-    waitingForReports: "等待新聞",
-    loadingWorldBrief: "正在載入全球事件...",
-    collectingReports: "正在收集事件並標記到地圖上。",
-    categoryWorld: "國際",
-    categorySecurity: "安全局勢",
-    categoryDiplomacy: "外交",
-    categoryPolitics: "政治",
-    categoryClimate: "氣候",
-    categoryEconomy: "經濟"
+    colorKey: "é¡è‰²èªªæ˜Ž",
+    security: "å®‰å…¨",
+    diplomacy: "å¤–äº¤",
+    general: "ç¶œåˆ",
+    stats: "æ•¸æ“š",
+    cityStats: "åŸŽå¸‚æ•¸æ“š",
+    cityStatsSubhead: "å¤©æ°£ã€æº«åº¦ã€æ¿•åº¦ã€é¢¨é€Ÿèˆ‡ç•¶åœ°æ™‚é–“ã€‚",
+    reportStream: "æ–°èžåˆ—è¡¨",
+    cityPhotoPanel: "åŸŽå¸‚ç…§ç‰‡",
+    cityPhotoUpdated: minutes => minutes <= 0 ? "åˆšåˆšæ›´æ–°" : `${minutes} åˆ†é’Ÿå‰æ›´æ–°`,
+    cityPhotoRange: "ç…§ç‰‡èŒƒå›´",
+    cityPhotoLoading: "æ­£åœ¨åŠ è½½åŸŽå¸‚ç…§ç‰‡...",
+    cityPhotoFallback: "æš‚æœªæ‰¾åˆ°åŒ¹é…å½“åœ°æ—¶æ®µçš„åŸŽå¸‚ç…§ç‰‡",
+    openSource: "é–‹å•ŸåŽŸæ–‡",
+    temp: "æº«åº¦",
+    hum: "æ¿•åº¦",
+    wind: "é¢¨é€Ÿ",
+    local: "ç•¶åœ°æ™‚é–“",
+    weather: "å¤©æ°£",
+    cityMode: "æ•¸æ“š",
+    noSummary: "æš«ç„¡æ‘˜è¦ã€‚",
+    localFallbackReports: "é›¢ç·šå‚™ç”¨äº‹ä»¶",
+    cachedReports: "å·²è¼‰å…¥äº‹ä»¶",
+    liveRssReports: "å³æ™‚ä¾†æº",
+    liveRssWhenAvailable: "å¯ç”¨æ™‚æ›´æ–°å³æ™‚ä¾†æº",
+    refreshingReports: "æ­£åœ¨æ›´æ–°äº‹ä»¶...",
+    cachedWeather: "å·²å–å¾—å¤©æ°£",
+    localWeather: "æœ¬åœ°å¤©æ°£è³‡æ–™",
+    openMeteoLive: "å³æ™‚å¤©æ°£",
+    clear: "æ™´æœ—",
+    lightCloud: "å°‘é›²",
+    cloudy: "å¤šé›²",
+    fog: "éœ§",
+    rain: "é›¨",
+    snow: "é›ª",
+    storm: "é¢¨æš´",
+    world: "å…¨çƒ",
+    global: "å…¨çƒ",
+    waitingForReports: "ç­‰å¾…æ–°èž",
+    loadingWorldBrief: "æ­£åœ¨è¼‰å…¥å…¨çƒäº‹ä»¶...",
+    collectingReports: "æ­£åœ¨æ”¶é›†äº‹ä»¶ä¸¦æ¨™è¨˜åˆ°åœ°åœ–ä¸Šã€‚",
+    categoryWorld: "åœ‹éš›",
+    categorySecurity: "å®‰å…¨å±€å‹¢",
+    categoryDiplomacy: "å¤–äº¤",
+    categoryPolitics: "æ”¿æ²»",
+    categoryClimate: "æ°£å€™",
+    categoryEconomy: "ç¶“æ¿Ÿ"
   }
 };
 
 Object.assign(translations.en, {
   markets: "Markets",
+  earning: "Earning",
+  earningMap: "Earning",
+  earningMapSubhead: "Collecting job opportunities and income options from trusted platforms.",
+  earningSources: "Earning Sources",
+  earningSourcesSubhead: "Filter by source type, then open links and run a 24-hour action loop.",
+  earningStream: "Earning Stream",
+  earningFilterTitle: "Filters",
+  earningAllFilters: "All",
+  earningFilterJobBoard: "Job board",
+  earningFilterFreelance: "Freelance",
+  earningFilterRemote: "Remote",
+  earningFilterLocal: "Local",
+  earningFilterTitleLabel: "Source",
+  earningModeTitle: "Earning opportunities",
+  earningCategoryLabel: "Category",
+  earningPlatformLabel: "Platform",
+  earningPayoutLabel: "Payout",
+  earningDifficultyLabel: "Difficulty",
+  earningRemoteLabel: "Remote",
+  earningRegionLabel: "Region",
+  earningSummaryLabel: "Summary",
+  earningActionsTitle: "Quick start",
+  earningSourceLabel: "Source",
+  earningEmpty: "No opportunities in selected filters.",
+  earningOpenListing: "Open listing",
+  earningCopyPreviewLabel: "Recruitment snippet",
   statsMap: "City Data Map",
   statsMapSubhead: "Weather and time stay attached to each city.",
   marketMap: "Market Pulse",
@@ -756,93 +1804,133 @@ Object.assign(translations.en, {
   speakOriginal: "Read original",
   speakTranslation: "Read translation"
 });
-
-Object.assign(translations.zh, {
-  markets: "市场",
-  statsMap: "城市数据地图",
-  statsMapSubhead: "天气和时间直接贴在城市上。",
-  marketMap: "市场动向",
-  marketMapSubhead: "汇率、股指、商品和公司市值放在一个视角里。",
-  companyMarketMap: "公司市值",
-  companyMarketSubhead: "按 CompaniesMarketCap 的全球上市公司市值排名。",
-  allAssetsMap: "资产排名 TOP 50",
-  allAssetsSubhead: "前 50 个非 ETF 资产：公司、金属和加密货币。",
-  marketPanelTitle: "全球资产",
-  marketPanelSubhead: "汇率、股指、商品和公司市值。",
-  companyPanelSubhead: "全球上市公司、市值、股价和当日涨跌。",
-  marketStream: "市场列表",
-  localMarketSnapshot: "市场快照",
-  liveMarketData: "即时市场数据",
-  companiesMarketCapData: "CompaniesMarketCap",
-  companiesMarketCapAssets: "CompaniesMarketCap All Assets",
-  cachedMarketData: "已保存的市场数据",
-  mixedMarketData: "即时市场数据",
-  refreshingMarkets: "正在更新市场...",
-  loadingMarkets: "正在加载市场数据",
-  marketLoadingSummary: "正在先读取已保存的市场快照，同时刷新实时数据。",
-  marketUnavailable: "行情源暂不可用",
-  marketRefreshLabel: "市场刷新",
-  marketRefreshUnknown: "尚未加载",
-  marketRefreshCached: "缓存",
-  marketUnavailableTitle: "市场数据暂不可用",
-  marketUnavailableSummary: "现在没有拿到可靠行情源，所以这里不显示占位价格。",
-  loadingHistory: "正在加载历史曲线...",
-  noReliableChart: "暂无可靠曲线",
-  chartUnavailableForRange: "这个时间段暂无可靠数据",
-  range1d: "1天",
-  range5d: "5天",
-  range1m: "1月",
-  range1y: "1年",
-  range5y: "5年",
-  rangeAll: "全部",
-  marketGroupIndices: "股指",
-  marketGroupFx: "汇率",
-  marketGroupCommodities: "商品",
-  marketGroupCompanies: "公司市值",
-  marketGroupMetals: "金属",
-  marketGroupCrypto: "加密货币",
-  assetRank: "排名",
-  assetType: "类型",
-  marketValue: "数值",
-  marketMove: "涨跌",
-  marketCap: "市值",
-  marketSymbol: "代码",
-  marketRange: "近期区间",
-  marketAskTitle: "询问详细情况",
-  marketAskPlaceholder: "",
-  marketAskButton: "发送",
-  marketAskLoading: "正在思考...",
-  marketAskLoadingFast: "速算中...",
-  marketAskLoadingThink: "查资料...",
-  marketAskFast: "Fast",
-  marketAskThink: "Think",
-  marketAskEmpty: "",
-  marketAskUnavailable: "问答还没有连接。"
+Object.assign(translations.en, {
+  earningMap: "Earning",
+  earningMapSubhead: "Focus on concrete earning opportunities from trusted recruitment platforms.",
+  earningSourcesSubhead: "Filter by source type, then open links and run a 24-hour action loop with ready-to-send scripts.",
+  earningActionsTitle: "Quick start",
+  earningCopyLabel: "Recruitment copy",
+  earningCopyHint: "Use this text directly in applications, outreach, or chats.",
+  earningPlaybookTitle: "24h playbook",
+  earningPlaybookHint: "Pick one source and complete these 3 steps in 24h.",
+  earningCopyButton: "Copy text",
+  earningCopyCopied: "Copied",
+  earningCopyFailed: "Copy failed",
+  earningSourceLabel: "Source"
 });
 
 Object.assign(translations.zh, {
-  allAssetsMap: "资产排名 TOP 50",
-  allAssetsSubhead: "前 50 个非 ETF：公司、贵金属和加密货币。",
-  marketPanelTitle: "货币汇率",
-  marketPanelSubhead: "主流货币按可切换锚定计价。",
+  markets: "å¸‚åœº",
+  earning: "èµšé’±",
+  earningMap: "\u8d5d\u9322",
+  earningMapSubhead: "èšåˆé«˜è´¨é‡å¹³å°çš„å²—ä½ä¸Žå˜çŽ°å…¥å£ã€‚",
+  earningSources: "èµšé’±æ¥æº",
+  earningSourcesSubhead: "å…ˆæŒ‰æ¸ é“ç­›é€‰ï¼Œå†æ‰“å¼€ç›®æ ‡å…¥å£å¿«é€Ÿè¡ŒåŠ¨ã€‚",
+  earningStream: "èµšé’±åŠ¨æ€",
+  earningFilterTitle: "ç­›é€‰",
+  earningAllFilters: "å…¨éƒ¨",
+  earningFilterJobBoard: "æ‹›è˜å¹³å°",
+  earningFilterFreelance: "è‡ªç”±èŒä¸š",
+  earningFilterRemote: "è¿œç¨‹å²—ä½",
+  earningFilterLocal: "æœ¬åœ°é¡¹ç›®",
+  earningFilterTitleLabel: "æ¥æº",
+  earningModeTitle: "èµšé’±æœºä¼š",
+  earningCategoryLabel: "ç±»åž‹",
+  earningPlatformLabel: "å¹³å°",
+  earningPayoutLabel: "æ”¶ç›Š",
+  earningDifficultyLabel: "éš¾åº¦",
+  earningRemoteLabel: "è¿œç¨‹",
+  earningRegionLabel: "åŒºåŸŸ",
+  earningSummaryLabel: "è¯´æ˜Ž",
+  earningActionsTitle: "å¿«é€Ÿå¯åŠ¨",
+  earningSourceLabel: "æ¥æº",
+  earningCopyPreviewLabel: "\u62db\u52df\u6587\u6848\u9810\u89bd",
+  earningEmpty: "å½“å‰ç­›é€‰ä¸‹æ²¡æœ‰å¯å±•ç¤ºçš„æœºä¼šã€‚",
+  earningOpenListing: "æ‰“å¼€èŒä½",
+  statsMap: "åŸŽå¸‚æ•°æ®åœ°å›¾",
+  statsMapSubhead: "å¤©æ°”å’Œæ—¶é—´ç›´æŽ¥è´´åœ¨åŸŽå¸‚ä¸Šã€‚",
+  marketMap: "å¸‚åœºåŠ¨å‘",
+  marketMapSubhead: "æ±‡çŽ‡ã€è‚¡æŒ‡ã€å•†å“å’Œå…¬å¸å¸‚å€¼æ”¾åœ¨ä¸€ä¸ªè§†è§’é‡Œã€‚",
+  companyMarketMap: "å…¬å¸å¸‚å€¼",
+  companyMarketSubhead: "æŒ‰ CompaniesMarketCap çš„å…¨çƒä¸Šå¸‚å…¬å¸å¸‚å€¼æŽ’åã€‚",
+  allAssetsMap: "èµ„äº§æŽ’å TOP 50",
+  allAssetsSubhead: "å‰ 50 ä¸ªéž ETF èµ„äº§ï¼šå…¬å¸ã€é‡‘å±žå’ŒåŠ å¯†è´§å¸ã€‚",
+  marketPanelTitle: "å…¨çƒèµ„äº§",
+  marketPanelSubhead: "æ±‡çŽ‡ã€è‚¡æŒ‡ã€å•†å“å’Œå…¬å¸å¸‚å€¼ã€‚",
+  companyPanelSubhead: "å…¨çƒä¸Šå¸‚å…¬å¸ã€å¸‚å€¼ã€è‚¡ä»·å’Œå½“æ—¥æ¶¨è·Œã€‚",
+  marketStream: "å¸‚åœºåˆ—è¡¨",
+  localMarketSnapshot: "å¸‚åœºå¿«ç…§",
+  liveMarketData: "å³æ—¶å¸‚åœºæ•°æ®",
+  companiesMarketCapData: "CompaniesMarketCap",
+  companiesMarketCapAssets: "CompaniesMarketCap All Assets",
+  cachedMarketData: "å·²ä¿å­˜çš„å¸‚åœºæ•°æ®",
+  mixedMarketData: "å³æ—¶å¸‚åœºæ•°æ®",
+  refreshingMarkets: "æ­£åœ¨æ›´æ–°å¸‚åœº...",
+  loadingMarkets: "æ­£åœ¨åŠ è½½å¸‚åœºæ•°æ®",
+  marketLoadingSummary: "æ­£åœ¨å…ˆè¯»å–å·²ä¿å­˜çš„å¸‚åœºå¿«ç…§ï¼ŒåŒæ—¶åˆ·æ–°å®žæ—¶æ•°æ®ã€‚",
+  marketUnavailable: "è¡Œæƒ…æºæš‚ä¸å¯ç”¨",
+  marketRefreshLabel: "å¸‚åœºåˆ·æ–°",
+  marketRefreshUnknown: "å°šæœªåŠ è½½",
+  marketRefreshCached: "ç¼“å­˜",
+  marketUnavailableTitle: "å¸‚åœºæ•°æ®æš‚ä¸å¯ç”¨",
+  marketUnavailableSummary: "çŽ°åœ¨æ²¡æœ‰æ‹¿åˆ°å¯é è¡Œæƒ…æºï¼Œæ‰€ä»¥è¿™é‡Œä¸æ˜¾ç¤ºå ä½ä»·æ ¼ã€‚",
+  loadingHistory: "æ­£åœ¨åŠ è½½åŽ†å²æ›²çº¿...",
+  noReliableChart: "æš‚æ— å¯é æ›²çº¿",
+  chartUnavailableForRange: "è¿™ä¸ªæ—¶é—´æ®µæš‚æ— å¯é æ•°æ®",
+  range1d: "1å¤©",
+  range5d: "5å¤©",
+  range1m: "1æœˆ",
+  range1y: "1å¹´",
+  range5y: "5å¹´",
+  rangeAll: "å…¨éƒ¨",
+  marketGroupIndices: "è‚¡æŒ‡",
+  marketGroupFx: "æ±‡çŽ‡",
+  marketGroupCommodities: "å•†å“",
+  marketGroupCompanies: "å…¬å¸å¸‚å€¼",
+  marketGroupMetals: "é‡‘å±ž",
+  marketGroupCrypto: "åŠ å¯†è´§å¸",
+  assetRank: "æŽ’å",
+  assetType: "ç±»åž‹",
+  marketValue: "æ•°å€¼",
+  marketMove: "æ¶¨è·Œ",
+  marketCap: "å¸‚å€¼",
+  marketSymbol: "ä»£ç ",
+  marketRange: "è¿‘æœŸåŒºé—´",
+  marketAskTitle: "è¯¢é—®è¯¦ç»†æƒ…å†µ",
+  marketAskPlaceholder: "",
+  marketAskButton: "å‘é€",
+  marketAskLoading: "æ­£åœ¨æ€è€ƒ...",
+  marketAskLoadingFast: "é€Ÿç®—ä¸­...",
+  marketAskLoadingThink: "æŸ¥èµ„æ–™...",
+  marketAskFast: "Fast",
+  marketAskThink: "Think",
+  marketAskEmpty: "",
+  marketAskUnavailable: "é—®ç­”è¿˜æ²¡æœ‰è¿žæŽ¥ã€‚"
+});
+
+Object.assign(translations.zh, {
+  allAssetsMap: "èµ„äº§æŽ’å TOP 50",
+  allAssetsSubhead: "å‰ 50 ä¸ªéž ETFï¼šå…¬å¸ã€è´µé‡‘å±žå’ŒåŠ å¯†è´§å¸ã€‚",
+  marketPanelTitle: "è´§å¸æ±‡çŽ‡",
+  marketPanelSubhead: "ä¸»æµè´§å¸æŒ‰å¯åˆ‡æ¢é”šå®šè®¡ä»·ã€‚",
   currencyMarketData: "Frankfurter + CompaniesMarketCap",
-  loadingCurrencyData: "正在加载汇率",
-  cachedMarketData: "已保存的市场数据",
-  marketRefreshLabel: "市场刷新",
-  marketRefreshUnknown: "尚未加载",
-  marketRefreshCached: "缓存",
-  marketRange: "近期区间",
-  includeMetals: "金属",
-  includeCrypto: "加密",
-  currencyAnchor: "锚定",
-  currencyPair: "货币对",
-  currencyRate: "汇率",
-  currencySource: "来源",
-  currencyNoChart: "这个货币对暂无可靠曲线",
-  currencyUpdated: "更新",
-  currencyGroupFiat: "法币",
-  currencyGroupMetal: "金属",
-  currencyGroupCrypto: "加密货币",
+  loadingCurrencyData: "æ­£åœ¨åŠ è½½æ±‡çŽ‡",
+  cachedMarketData: "å·²ä¿å­˜çš„å¸‚åœºæ•°æ®",
+  marketRefreshLabel: "å¸‚åœºåˆ·æ–°",
+  marketRefreshUnknown: "å°šæœªåŠ è½½",
+  marketRefreshCached: "ç¼“å­˜",
+  marketRange: "è¿‘æœŸåŒºé—´",
+  includeMetals: "é‡‘å±ž",
+  includeCrypto: "åŠ å¯†",
+  currencyAnchor: "é”šå®š",
+  currencyPair: "è´§å¸å¯¹",
+  currencyRate: "æ±‡çŽ‡",
+  currencySource: "æ¥æº",
+  currencyNoChart: "è¿™ä¸ªè´§å¸å¯¹æš‚æ— å¯é æ›²çº¿",
+  currencyUpdated: "æ›´æ–°",
+  currencyGroupFiat: "æ³•å¸",
+  currencyGroupMetal: "é‡‘å±ž",
+  currencyGroupCrypto: "åŠ å¯†è´§å¸",
   style: "\u98ce\u683c",
   themeTerminal: "\u7ec8\u7aef",
   themePacific: "\u6d77\u6d0b",
@@ -858,6 +1946,21 @@ Object.assign(translations.zh, {
   translationToggleHint: "\u9009\u4e2d\u5373\u7ffb\u8bd1",
   speakOriginal: "\u6717\u8bfb\u539f\u6587",
   speakTranslation: "\u6717\u8bfb\u8bd1\u6587"
+});
+Object.assign(translations.zh, {
+  earningMap: "\u8d5d\u9322",
+  earningMapSubhead: "\u76f4\u63a5\u6574\u7406\u53ef\u76f4\u63a5\u4f7f\u7528\u7684\u62db\u52df\u6a5f\u6703\u8207\u5e73\u53f0\uff0c\u7701\u6389\u5730\u5716\u96dc\u8a5e\u3002",
+  earningSourcesSubhead: "\u5148\u6309\u4f86\u6e90\u985e\u578b\u7be9\u9078\uff0c\u518d\u6253\u958b\u76ee\u6a19\u5e73\u53f0\u5feb\u901f\u884c\u52d5\u3002",
+  earningActionsTitle: "\u5feb\u901f\u555f\u52d5",
+  earningPlaybookTitle: "24\u5c0f\u6642\u5de5\u4f5c\u55ae",
+  earningPlaybookHint: "\u5148\u9078\u4e00\u500b\u4f86\u6e90\uff0c\u572824\u5c0f\u6642\u5167\u5b8c\u6210\u4ee5\u4e0b\u4e09\u6b65\u3002",
+  earningCopyLabel: "\u62db\u52df\u6587\u6848",
+  earningCopyPreviewLabel: "\u62db\u52df\u6587\u6848\u9810\u89bd",
+  earningCopyHint: "\u9019\u6bb5\u6587\u6848\u53ef\u76f4\u63a5\u8cbc\u5230\u7533\u8acb\u3001\u52a0\u7fa4\u6216\u79fb\u52d5\u901a\u8a71\u4e2d\u4f7f\u7528\u3002",
+  earningCopyButton: "\u8907\u88fd\u6587\u672c",
+  earningCopyCopied: "\u5df2\u8907\u88fd",
+  earningCopyFailed: "\u8907\u88fd\u5931\u6557",
+  earningSourceLabel: "\u4f86\u6e90"
 });
 
 function clamp(value, min, max) {
@@ -1044,14 +2147,15 @@ function saveTranslationToggle() {
 }
 
 function validThemeId(value) {
-  return themeOptions.some(theme => theme.id === value) ? value : "terminal";
+  if (value === "terminal") return defaultThemeId;
+  return themeOptions.some(theme => theme.id === value) ? value : defaultThemeId;
 }
 
 function loadTheme() {
   try {
     return validThemeId(localStorage.getItem(themeStorageKey));
   } catch {
-    return "terminal";
+    return defaultThemeId;
   }
 }
 
@@ -1157,6 +2261,248 @@ function normalizeMarketHistory(history) {
     })
     .filter(Boolean);
   return normalized.length >= 2 ? normalized : null;
+}
+
+function normalizeEarningDifficulty(value) {
+  const normalized = String(value || "medium").toLowerCase();
+  if (normalized === "easy" || normalized === "low") return "low";
+  if (normalized === "hard" || normalized === "high") return "high";
+  return "medium";
+}
+
+function normalizeEarningCategory(value) {
+  const normalized = String(value || "").toLowerCase();
+  return ["job-board", "freelance", "remote", "local"].includes(normalized) ? normalized : "job-board";
+}
+
+function normalizeEarningOpportunities(items) {
+  const normalized = [];
+  for (const incoming of Array.isArray(items) ? items : []) {
+    const id = String(incoming?.id || "").trim();
+    if (!id) continue;
+    const summary = String(incoming?.summary || "").trim();
+    const zhSummary = String(incoming?.zhSummary || "").trim();
+    normalized.push({
+      id,
+      title: String(incoming?.title || "").trim() || id,
+      zhTitle: String(incoming?.zhTitle || incoming?.title || "").trim() || id,
+      category: normalizeEarningCategory(incoming?.category),
+      region: String(incoming?.region || "Global").trim(),
+      zhRegion: String(incoming?.zhRegion || incoming?.region || "").trim(),
+      platform: String(incoming?.platform || "").trim() || String(incoming?.title || "").trim(),
+      remote: incoming?.remote === true,
+      payout: String(incoming?.payout || "").trim() || "Variable",
+      zhPayout: String(incoming?.zhPayout || incoming?.payout || "").trim(),
+      difficulty: normalizeEarningDifficulty(incoming?.difficulty),
+      priority: Number.isFinite(Number(incoming?.priority))
+        ? Math.max(1, Math.min(100, Number(incoming?.priority)))
+        : 50,
+      tags: Array.isArray(incoming?.tags) ? incoming.tags.map(item => String(item).trim()).filter(Boolean) : [],
+      link: /^https?:\/\//i.test(String(incoming?.link || "")) ? String(incoming?.link).trim() : "",
+      summary,
+      zhSummary,
+      copyText: String(incoming?.copyText || "").trim(),
+      zhCopyText: String(incoming?.zhCopyText || "").trim(),
+      actions: Array.isArray(incoming?.actions) ? incoming.actions.map(item => String(item).trim()).filter(Boolean) : [],
+      zhActions: Array.isArray(incoming?.zhActions) ? incoming.zhActions.map(item => String(item).trim()).filter(Boolean) : []
+    });
+  }
+  return normalized
+    .sort((left, right) => right.priority - left.priority || left.title.localeCompare(right.title))
+    .slice(0, MAX_EARNING_OPPORTUNITIES);
+}
+
+function normalizeEarningId(id) {
+  const normalized = String(id || "").trim();
+  if (earningOpportunities.some(item => item.id === normalized)) return normalized;
+  return earningOpportunities[0]?.id || "";
+}
+
+function normalizeEarningFilters(raw = {}) {
+  const saved = raw && typeof raw === "object" ? raw : {};
+  const normalized = {};
+  earningSourceFilters.forEach(item => {
+    normalized[item.key] = saved[item.key] !== false;
+  });
+  if (!Object.values(normalized).some(Boolean)) {
+    earningSourceFilters.forEach(item => {
+      normalized[item.key] = true;
+    });
+  }
+  return normalized;
+}
+
+function clampUiText(value, maxLength = 120) {
+  const text = String(value || "").trim();
+  if (!text || text.length <= maxLength) return text;
+  return `${text.slice(0, Math.max(0, maxLength - 1)).trimEnd()}…`;
+}
+
+function earningDisplayTitle(item) {
+  if (!item) return "";
+  return currentLanguage === "zh" ? item.zhTitle || item.title : item.title;
+}
+
+function earningDisplayRegion(item) {
+  if (!item) return "";
+  return currentLanguage === "zh" ? item.zhRegion || item.region : item.region;
+}
+
+function earningDisplaySummary(item) {
+  if (!item) return "";
+  return currentLanguage === "zh" ? (item.zhSummary || item.summary || "") : (item.summary || item.zhSummary || "");
+}
+
+function earningDisplayPayout(item) {
+  if (!item) return "";
+  return currentLanguage === "zh" ? (item.zhPayout || item.payout || "") : item.payout;
+}
+
+function earningDisplayActions(item) {
+  if (!item) return [];
+  const list = currentLanguage === "zh" ? item.zhActions : item.actions;
+  return Array.isArray(list) ? list.slice(0, 6) : [];
+}
+
+function earningLabelForCategory(category) {
+  if (currentLanguage === "zh") {
+    return category === "freelance" ? "è‡ªç”±èŒä¸š" : category === "remote" ? "è¿œç¨‹" : category === "local" ? "æœ¬åœ°é¡¹ç›®" : "æ‹›è˜å¹³å°";
+  }
+  return category === "freelance" ? "Freelance" : category === "remote" ? "Remote" : category === "local" ? "Local projects" : "Job board";
+}
+
+function earningLabelForDifficulty(value) {
+  const normalized = normalizeEarningDifficulty(value);
+  if (currentLanguage === "zh") return normalized === "high" ? "é«˜" : normalized === "low" ? "ä½Ž" : "ä¸­";
+  return normalized === "high" ? "High" : normalized === "low" ? "Low" : "Medium";
+}
+
+function earningRemoteLabel(item) {
+  const yes = currentLanguage === "zh" ? "è¿œç¨‹å¯åš" : "Remote";
+  const no = currentLanguage === "zh" ? "ä»¥æœ¬åœ°ä¸ºä¸»" : "Local-first";
+  return item?.remote ? yes : no;
+}
+
+function earningDifficultyClass(item) {
+  return normalizeEarningDifficulty(item?.difficulty);
+}
+
+function resolveEarningCopyTemplate(item) {
+  if (!item) return "";
+  const template = currentLanguage === "zh" ? item.zhCopyText : item.copyText;
+  if (!template) return "";
+  const platform = item.platform || earningDisplayTitle(item);
+  const title = earningDisplayTitle(item);
+  const region = earningDisplayRegion(item);
+  const payout = earningDisplayPayout(item);
+  const categoryLabel = earningLabelForCategory(item.category);
+  const remoteLabel = earningRemoteLabel(item);
+  const difficulty = earningLabelForDifficulty(item.difficulty).toLowerCase();
+
+  return String(template)
+    .replace(/\{platform\}/g, platform)
+    .replace(/\{title\}/g, title)
+    .replace(/\{region\}/g, region)
+    .replace(/\{payout\}/g, payout)
+    .replace(/\{category\}/g, categoryLabel)
+    .replace(/\{remote\}/g, remoteLabel)
+    .replace(/\{difficulty\}/g, difficulty);
+}
+
+function earningCopyPreview(item, lines = 2) {
+  const source = earningCopyText(item);
+  if (!source) return "";
+  return source
+    .split("\n")
+    .map(line => line.trim())
+    .filter(Boolean)
+    .slice(0, lines)
+    .join(" ");
+}
+
+function fallbackEarningAction(item, index) {
+  return currentLanguage === "zh"
+    ? `${index}ã€æ•´ç†å¹¶æ›´æ–° 1 æ¡ä¸Žè¯¥æ¸ é“åŒ¹é…çš„å…³é”®è¯`
+    : `${index}. Refresh one keyword pack for this channel`;
+}
+
+function earningCopyText(item) {
+  if (!item) return "";
+  const customTemplate = resolveEarningCopyTemplate(item);
+  if (customTemplate) {
+    return customTemplate;
+  }
+  const platform = item.platform || earningDisplayTitle(item);
+  const title = earningDisplayTitle(item);
+  const region = earningDisplayRegion(item);
+  const payout = earningDisplayPayout(item);
+  const categoryLabel = earningLabelForCategory(item.category);
+  const remoteLabel = earningRemoteLabel(item);
+  const difficulty = earningLabelForDifficulty(item.difficulty).toLowerCase();
+  const rawActions = earningDisplayActions(item);
+  const actions = rawActions.length
+    ? rawActions.slice(0, 3).map((action, index) => `- ${index + 1}. ${action}`)
+    : ["- " + fallbackEarningAction(currentLanguage === "zh" ? "å…ˆä»Ž 1 æ¡å²—ä½é“¾è·¯å¼€å§‹" : "Start with one strong posting flow", 1)];
+  const actionLines = currentLanguage === "zh"
+    ? [
+      "ä½ ä¹Ÿå¯ä»¥ç›´æŽ¥ç”¨é€™æ®µè¨Šæ¯æŠ•éž/ç§è¨Šï¼š",
+      "",
+      `æˆ‘æ­£åœ¨æ‰¾${categoryLabel}æ©Ÿæœƒï¼Œåå¥½${remoteLabel}ï¼Œç›®æ¨™åŸŽå¸‚/å€åŸŸï¼š${region}ã€‚`,
+      `æˆ‘åœ¨${platform}çš„é—œæ³¨é‡é»žæ˜¯é«˜æ•ˆçŽ‡æŠ•éžèˆ‡ç©©å®šå›žæ‡‰ã€‚é æœŸæ¢ä»¶ï¼š${payout}ã€‚`,
+      "",
+      "ä»Šæ—¥è¡Œå‹•ï¼š",
+      ...actions
+    ].join("\n")
+    : [
+      "You can send this directly in chats/applications:",
+      "",
+      `I am targeting ${categoryLabel} roles on ${platform} (${title}) with a ${remoteLabel.toLowerCase()} preference.`,
+      `Current region: ${region}. Typical target: ${payout}. Difficulty: ${difficulty}.`,
+      "",
+      "Today I will:",
+      ...actions
+    ].join("\n");
+  return currentLanguage === "zh" ? actionLines : actionLines;
+}
+
+async function copyTextToClipboard(text) {
+  const value = String(text || "").trim();
+  if (!value) return false;
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(value);
+      return true;
+    }
+  } catch {
+    // Fallback below.
+  }
+  try {
+    const textarea = document.createElement("textarea");
+    textarea.value = value;
+    textarea.setAttribute("readonly", "readonly");
+    textarea.style.position = "absolute";
+    textarea.style.left = "-9999px";
+    textarea.style.top = "-9999px";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    const copied = document.execCommand("copy");
+    document.body.removeChild(textarea);
+    return Boolean(copied);
+  } catch {
+    return false;
+  }
+}
+
+function visibleEarningOpportunities() {
+  const selected = earningOpportunities.filter(item => earningFilters[item.category]);
+  return (selected.length ? selected : earningOpportunities).slice(0, MAX_EARNING_OPPORTUNITIES);
+}
+
+function earningSourcesSummaryLabel() {
+  const active = Object.entries(earningFilters).filter(([, enabled]) => enabled).map(([key]) => t(`earningFilter${key.charAt(0).toUpperCase() + key.slice(1)}`));
+  if (!active.length) return "";
+  return `${t("earningFilterTitleLabel")}: ${active.join(", ")}`;
 }
 
 function normalizeMarketRangeHistories(histories) {
@@ -1987,61 +3333,61 @@ function translateCategory(category) {
 function translateLocationName(value) {
   if (!value) return t("world");
   const normalized = String(value).toLowerCase();
-  if (normalized === "unplaced" || normalized === "unmapped") return currentLanguage === "zh" ? "未定位" : "Unplaced";
+  if (normalized === "unplaced" || normalized === "unmapped") return currentLanguage === "zh" ? "æœªå®šä½" : "Unplaced";
   if (normalized === "world") return t("world");
   if (normalized === "global") return t("global");
   if (currentLanguage === "zh") {
     const names = {
-      beijing: "北京",
-      china: "中國",
-      tehran: "德黑蘭",
-      iran: "伊朗",
-      taipei: "台北",
-      taiwan: "台灣",
-      moscow: "莫斯科",
-      russia: "俄羅斯",
-      kyiv: "基輔",
-      kiev: "基輔",
-      ukraine: "烏克蘭",
-      gaza: "加薩",
-      "palestinian territories": "巴勒斯坦領土",
-      jerusalem: "耶路撒冷",
-      israel: "以色列",
-      lebanon: "黎巴嫩",
-      "abu dhabi": "阿布達比",
-      uae: "阿聯酋",
-      "united arab emirates": "阿聯酋",
-      riga: "里加",
-      latvia: "拉脫維亞",
-      havana: "哈瓦那",
-      cuba: "古巴",
-      caracas: "卡拉卡斯",
-      venezuela: "委內瑞拉",
-      washington: "華盛頓",
-      "united states": "美國",
-      "new york": "紐約",
-      london: "倫敦",
-      "united kingdom": "英國",
-      brussels: "布魯塞爾",
-      belgium: "比利時",
-      doha: "杜哈",
-      qatar: "卡達",
-      tokyo: "東京",
-      japan: "日本",
-      seoul: "首爾",
-      "south korea": "南韓",
-      "new delhi": "新德里",
-      india: "印度",
-      islamabad: "伊斯蘭堡",
-      pakistan: "巴基斯坦",
-      bangkok: "曼谷",
-      thailand: "泰國",
-      jakarta: "雅加達",
-      indonesia: "印尼",
-      sydney: "悉尼",
-      australia: "澳大利亞",
-      "sao paulo": "聖保羅",
-      brazil: "巴西"
+      beijing: "åŒ—äº¬",
+      china: "ä¸­åœ‹",
+      tehran: "å¾·é»‘è˜­",
+      iran: "ä¼Šæœ—",
+      taipei: "å°åŒ—",
+      taiwan: "å°ç£",
+      moscow: "èŽ«æ–¯ç§‘",
+      russia: "ä¿„ç¾…æ–¯",
+      kyiv: "åŸºè¼”",
+      kiev: "åŸºè¼”",
+      ukraine: "çƒå…‹è˜­",
+      gaza: "åŠ è–©",
+      "palestinian territories": "å·´å‹’æ–¯å¦é ˜åœŸ",
+      jerusalem: "è€¶è·¯æ’’å†·",
+      israel: "ä»¥è‰²åˆ—",
+      lebanon: "é»Žå·´å«©",
+      "abu dhabi": "é˜¿å¸ƒé”æ¯”",
+      uae: "é˜¿è¯é…‹",
+      "united arab emirates": "é˜¿è¯é…‹",
+      riga: "é‡ŒåŠ ",
+      latvia: "æ‹‰è„«ç¶­äºž",
+      havana: "å“ˆç“¦é‚£",
+      cuba: "å¤å·´",
+      caracas: "å¡æ‹‰å¡æ–¯",
+      venezuela: "å§”å…§ç‘žæ‹‰",
+      washington: "è¯ç››é “",
+      "united states": "ç¾Žåœ‹",
+      "new york": "ç´ç´„",
+      london: "å€«æ•¦",
+      "united kingdom": "è‹±åœ‹",
+      brussels: "å¸ƒé­¯å¡žçˆ¾",
+      belgium: "æ¯”åˆ©æ™‚",
+      doha: "æœå“ˆ",
+      qatar: "å¡é”",
+      tokyo: "æ±äº¬",
+      japan: "æ—¥æœ¬",
+      seoul: "é¦–çˆ¾",
+      "south korea": "å—éŸ“",
+      "new delhi": "æ–°å¾·é‡Œ",
+      india: "å°åº¦",
+      islamabad: "ä¼Šæ–¯è˜­å ¡",
+      pakistan: "å·´åŸºæ–¯å¦",
+      bangkok: "æ›¼è°·",
+      thailand: "æ³°åœ‹",
+      jakarta: "é›…åŠ é”",
+      indonesia: "å°å°¼",
+      sydney: "æ‚‰å°¼",
+      australia: "æ¾³å¤§åˆ©äºž",
+      "sao paulo": "è–ä¿ç¾…",
+      brazil: "å·´è¥¿"
     };
     if (names[normalized]) return names[normalized];
   }
@@ -2051,8 +3397,8 @@ function translateLocationName(value) {
 function normalizedReportKey(text) {
   return String(text || "")
     .toLowerCase()
-    .replace(/[‘’]/g, "'")
-    .replace(/[“”]/g, "\"")
+    .replace(/[â€˜â€™]/g, "'")
+    .replace(/[â€œâ€]/g, "\"")
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 }
@@ -2218,12 +3564,12 @@ function eventDedupeEntityTokens(event) {
     .map(normalizeDedupeWord)
     .filter(word => entityWords.has(word));
   const aliases = [
-    { pattern: /习近平|習近平/u, token: "xi" },
-    { pattern: /普京|普丁/u, token: "putin" },
-    { pattern: /川普|特朗普/u, token: "trump" },
-    { pattern: /中国|中國|访华|訪華/u, token: "china" },
-    { pattern: /北京/u, token: "beijing" },
-    { pattern: /俄中|中俄/u, token: "russia" }
+    { pattern: /ä¹ è¿‘å¹³|ç¿’è¿‘å¹³/u, token: "xi" },
+    { pattern: /æ™®äº¬|æ™®ä¸/u, token: "putin" },
+    { pattern: /å·æ™®|ç‰¹æœ—æ™®/u, token: "trump" },
+    { pattern: /ä¸­å›½|ä¸­åœ‹|è®¿åŽ|è¨ªè¯/u, token: "china" },
+    { pattern: /åŒ—äº¬/u, token: "beijing" },
+    { pattern: /ä¿„ä¸­|ä¸­ä¿„/u, token: "russia" }
   ];
   aliases.forEach(({ pattern, token }) => {
     if (pattern.test(rawText)) tokens.push(token);
@@ -2311,178 +3657,178 @@ function rewriteReportText(text) {
   if (!key) return "";
 
   if (key.includes("us senate") && key.includes("curb") && key.includes("war") && key.includes("iran")) {
-    return "美國參議院推進決議，限制川普對伊朗動武的權力";
+    return "ç¾Žåœ‹åƒè­°é™¢æŽ¨é€²æ±ºè­°ï¼Œé™åˆ¶å·æ™®å°ä¼Šæœ—å‹•æ­¦çš„æ¬ŠåŠ›";
   }
   if (key.includes("trump") && key.includes("rescue") && key.includes("venezuela")) {
-    return "委內瑞拉前總統馬杜羅遭美方帶走後，節目追問川普是否真的「拯救」了委內瑞拉";
+    return "å§”å…§ç‘žæ‹‰å‰ç¸½çµ±é¦¬æœç¾…é­ç¾Žæ–¹å¸¶èµ°å¾Œï¼Œç¯€ç›®è¿½å•å·æ™®æ˜¯å¦çœŸçš„ã€Œæ‹¯æ•‘ã€äº†å§”å…§ç‘žæ‹‰";
   }
   if (key.includes("venezuela") && key.includes("maduro")) {
-    return "委內瑞拉局勢與前總統馬杜羅遭美方帶走事件仍受關注";
+    return "å§”å…§ç‘žæ‹‰å±€å‹¢èˆ‡å‰ç¸½çµ±é¦¬æœç¾…é­ç¾Žæ–¹å¸¶èµ°äº‹ä»¶ä»å—é—œæ³¨";
   }
   if (key.includes("putin") && key.includes("arrives") && key.includes("beijing")) {
-    return "普京抵達北京展開訪問，緊接在川普訪華之後";
+    return "æ™®äº¬æŠµé”åŒ—äº¬å±•é–‹è¨ªå•ï¼Œç·ŠæŽ¥åœ¨å·æ™®è¨ªè¯ä¹‹å¾Œ";
   }
   if (key.includes("iran war") && key.includes("tehran warns") && key.includes("surprises")) {
-    return "德黑蘭警告若衝突恢復，伊朗將採取更多反制行動";
+    return "å¾·é»‘è˜­è­¦å‘Šè‹¥è¡çªæ¢å¾©ï¼Œä¼Šæœ—å°‡æŽ¡å–æ›´å¤šååˆ¶è¡Œå‹•";
   }
   if (key.includes("israeli strikes") && key.includes("lebanon") && key.includes("kill")) {
-    return "以色列空襲黎巴嫩造成至少 19 人死亡，與真主黨衝突仍在延燒";
+    return "ä»¥è‰²åˆ—ç©ºè¥²é»Žå·´å«©é€ æˆè‡³å°‘ 19 äººæ­»äº¡ï¼Œèˆ‡çœŸä¸»é»¨è¡çªä»åœ¨å»¶ç‡’";
   }
   if (key.includes("putin meets xi")) {
-    return "普京與習近平會面";
+    return "æ™®äº¬èˆ‡ç¿’è¿‘å¹³æœƒé¢";
   }
   if (key.includes("xi jinping") && key.includes("putin") && key.includes("meet") && key.includes("beijing")) {
-    return "習近平與普京在北京會面";
+    return "ç¿’è¿‘å¹³èˆ‡æ™®äº¬åœ¨åŒ—äº¬æœƒé¢";
   }
   if (key.includes("taiwan travelogue") && key.includes("booker prize")) {
-    return "《台灣漫遊錄》獲得 2026 年國際布克獎";
+    return "ã€Šå°ç£æ¼«éŠéŒ„ã€‹ç²å¾— 2026 å¹´åœ‹éš›å¸ƒå…‹çŽ";
   }
   if (key.includes("15 800") && key.includes("russia") && key.includes("ukraine")) {
-    return "聯合國稱俄烏全面戰爭已造成超過 15,800 人死亡";
+    return "è¯åˆåœ‹ç¨±ä¿„çƒå…¨é¢æˆ°çˆ­å·²é€ æˆè¶…éŽ 15,800 äººæ­»äº¡";
   }
   if (key.includes("ukraine") && key.includes("advantage")) {
-    return "烏克蘭把戰火推向俄羅斯境內，外界關注其是否取得階段優勢";
+    return "çƒå…‹è˜­æŠŠæˆ°ç«æŽ¨å‘ä¿„ç¾…æ–¯å¢ƒå…§ï¼Œå¤–ç•Œé—œæ³¨å…¶æ˜¯å¦å–å¾—éšŽæ®µå„ªå‹¢";
   }
   if (key.includes("jd vance") && key.includes("locked and loaded") && key.includes("iran")) {
-    return "JD 范斯稱美軍已準備重啟行動，伊朗則警告可能開闢新戰線";
+    return "JD èŒƒæ–¯ç¨±ç¾Žè»å·²æº–å‚™é‡å•Ÿè¡Œå‹•ï¼Œä¼Šæœ—å‰‡è­¦å‘Šå¯èƒ½é–‹é—¢æ–°æˆ°ç·š";
   }
   if (key.includes("middle east allies") && key.includes("iran war")) {
-    return "川普轉向中東盟友尋求協助，但結束伊朗戰爭的協議仍難產";
+    return "å·æ™®è½‰å‘ä¸­æ±ç›Ÿå‹å°‹æ±‚å”åŠ©ï¼Œä½†çµæŸä¼Šæœ—æˆ°çˆ­çš„å”è­°ä»é›£ç”¢";
   }
   if (key.includes("big hit") && key.includes("tehran") && key.includes("deal")) {
-    return "川普威脅若德黑蘭不盡快達成協議，美方可能發動重大打擊";
+    return "å·æ™®å¨è„…è‹¥å¾·é»‘è˜­ä¸ç›¡å¿«é”æˆå”è­°ï¼Œç¾Žæ–¹å¯èƒ½ç™¼å‹•é‡å¤§æ‰“æ“Š";
   }
   if (key.includes("putin arrives in china") && key.includes("xi jinping")) {
-    return "普京抵達中國，準備與習近平會談";
+    return "æ™®äº¬æŠµé”ä¸­åœ‹ï¼Œæº–å‚™èˆ‡ç¿’è¿‘å¹³æœƒè«‡";
   }
   if (key.includes("sanctions") && key.includes("gaza flotilla")) {
-    return "美國制裁加薩船隊組織者，遭批壓制巴勒斯坦聲援行動";
+    return "ç¾Žåœ‹åˆ¶è£åŠ è–©èˆ¹éšŠçµ„ç¹”è€…ï¼Œé­æ‰¹å£“åˆ¶å·´å‹’æ–¯å¦è²æ´è¡Œå‹•";
   }
   if (key.includes("us warns russia") && key.includes("latvia")) {
-    return "莫斯科威脅拉脫維亞後，美國向俄羅斯發出警告";
+    return "èŽ«æ–¯ç§‘å¨è„…æ‹‰è„«ç¶­äºžå¾Œï¼Œç¾Žåœ‹å‘ä¿„ç¾…æ–¯ç™¼å‡ºè­¦å‘Š";
   }
   if (key.includes("uae reactor") && key.includes("nuclear plant safety")) {
-    return "阿聯酋核反應堆附近遭襲，引發戰時核電安全擔憂";
+    return "é˜¿è¯é…‹æ ¸åæ‡‰å †é™„è¿‘é­è¥²ï¼Œå¼•ç™¼æˆ°æ™‚æ ¸é›»å®‰å…¨æ“”æ†‚";
   }
   if (key.includes("expel") && key.includes("palestinian") && key.includes("east jerusalem")) {
-    return "活動人士稱以色列正試圖驅逐東耶路撒冷一整個巴勒斯坦社區";
+    return "æ´»å‹•äººå£«ç¨±ä»¥è‰²åˆ—æ­£è©¦åœ–é©…é€æ±è€¶è·¯æ’’å†·ä¸€æ•´å€‹å·´å‹’æ–¯å¦ç¤¾å€";
   }
   if (key.includes("palestinian man") && key.includes("survival")) {
-    return "一名加薩巴勒斯坦老人回顧自己在流離失所與戰爭中的求生經歷";
+    return "ä¸€ååŠ è–©å·´å‹’æ–¯å¦è€äººå›žé¡§è‡ªå·±åœ¨æµé›¢å¤±æ‰€èˆ‡æˆ°çˆ­ä¸­çš„æ±‚ç”Ÿç¶“æ­·";
   }
   if (key.includes("putin visits china") || (key.includes("putin") && key.includes("china") && key.includes("russia ties"))) {
-    return "普京訪問中國，重申俄中關係並討論雙邊合作";
+    return "æ™®äº¬è¨ªå•ä¸­åœ‹ï¼Œé‡ç”³ä¿„ä¸­é—œä¿‚ä¸¦è¨Žè«–é›™é‚Šåˆä½œ";
   }
   if (key.includes("russia china ties") && key.includes("stabilising")) {
-    return "普京訪華前稱俄中關係是穩定世界的重要力量";
+    return "æ™®äº¬è¨ªè¯å‰ç¨±ä¿„ä¸­é—œä¿‚æ˜¯ç©©å®šä¸–ç•Œçš„é‡è¦åŠ›é‡";
   }
   if (key.includes("china shock") && key.includes("eu") && key.includes("imports")) {
-    return "歐盟產業對中國進口依賴升高，引發新一輪「中國衝擊」擔憂";
+    return "æ­ç›Ÿç”¢æ¥­å°ä¸­åœ‹é€²å£ä¾è³´å‡é«˜ï¼Œå¼•ç™¼æ–°ä¸€è¼ªã€Œä¸­åœ‹è¡æ“Šã€æ“”æ†‚";
   }
   if (key.includes("reliance on imports") && key.includes("china")) {
-    return "中國零組件進口增加，引發歐洲產業被擠壓與就業流失的警告";
+    return "ä¸­åœ‹é›¶çµ„ä»¶é€²å£å¢žåŠ ï¼Œå¼•ç™¼æ­æ´²ç”¢æ¥­è¢«æ“ å£“èˆ‡å°±æ¥­æµå¤±çš„è­¦å‘Š";
   }
   if (key.includes("repeated ultimatums") && key.includes("iran")) {
-    return "評論稱川普對伊朗反覆下最後通牒，暴露美方籌碼不足";
+    return "è©•è«–ç¨±å·æ™®å°ä¼Šæœ—åè¦†ä¸‹æœ€å¾Œé€šç‰’ï¼Œæš´éœ²ç¾Žæ–¹ç±Œç¢¼ä¸è¶³";
   }
   if (key.includes("barakah nuclear plant") && key.includes("drone")) {
-    return "無人機襲擊後，阿聯酋巴拉卡核電廠恢復供電";
+    return "ç„¡äººæ©Ÿè¥²æ“Šå¾Œï¼Œé˜¿è¯é…‹å·´æ‹‰å¡æ ¸é›»å» æ¢å¾©ä¾›é›»";
   }
   if (key.includes("projecting defiance") && key.includes("iran")) {
-    return "半島電視台稱伊朗領導層展現強硬姿態，拒絕美方壓力";
+    return "åŠå³¶é›»è¦–å°ç¨±ä¼Šæœ—é ˜å°Žå±¤å±•ç¾å¼·ç¡¬å§¿æ…‹ï¼Œæ‹’çµ•ç¾Žæ–¹å£“åŠ›";
   }
   if (key.includes("taiwan arms") && key.includes("negotiating chip")) {
-    return "川普把對台軍售稱為與北京談判籌碼，引發台灣不安並被中國媒體利用";
+    return "å·æ™®æŠŠå°å°è»å”®ç¨±ç‚ºèˆ‡åŒ—äº¬è«‡åˆ¤ç±Œç¢¼ï¼Œå¼•ç™¼å°ç£ä¸å®‰ä¸¦è¢«ä¸­åœ‹åª’é«”åˆ©ç”¨";
   }
   if (key.includes("pakistan army chief") && key.includes("tehran") && key.includes("us israeli war")) {
-    return "巴基斯坦陸軍參謀長訪問德黑蘭，推動結束美以對伊朗戰爭";
+    return "å·´åŸºæ–¯å¦é™¸è»åƒè¬€é•·è¨ªå•å¾·é»‘è˜­ï¼ŒæŽ¨å‹•çµæŸç¾Žä»¥å°ä¼Šæœ—æˆ°çˆ­";
   }
   if (key.includes("trump") && key.includes("us negotiators") && key.includes("iran") && key.includes("ceasefire proposal")) {
-    return "川普將會見美方談判代表，決定是否接受伊朗停火方案";
+    return "å·æ™®å°‡æœƒè¦‹ç¾Žæ–¹è«‡åˆ¤ä»£è¡¨ï¼Œæ±ºå®šæ˜¯å¦æŽ¥å—ä¼Šæœ—åœç«æ–¹æ¡ˆ";
   }
   if (key.includes("overnight israeli strikes") && key.includes("gaza") && key.includes("heavy destruction")) {
-    return "以色列夜間空襲加薩，造成大規模破壞";
+    return "ä»¥è‰²åˆ—å¤œé–“ç©ºè¥²åŠ è–©ï¼Œé€ æˆå¤§è¦æ¨¡ç ´å£ž";
   }
   if (key.includes("secretary of state") && key.includes("india visit") && key.includes("modi") && key.includes("white house")) {
-    return "美國國務卿訪問印度，邀請莫迪前往白宮";
+    return "ç¾Žåœ‹åœ‹å‹™å¿è¨ªå•å°åº¦ï¼Œé‚€è«‹èŽ«è¿ªå‰å¾€ç™½å®®";
   }
   if (key.includes("rubio") && key.includes("modi") && key.includes("india visit") && key.includes("energy")) {
-    return "盧比奧訪問印度會見莫迪，能源議題成為會談重點";
+    return "ç›§æ¯”å¥§è¨ªå•å°åº¦æœƒè¦‹èŽ«è¿ªï¼Œèƒ½æºè­°é¡Œæˆç‚ºæœƒè«‡é‡é»ž";
   }
   if (key.includes("double tap strike") && key.includes("medics") && key.includes("toddler") && key.includes("lebanon")) {
-    return "影片顯示以色列二次打擊在黎巴嫩造成醫護與幼童死亡";
+    return "å½±ç‰‡é¡¯ç¤ºä»¥è‰²åˆ—äºŒæ¬¡æ‰“æ“Šåœ¨é»Žå·´å«©é€ æˆé†«è­·èˆ‡å¹¼ç«¥æ­»äº¡";
   }
   if (key.includes("california") && key.includes("state of emergency") && key.includes("toxic chemical leak")) {
-    return "加州因有毒化學品洩漏宣布進入緊急狀態";
+    return "åŠ å·žå› æœ‰æ¯’åŒ–å­¸å“æ´©æ¼å®£å¸ƒé€²å…¥ç·Šæ€¥ç‹€æ…‹";
   }
   if (key.includes("cristian mungiu") && key.includes("fjord") && key.includes("cannes")) {
-    return "羅馬尼亞導演克里斯蒂安·蒙久的《Fjord》獲得坎城最高獎";
+    return "ç¾…é¦¬å°¼äºžå°Žæ¼”å…‹é‡Œæ–¯è’‚å®‰ ï¿½ è’™ä¹…çš„ã€ŠFjordã€‹ç²å¾—åŽåŸŽæœ€é«˜çŽ";
   }
   if (key.includes("coal mine explosion") && key.includes("china") && key.includes("82")) {
-    return "中國煤礦爆炸造成至少 82 人死亡";
+    return "ä¸­åœ‹ç…¤ç¤¦çˆ†ç‚¸é€ æˆè‡³å°‘ 82 äººæ­»äº¡";
   }
   if (key.includes("jacinta allan") && key.includes("apprenticeships") && key.includes("labor conference")) {
-    return "澳洲維州州長艾倫在工黨會議上推出政府資助學徒計畫";
+    return "æ¾³æ´²ç¶­å·žå·žé•·è‰¾å€«åœ¨å·¥é»¨æœƒè­°ä¸ŠæŽ¨å‡ºæ”¿åºœè³‡åŠ©å­¸å¾’è¨ˆç•«";
   }
   if (key.includes("ufo sighting reports") && key.includes("orbs")) {
-    return "美國政府公開 UFO 目擊報告，稱曾出現大量球狀物體";
+    return "ç¾Žåœ‹æ”¿åºœå…¬é–‹ UFO ç›®æ“Šå ±å‘Šï¼Œç¨±æ›¾å‡ºç¾å¤§é‡çƒç‹€ç‰©é«”";
   }
   if (key.includes("trump") && key.includes("taiwan") && key.includes("china")) {
-    return "川普涉台說法引發關注，中國媒體借題發揮";
+    return "å·æ™®æ¶‰å°èªªæ³•å¼•ç™¼é—œæ³¨ï¼Œä¸­åœ‹åª’é«”å€Ÿé¡Œç™¼æ®";
   }
   if (key.includes("middle east crisis") && key.includes("iran") && key.includes("nuclear")) {
-    return "中東危機升溫，川普稱有機會達成協議阻止伊朗取得核武";
+    return "ä¸­æ±å±æ©Ÿå‡æº«ï¼Œå·æ™®ç¨±æœ‰æ©Ÿæœƒé”æˆå”è­°é˜»æ­¢ä¼Šæœ—å–å¾—æ ¸æ­¦";
   }
   if ((key.includes("called off") || key.includes("call off")) && key.includes("iran") && (key.includes("strike") || key.includes("attack"))) {
-    return "川普稱應海灣盟友要求取消對伊朗攻擊";
+    return "å·æ™®ç¨±æ‡‰æµ·ç£ç›Ÿå‹è¦æ±‚å–æ¶ˆå°ä¼Šæœ—æ”»æ“Š";
   }
   if (key.includes("iran war") && key.includes("gulf")) {
-    return "伊朗戰爭局勢更新：川普稱應海灣盟友要求推遲攻擊";
+    return "ä¼Šæœ—æˆ°çˆ­å±€å‹¢æ›´æ–°ï¼šå·æ™®ç¨±æ‡‰æµ·ç£ç›Ÿå‹è¦æ±‚æŽ¨é²æ”»æ“Š";
   }
   if (key.includes("called off") && key.includes("iran attack")) {
-    return "川普稱應海灣國家要求取消新一輪對伊朗攻擊";
+    return "å·æ™®ç¨±æ‡‰æµ·ç£åœ‹å®¶è¦æ±‚å–æ¶ˆæ–°ä¸€è¼ªå°ä¼Šæœ—æ”»æ“Š";
   }
   if (key.includes("planned attack") && key.includes("iran") && key.includes("proposal")) {
-    return "德黑蘭提出新方案後，川普稱對伊朗攻擊計畫已推遲";
+    return "å¾·é»‘è˜­æå‡ºæ–°æ–¹æ¡ˆå¾Œï¼Œå·æ™®ç¨±å°ä¼Šæœ—æ”»æ“Šè¨ˆç•«å·²æŽ¨é²";
   }
   if (key.includes("scheduled attack") && key.includes("serious negotiations")) {
-    return "川普稱因認真談判正在進行，推遲對伊朗的預定攻擊";
+    return "å·æ™®ç¨±å› èªçœŸè«‡åˆ¤æ­£åœ¨é€²è¡Œï¼ŒæŽ¨é²å°ä¼Šæœ—çš„é å®šæ”»æ“Š";
   }
   if (key.includes("death toll") && key.includes("lebanon")) {
-    return "以色列空襲黎巴嫩造成的死亡人數超過 3,000 人";
+    return "ä»¥è‰²åˆ—ç©ºè¥²é»Žå·´å«©é€ æˆçš„æ­»äº¡äººæ•¸è¶…éŽ 3,000 äºº";
   }
   if (key.includes("cuba") && key.includes("bloodbath")) {
-    return "古巴警告美國，若採取軍事行動恐造成災難性後果";
+    return "å¤å·´è­¦å‘Šç¾Žåœ‹ï¼Œè‹¥æŽ¡å–è»äº‹è¡Œå‹•æé€ æˆç½é›£æ€§å¾Œæžœ";
   }
   if (key.includes("xi") && key.includes("putin") && key.includes("china")) {
-    return "習近平接待川普後，準備在中國迎接普丁";
+    return "ç¿’è¿‘å¹³æŽ¥å¾…å·æ™®å¾Œï¼Œæº–å‚™åœ¨ä¸­åœ‹è¿ŽæŽ¥æ™®ä¸";
   }
   if (key.includes("fuel shortages") || key.includes("ryanair")) {
-    return "瑞安航空稱燃油供應暫無重大風險，但警告票價可能上漲";
+    return "ç‘žå®‰èˆªç©ºç¨±ç‡ƒæ²¹ä¾›æ‡‰æš«ç„¡é‡å¤§é¢¨éšªï¼Œä½†è­¦å‘Šç¥¨åƒ¹å¯èƒ½ä¸Šæ¼²";
   }
   if (key.includes("clock is ticking") && key.includes("iran")) {
-    return "和平進展停滯之際，川普警告伊朗時間不多";
+    return "å’Œå¹³é€²å±•åœæ»¯ä¹‹éš›ï¼Œå·æ™®è­¦å‘Šä¼Šæœ—æ™‚é–“ä¸å¤š";
   }
   if (key.includes("ukraine") && key.includes("drone") && key.includes("russia")) {
-    return "烏克蘭對俄羅斯發動大規模無人機攻擊";
+    return "çƒå…‹è˜­å°ä¿„ç¾…æ–¯ç™¼å‹•å¤§è¦æ¨¡ç„¡äººæ©Ÿæ”»æ“Š";
   }
   if (key.includes("north korea") && key.includes("nuclear")) {
-    return "北韓認為核武避免了伊朗式命運";
+    return "åŒ—éŸ“èªç‚ºæ ¸æ­¦é¿å…äº†ä¼Šæœ—å¼å‘½é‹";
   }
   if (key.includes("u s") && key.includes("israel") && key.includes("iran")) {
-    return "美國與以色列準備可能重新與伊朗爆發全面戰爭";
+    return "ç¾Žåœ‹èˆ‡ä»¥è‰²åˆ—æº–å‚™å¯èƒ½é‡æ–°èˆ‡ä¼Šæœ—çˆ†ç™¼å…¨é¢æˆ°çˆ­";
   }
   if (key.includes("uae") && key.includes("nuclear plant")) {
-    return "阿聯酋通報核電廠附近遭攻擊，地區風險升高";
+    return "é˜¿è¯é…‹é€šå ±æ ¸é›»å» é™„è¿‘é­æ”»æ“Šï¼Œåœ°å€é¢¨éšªå‡é«˜";
   }
   if (key.includes("taiwan") && key.includes("sovereignty")) {
-    return "台灣總統表示不會挑釁衝突，也不會放棄主權";
+    return "å°ç£ç¸½çµ±è¡¨ç¤ºä¸æœƒæŒ‘é‡è¡çªï¼Œä¹Ÿä¸æœƒæ”¾æ£„ä¸»æ¬Š";
   }
   if (key.includes("political executions") && key.includes("iran")) {
-    return "戰爭開始後，伊朗政治處決人數激增";
+    return "æˆ°çˆ­é–‹å§‹å¾Œï¼Œä¼Šæœ—æ”¿æ²»è™•æ±ºäººæ•¸æ¿€å¢ž";
   }
   if (key.includes("kill zone") && key.includes("ukraine")) {
-    return "烏克蘭前線武器變化正在改變戰爭形態";
+    return "çƒå…‹è˜­å‰ç·šæ­¦å™¨è®ŠåŒ–æ­£åœ¨æ”¹è®Šæˆ°çˆ­å½¢æ…‹";
   }
 
   return "";
@@ -2490,134 +3836,134 @@ function rewriteReportText(text) {
 
 function buildReportBrief(key, originalText = "") {
   const people = [];
-  if (key.includes("trump")) people.push("川普");
-  if (key.includes("jd vance")) people.push("JD 范斯");
-  if (key.includes("xi")) people.push("習近平");
-  if (key.includes("putin")) people.push("普京");
-  if (key.includes("zelensky")) people.push("澤連斯基");
-  if (key.includes("kim jong un") || key.includes("north korea")) people.push("金正恩");
+  if (key.includes("trump")) people.push("å·æ™®");
+  if (key.includes("jd vance")) people.push("JD èŒƒæ–¯");
+  if (key.includes("xi")) people.push("ç¿’è¿‘å¹³");
+  if (key.includes("putin")) people.push("æ™®äº¬");
+  if (key.includes("zelensky")) people.push("æ¾¤é€£æ–¯åŸº");
+  if (key.includes("kim jong un") || key.includes("north korea")) people.push("é‡‘æ­£æ©");
 
   const places = [];
-  if (key.includes("iran") || key.includes("tehran")) places.push("伊朗");
-  if (key.includes("taiwan") || key.includes("taipei")) places.push("台灣");
-  if (key.includes("china") || key.includes("beijing")) places.push("中國");
-  if (key.includes("u s") || key.includes("us ") || key.includes("united states") || key.includes("washington")) places.push("美國");
-  if (key.includes("russia") || key.includes("moscow")) places.push("俄羅斯");
-  if (key.includes("ukraine") || key.includes("kyiv")) places.push("烏克蘭");
-  if (key.includes("israel")) places.push("以色列");
-  if (key.includes("lebanon")) places.push("黎巴嫩");
-  if (key.includes("gaza") || key.includes("palestinian")) places.push("巴勒斯坦");
-  if (key.includes("jerusalem")) places.push("耶路撒冷");
-  if (key.includes("latvia")) places.push("拉脫維亞");
-  if (key.includes("uae") || key.includes("abu dhabi")) places.push("阿聯酋");
-  if (key.includes("cuba")) places.push("古巴");
-  if (key.includes("eu ") || key.includes("europe")) places.push("歐洲");
+  if (key.includes("iran") || key.includes("tehran")) places.push("ä¼Šæœ—");
+  if (key.includes("taiwan") || key.includes("taipei")) places.push("å°ç£");
+  if (key.includes("china") || key.includes("beijing")) places.push("ä¸­åœ‹");
+  if (key.includes("u s") || key.includes("us ") || key.includes("united states") || key.includes("washington")) places.push("ç¾Žåœ‹");
+  if (key.includes("russia") || key.includes("moscow")) places.push("ä¿„ç¾…æ–¯");
+  if (key.includes("ukraine") || key.includes("kyiv")) places.push("çƒå…‹è˜­");
+  if (key.includes("israel")) places.push("ä»¥è‰²åˆ—");
+  if (key.includes("lebanon")) places.push("é»Žå·´å«©");
+  if (key.includes("gaza") || key.includes("palestinian")) places.push("å·´å‹’æ–¯å¦");
+  if (key.includes("jerusalem")) places.push("è€¶è·¯æ’’å†·");
+  if (key.includes("latvia")) places.push("æ‹‰è„«ç¶­äºž");
+  if (key.includes("uae") || key.includes("abu dhabi")) places.push("é˜¿è¯é…‹");
+  if (key.includes("cuba")) places.push("å¤å·´");
+  if (key.includes("eu ") || key.includes("europe")) places.push("æ­æ´²");
 
   let issue = "";
-  if (key.includes("nuclear")) issue = "核議題";
-  else if (key.includes("sanctions")) issue = "制裁";
-  else if (key.includes("resolution") || key.includes("senate")) issue = "國會決議";
-  else if (key.includes("strike") || key.includes("attack") || key.includes("drone")) issue = "軍事行動";
-  else if (key.includes("war")) issue = "戰事";
-  else if (key.includes("talks") || key.includes("negotiations") || key.includes("deal")) issue = "談判";
-  else if (key.includes("sovereignty") || key.includes("independent")) issue = "主權議題";
-  else if (key.includes("imports") || key.includes("industry") || key.includes("debt")) issue = "經濟風險";
-  else if (key.includes("fuel") || key.includes("airline")) issue = "能源與航運成本";
-  else if (key.includes("booker prize") || key.includes("travelogue")) issue = "文學獎項";
-  else if (key.includes("survival") || key.includes("expel")) issue = "人道處境";
+  if (key.includes("nuclear")) issue = "æ ¸è­°é¡Œ";
+  else if (key.includes("sanctions")) issue = "åˆ¶è£";
+  else if (key.includes("resolution") || key.includes("senate")) issue = "åœ‹æœƒæ±ºè­°";
+  else if (key.includes("strike") || key.includes("attack") || key.includes("drone")) issue = "è»äº‹è¡Œå‹•";
+  else if (key.includes("war")) issue = "æˆ°äº‹";
+  else if (key.includes("talks") || key.includes("negotiations") || key.includes("deal")) issue = "è«‡åˆ¤";
+  else if (key.includes("sovereignty") || key.includes("independent")) issue = "ä¸»æ¬Šè­°é¡Œ";
+  else if (key.includes("imports") || key.includes("industry") || key.includes("debt")) issue = "ç¶“æ¿Ÿé¢¨éšª";
+  else if (key.includes("fuel") || key.includes("airline")) issue = "èƒ½æºèˆ‡èˆªé‹æˆæœ¬";
+  else if (key.includes("booker prize") || key.includes("travelogue")) issue = "æ–‡å­¸çŽé …";
+  else if (key.includes("survival") || key.includes("expel")) issue = "äººé“è™•å¢ƒ";
 
   let action = "";
-  if (key.includes("warn") || key.includes("warning")) action = "發出警告";
-  else if (key.includes("says") || key.includes("said") || key.includes("claims")) action = "作出表態";
-  else if (key.includes("postponed") || key.includes("delays") || key.includes("pauses") || key.includes("called off")) action = "暫緩行動";
-  else if (key.includes("launches") || key.includes("conducts")) action = "展開行動";
-  else if (key.includes("advances")) action = "向前推進";
-  else if (key.includes("imposes")) action = "正式實施";
-  else if (key.includes("kill") || key.includes("killed")) action = "造成死傷";
-  else if (key.includes("wins")) action = "獲得肯定";
-  else if (key.includes("meets") || key.includes("arrives")) action = "展開高層互動";
-  else if (key.includes("prepare") || key.includes("ready")) action = "加緊準備";
-  else if (key.includes("visits") || key.includes("welcome")) action = "安排高層互動";
-  else if (key.includes("fears") || key.includes("concerns")) action = "引發擔憂";
+  if (key.includes("warn") || key.includes("warning")) action = "ç™¼å‡ºè­¦å‘Š";
+  else if (key.includes("says") || key.includes("said") || key.includes("claims")) action = "ä½œå‡ºè¡¨æ…‹";
+  else if (key.includes("postponed") || key.includes("delays") || key.includes("pauses") || key.includes("called off")) action = "æš«ç·©è¡Œå‹•";
+  else if (key.includes("launches") || key.includes("conducts")) action = "å±•é–‹è¡Œå‹•";
+  else if (key.includes("advances")) action = "å‘å‰æŽ¨é€²";
+  else if (key.includes("imposes")) action = "æ­£å¼å¯¦æ–½";
+  else if (key.includes("kill") || key.includes("killed")) action = "é€ æˆæ­»å‚·";
+  else if (key.includes("wins")) action = "ç²å¾—è‚¯å®š";
+  else if (key.includes("meets") || key.includes("arrives")) action = "å±•é–‹é«˜å±¤äº’å‹•";
+  else if (key.includes("prepare") || key.includes("ready")) action = "åŠ ç·Šæº–å‚™";
+  else if (key.includes("visits") || key.includes("welcome")) action = "å®‰æŽ’é«˜å±¤äº’å‹•";
+  else if (key.includes("fears") || key.includes("concerns")) action = "å¼•ç™¼æ“”æ†‚";
   else action = genericReportAction(key);
   if (!action) return cleanFallbackHeadline(originalText || key);
 
-  const actor = people.length ? people.join("、") : "";
-  const area = places.length ? places.slice(0, 3).join("、") : "";
+  const actor = people.length ? people.join("ã€") : "";
+  const area = places.length ? places.slice(0, 3).join("ã€") : "";
 
-  if (actor && area && issue) return `${actor}圍繞${area}${issue}${action}`;
+  if (actor && area && issue) return `${actor}åœç¹ž${area}${issue}${action}`;
   if (area && issue) return `${area}${issue}${action}`;
-  if (actor && issue) return `${actor}就${issue}${action}`;
+  if (actor && issue) return `${actor}å°±${issue}${action}`;
   if (area) return `${area}${action}`;
   if (issue) return `${issue}${action}`;
   return compactKeywordBrief(key, originalText);
 }
 
 function genericReportAction(key) {
-  if (key.includes("support") || key.includes("supports") || key.includes("backs") || key.includes("hails")) return "獲得公開支持";
-  if (key.includes("pressure") || key.includes("crisis") || key.includes("tensions")) return "壓力升高";
-  if (key.includes("risk") || key.includes("threat")) return "風險升高";
-  if (key.includes("talk") || key.includes("negotiation") || key.includes("deal")) return "談判推進";
+  if (key.includes("support") || key.includes("supports") || key.includes("backs") || key.includes("hails")) return "ç²å¾—å…¬é–‹æ”¯æŒ";
+  if (key.includes("pressure") || key.includes("crisis") || key.includes("tensions")) return "å£“åŠ›å‡é«˜";
+  if (key.includes("risk") || key.includes("threat")) return "é¢¨éšªå‡é«˜";
+  if (key.includes("talk") || key.includes("negotiation") || key.includes("deal")) return "è«‡åˆ¤æŽ¨é€²";
   return "";
 }
 
 function compactKeywordBrief(key, originalText = "") {
   const dictionary = {
-    diplomacy: "外交",
-    diplomatic: "外交",
-    summit: "峰會",
-    pressure: "壓力",
-    crisis: "危機",
-    conflict: "衝突",
-    ceasefire: "停火",
-    allies: "盟友",
-    president: "總統",
-    government: "政府",
-    economy: "經濟",
-    cooperation: "合作",
-    relations: "關係",
-    rescue: "拯救",
-    podcast: "節目",
-    venezuela: "委內瑞拉",
-    maduro: "馬杜羅",
-    rights: "人權",
-    activists: "活動人士",
-    safety: "安全",
-    wartime: "戰時",
-    military: "軍事",
-    campaign: "軍事行動",
-    power: "權力",
-    international: "國際",
-    regional: "區域",
-    issues: "議題",
-    senate: "參議院",
-    resolution: "決議",
-    curb: "限制",
-    wage: "發動",
-    war: "戰爭",
-    iran: "伊朗",
-    russia: "俄羅斯",
-    china: "中國",
-    taiwan: "台灣",
-    ukraine: "烏克蘭",
-    gaza: "加薩",
-    israel: "以色列",
-    lebanon: "黎巴嫩",
-    sanctions: "制裁",
-    nuclear: "核議題",
-    strike: "攻擊",
-    attack: "攻擊",
-    drone: "無人機",
-    talks: "會談",
-    deal: "協議",
-    killed: "死亡",
-    warns: "警告",
-    visits: "訪問",
-    arrives: "抵達",
-    meets: "會面",
-    prize: "獎項",
-    industry: "產業",
-    imports: "進口"
+    diplomacy: "å¤–äº¤",
+    diplomatic: "å¤–äº¤",
+    summit: "å³°æœƒ",
+    pressure: "å£“åŠ›",
+    crisis: "å±æ©Ÿ",
+    conflict: "è¡çª",
+    ceasefire: "åœç«",
+    allies: "ç›Ÿå‹",
+    president: "ç¸½çµ±",
+    government: "æ”¿åºœ",
+    economy: "ç¶“æ¿Ÿ",
+    cooperation: "åˆä½œ",
+    relations: "é—œä¿‚",
+    rescue: "æ‹¯æ•‘",
+    podcast: "ç¯€ç›®",
+    venezuela: "å§”å…§ç‘žæ‹‰",
+    maduro: "é¦¬æœç¾…",
+    rights: "äººæ¬Š",
+    activists: "æ´»å‹•äººå£«",
+    safety: "å®‰å…¨",
+    wartime: "æˆ°æ™‚",
+    military: "è»äº‹",
+    campaign: "è»äº‹è¡Œå‹•",
+    power: "æ¬ŠåŠ›",
+    international: "åœ‹éš›",
+    regional: "å€åŸŸ",
+    issues: "è­°é¡Œ",
+    senate: "åƒè­°é™¢",
+    resolution: "æ±ºè­°",
+    curb: "é™åˆ¶",
+    wage: "ç™¼å‹•",
+    war: "æˆ°çˆ­",
+    iran: "ä¼Šæœ—",
+    russia: "ä¿„ç¾…æ–¯",
+    china: "ä¸­åœ‹",
+    taiwan: "å°ç£",
+    ukraine: "çƒå…‹è˜­",
+    gaza: "åŠ è–©",
+    israel: "ä»¥è‰²åˆ—",
+    lebanon: "é»Žå·´å«©",
+    sanctions: "åˆ¶è£",
+    nuclear: "æ ¸è­°é¡Œ",
+    strike: "æ”»æ“Š",
+    attack: "æ”»æ“Š",
+    drone: "ç„¡äººæ©Ÿ",
+    talks: "æœƒè«‡",
+    deal: "å”è­°",
+    killed: "æ­»äº¡",
+    warns: "è­¦å‘Š",
+    visits: "è¨ªå•",
+    arrives: "æŠµé”",
+    meets: "æœƒé¢",
+    prize: "çŽé …",
+    industry: "ç”¢æ¥­",
+    imports: "é€²å£"
   };
   const stopWords = new Set([
     "a", "an", "the", "to", "of", "on", "in", "for", "and", "or", "as", "it", "is", "are",
@@ -2643,57 +3989,57 @@ function translateReportText(text) {
 
   const normalized = text.replace(/\s+/g, " ").trim();
   const exact = {
-    "‘Multipolar world’: What Xi and Putin announced after Beijing summit": "北京峰會後，習近平與普京宣布推動「多極世界」",
-    "'Multipolar world': What Xi and Putin announced after Beijing summit": "北京峰會後，習近平與普京宣布推動「多極世界」",
-    "Lithuanian leaders rushed to bunkers as drone violates country’s airspace": "無人機侵犯立陶宛領空，立陶宛領導人緊急進入掩體",
-    "Lithuanian leaders rushed to bunkers as drone violates country's airspace": "無人機侵犯立陶宛領空，立陶宛領導人緊急進入掩體",
-    "Did Trump really rescue Venezuela? – podcast": "節目追問川普是否真的改變了委內瑞拉局勢",
-    "Did Trump really rescue Venezuela? - podcast": "節目追問川普是否真的改變了委內瑞拉局勢",
-    "Death toll from Israeli strikes on Lebanon passes 3,000, officials say": "以色列空襲黎巴嫩造成的死亡人數超過 3,000 人，官員表示",
-    "Trump’s shifting remarks on Taiwan are perfect for China to exploit": "川普對台灣說法反覆，正好給中國操作空間",
-    "Trump's shifting remarks on Taiwan are perfect for China to exploit": "川普對台灣說法反覆，正好給中國操作空間",
-    "Middle East crisis live: Trump claims ‘very good chance’ of deal to prevent Iran obtaining nuclear weapon": "中東危機直播：川普稱很有機會達成協議，阻止伊朗取得核武",
-    "Middle East crisis live: Trump claims 'very good chance' of deal to prevent Iran obtaining nuclear weapon": "中東危機直播：川普稱很有機會達成協議，阻止伊朗取得核武",
-    "Iran war live: Trump says Iran attack postponed at request of Gulf allies": "伊朗戰爭直播：川普稱應海灣盟友要求推遲攻擊伊朗",
-    "Trump claims planned attack on Iran postponed after Tehran makes new proposal to end war": "川普稱德黑蘭提出停戰新方案後，對伊朗攻擊計畫已推遲",
-    "Xi prepares to welcome Putin to China four days after hosting Trump": "習近平接待川普四天後，準備在中國迎接普丁",
-    "At least 87 Gaza aid flotilla activists abducted by Israel on hunger strike": "至少87名加薩援助船隊活動人士遭以色列扣押後絕食",
-    "Kenya transport strike paused after deadly protests": "肯亞交通罷工在致命抗議後暫停",
-    "Ryanair has ‘near-zero concerns’ on fuel shortages but warns of future price rises": "瑞安航空稱幾乎不擔心燃油短缺，但警告未來票價可能上漲",
-    "Ryanair has 'near-zero concerns' on fuel shortages but warns of future price rises": "瑞安航空稱幾乎不擔心燃油短缺，但警告未來票價可能上漲",
-    "Trump warns 'clock is ticking' for Iran as peace progress stalls": "和平進展停滯之際，川普警告伊朗「時間不多了」",
-    "Ukraine launches large-scale drone strikes on Russia": "烏克蘭對俄羅斯發動大規模無人機攻擊",
-    "North Korea is relieved its nuclear weapons have prevented a fate like Iran's": "北韓認為核武避免了伊朗式命運，因而感到放心",
-    "U.S. and Israel prepare for potential return to full-scale war with Iran": "美國與以色列準備可能重新與伊朗爆發全面戰爭",
-    "UAE blames Iran or proxies for strike near nuclear plant, as Trump tells Tehran ‘clock is ticking’": "阿聯酋指責伊朗或其代理人攻擊核電廠附近，川普則警告德黑蘭時間不多",
-    "UAE blames Iran or proxies for strike near nuclear plant, as Trump tells Tehran 'clock is ticking'": "阿聯酋指責伊朗或其代理人攻擊核電廠附近，川普則警告德黑蘭時間不多",
-    "UAE reports strike near Abu Dhabi nuclear power plant": "阿聯酋通報阿布達比核電廠附近遭到攻擊",
-    "Ukraine conducts large-scale drone strikes on Russia, killing 4 and wounding 12 others": "烏克蘭對俄羅斯發動大規模無人機攻擊，造成 4 死 12 傷",
-    "Large-scale Ukrainian drone attack kills three in Moscow region, says Russia": "俄羅斯稱，烏克蘭大規模無人機攻擊造成莫斯科地區 3 人死亡",
-    "'This may be the last time you hear my voice': Political executions surge in Iran since start of war": "「這可能是你最後一次聽到我的聲音」：戰爭開始後伊朗政治處決激增",
-    "Inside the 'kill-zone' on Ukraine's front line, where new weapons have transformed war": "走進烏克蘭前線「殺傷區」：新武器正在改變戰爭",
-    "Cuba warns US of ‘bloodbath’ if military action follows drone claims": "古巴警告美國：若因無人機指控採取軍事行動，將造成「血洗」",
-    "Cuba warns US of 'bloodbath' if military action follows drone claims": "古巴警告美國：若因無人機指控採取軍事行動，將造成「血洗」",
-    "Middle East crisis live: Trump claims ‘very good chance’ of deal to prevent Iran strike": "中東危機直播：川普稱有「很大機會」達成協議以避免攻擊伊朗",
-    "Trump says he called off new Iran attack at request of Gulf states": "川普稱應海灣國家要求取消新一輪對伊朗攻擊",
-    "Trump told Taiwan not to 'go independent' - but does it want to?": "川普要求台灣不要走向獨立，台灣內部意向再受檢視",
-    "Trump pauses possible Iran strike after Gulf intervention": "海灣國家介入後，川普暫緩可能的伊朗打擊",
-    "Trump claims planned attack on Iran postponed after Tehran makes new proposal": "川普稱伊朗提出新方案後，原定攻擊計畫已被推遲",
-    "Trump delays ‘scheduled attack’ on Iran, crediting ‘serious negotiations’": "川普因「認真談判」推遲對伊朗的「預定攻擊」",
-    "Trump delays 'scheduled attack' on Iran, crediting 'serious negotiations'": "川普因「認真談判」推遲對伊朗的「預定攻擊」",
-    "Could the Iran war trigger the next debt shock?": "伊朗戰爭可能引發下一波債務衝擊",
-    "Drone strikes UAE nuclear plant highlighting risk of renewed war": "無人機攻擊阿聯酋核電廠，凸顯戰火重燃風險",
-    "Taiwan will not provoke conflict nor give up sovereignty, says president": "台灣不會挑釁衝突，也不會放棄主權，總統表示",
-    "Taiwan insists it is independent after Trump warning": "川普警告後，台灣堅稱自身獨立"
+    "â€˜Multipolar worldâ€™: What Xi and Putin announced after Beijing summit": "åŒ—äº¬å³°æœƒå¾Œï¼Œç¿’è¿‘å¹³èˆ‡æ™®äº¬å®£å¸ƒæŽ¨å‹•ã€Œå¤šæ¥µä¸–ç•Œã€",
+    "'Multipolar world': What Xi and Putin announced after Beijing summit": "åŒ—äº¬å³°æœƒå¾Œï¼Œç¿’è¿‘å¹³èˆ‡æ™®äº¬å®£å¸ƒæŽ¨å‹•ã€Œå¤šæ¥µä¸–ç•Œã€",
+    "Lithuanian leaders rushed to bunkers as drone violates countryâ€™s airspace": "ç„¡äººæ©Ÿä¾µçŠ¯ç«‹é™¶å®›é ˜ç©ºï¼Œç«‹é™¶å®›é ˜å°Žäººç·Šæ€¥é€²å…¥æŽ©é«”",
+    "Lithuanian leaders rushed to bunkers as drone violates country's airspace": "ç„¡äººæ©Ÿä¾µçŠ¯ç«‹é™¶å®›é ˜ç©ºï¼Œç«‹é™¶å®›é ˜å°Žäººç·Šæ€¥é€²å…¥æŽ©é«”",
+    "Did Trump really rescue Venezuela? â€“ podcast": "ç¯€ç›®è¿½å•å·æ™®æ˜¯å¦çœŸçš„æ”¹è®Šäº†å§”å…§ç‘žæ‹‰å±€å‹¢",
+    "Did Trump really rescue Venezuela? - podcast": "ç¯€ç›®è¿½å•å·æ™®æ˜¯å¦çœŸçš„æ”¹è®Šäº†å§”å…§ç‘žæ‹‰å±€å‹¢",
+    "Death toll from Israeli strikes on Lebanon passes 3,000, officials say": "ä»¥è‰²åˆ—ç©ºè¥²é»Žå·´å«©é€ æˆçš„æ­»äº¡äººæ•¸è¶…éŽ 3,000 äººï¼Œå®˜å“¡è¡¨ç¤º",
+    "Trumpâ€™s shifting remarks on Taiwan are perfect for China to exploit": "å·æ™®å°å°ç£èªªæ³•åè¦†ï¼Œæ­£å¥½çµ¦ä¸­åœ‹æ“ä½œç©ºé–“",
+    "Trump's shifting remarks on Taiwan are perfect for China to exploit": "å·æ™®å°å°ç£èªªæ³•åè¦†ï¼Œæ­£å¥½çµ¦ä¸­åœ‹æ“ä½œç©ºé–“",
+    "Middle East crisis live: Trump claims â€˜very good chanceâ€™ of deal to prevent Iran obtaining nuclear weapon": "ä¸­æ±å±æ©Ÿç›´æ’­ï¼šå·æ™®ç¨±å¾ˆæœ‰æ©Ÿæœƒé”æˆå”è­°ï¼Œé˜»æ­¢ä¼Šæœ—å–å¾—æ ¸æ­¦",
+    "Middle East crisis live: Trump claims 'very good chance' of deal to prevent Iran obtaining nuclear weapon": "ä¸­æ±å±æ©Ÿç›´æ’­ï¼šå·æ™®ç¨±å¾ˆæœ‰æ©Ÿæœƒé”æˆå”è­°ï¼Œé˜»æ­¢ä¼Šæœ—å–å¾—æ ¸æ­¦",
+    "Iran war live: Trump says Iran attack postponed at request of Gulf allies": "ä¼Šæœ—æˆ°çˆ­ç›´æ’­ï¼šå·æ™®ç¨±æ‡‰æµ·ç£ç›Ÿå‹è¦æ±‚æŽ¨é²æ”»æ“Šä¼Šæœ—",
+    "Trump claims planned attack on Iran postponed after Tehran makes new proposal to end war": "å·æ™®ç¨±å¾·é»‘è˜­æå‡ºåœæˆ°æ–°æ–¹æ¡ˆå¾Œï¼Œå°ä¼Šæœ—æ”»æ“Šè¨ˆç•«å·²æŽ¨é²",
+    "Xi prepares to welcome Putin to China four days after hosting Trump": "ç¿’è¿‘å¹³æŽ¥å¾…å·æ™®å››å¤©å¾Œï¼Œæº–å‚™åœ¨ä¸­åœ‹è¿ŽæŽ¥æ™®ä¸",
+    "At least 87 Gaza aid flotilla activists abducted by Israel on hunger strike": "è‡³å°‘87ååŠ è–©æ´åŠ©èˆ¹éšŠæ´»å‹•äººå£«é­ä»¥è‰²åˆ—æ‰£æŠ¼å¾Œçµ•é£Ÿ",
+    "Kenya transport strike paused after deadly protests": "è‚¯äºžäº¤é€šç½·å·¥åœ¨è‡´å‘½æŠ—è­°å¾Œæš«åœ",
+    "Ryanair has â€˜near-zero concernsâ€™ on fuel shortages but warns of future price rises": "ç‘žå®‰èˆªç©ºç¨±å¹¾ä¹Žä¸æ“”å¿ƒç‡ƒæ²¹çŸ­ç¼ºï¼Œä½†è­¦å‘Šæœªä¾†ç¥¨åƒ¹å¯èƒ½ä¸Šæ¼²",
+    "Ryanair has 'near-zero concerns' on fuel shortages but warns of future price rises": "ç‘žå®‰èˆªç©ºç¨±å¹¾ä¹Žä¸æ“”å¿ƒç‡ƒæ²¹çŸ­ç¼ºï¼Œä½†è­¦å‘Šæœªä¾†ç¥¨åƒ¹å¯èƒ½ä¸Šæ¼²",
+    "Trump warns 'clock is ticking' for Iran as peace progress stalls": "å’Œå¹³é€²å±•åœæ»¯ä¹‹éš›ï¼Œå·æ™®è­¦å‘Šä¼Šæœ—ã€Œæ™‚é–“ä¸å¤šäº†ã€",
+    "Ukraine launches large-scale drone strikes on Russia": "çƒå…‹è˜­å°ä¿„ç¾…æ–¯ç™¼å‹•å¤§è¦æ¨¡ç„¡äººæ©Ÿæ”»æ“Š",
+    "North Korea is relieved its nuclear weapons have prevented a fate like Iran's": "åŒ—éŸ“èªç‚ºæ ¸æ­¦é¿å…äº†ä¼Šæœ—å¼å‘½é‹ï¼Œå› è€Œæ„Ÿåˆ°æ”¾å¿ƒ",
+    "U.S. and Israel prepare for potential return to full-scale war with Iran": "ç¾Žåœ‹èˆ‡ä»¥è‰²åˆ—æº–å‚™å¯èƒ½é‡æ–°èˆ‡ä¼Šæœ—çˆ†ç™¼å…¨é¢æˆ°çˆ­",
+    "UAE blames Iran or proxies for strike near nuclear plant, as Trump tells Tehran â€˜clock is tickingâ€™": "é˜¿è¯é…‹æŒ‡è²¬ä¼Šæœ—æˆ–å…¶ä»£ç†äººæ”»æ“Šæ ¸é›»å» é™„è¿‘ï¼Œå·æ™®å‰‡è­¦å‘Šå¾·é»‘è˜­æ™‚é–“ä¸å¤š",
+    "UAE blames Iran or proxies for strike near nuclear plant, as Trump tells Tehran 'clock is ticking'": "é˜¿è¯é…‹æŒ‡è²¬ä¼Šæœ—æˆ–å…¶ä»£ç†äººæ”»æ“Šæ ¸é›»å» é™„è¿‘ï¼Œå·æ™®å‰‡è­¦å‘Šå¾·é»‘è˜­æ™‚é–“ä¸å¤š",
+    "UAE reports strike near Abu Dhabi nuclear power plant": "é˜¿è¯é…‹é€šå ±é˜¿å¸ƒé”æ¯”æ ¸é›»å» é™„è¿‘é­åˆ°æ”»æ“Š",
+    "Ukraine conducts large-scale drone strikes on Russia, killing 4 and wounding 12 others": "çƒå…‹è˜­å°ä¿„ç¾…æ–¯ç™¼å‹•å¤§è¦æ¨¡ç„¡äººæ©Ÿæ”»æ“Šï¼Œé€ æˆ 4 æ­» 12 å‚·",
+    "Large-scale Ukrainian drone attack kills three in Moscow region, says Russia": "ä¿„ç¾…æ–¯ç¨±ï¼Œçƒå…‹è˜­å¤§è¦æ¨¡ç„¡äººæ©Ÿæ”»æ“Šé€ æˆèŽ«æ–¯ç§‘åœ°å€ 3 äººæ­»äº¡",
+    "'This may be the last time you hear my voice': Political executions surge in Iran since start of war": "ã€Œé€™å¯èƒ½æ˜¯ä½ æœ€å¾Œä¸€æ¬¡è½åˆ°æˆ‘çš„è²éŸ³ã€ï¼šæˆ°çˆ­é–‹å§‹å¾Œä¼Šæœ—æ”¿æ²»è™•æ±ºæ¿€å¢ž",
+    "Inside the 'kill-zone' on Ukraine's front line, where new weapons have transformed war": "èµ°é€²çƒå…‹è˜­å‰ç·šã€Œæ®ºå‚·å€ã€ï¼šæ–°æ­¦å™¨æ­£åœ¨æ”¹è®Šæˆ°çˆ­",
+    "Cuba warns US of â€˜bloodbathâ€™ if military action follows drone claims": "å¤å·´è­¦å‘Šç¾Žåœ‹ï¼šè‹¥å› ç„¡äººæ©ŸæŒ‡æŽ§æŽ¡å–è»äº‹è¡Œå‹•ï¼Œå°‡é€ æˆã€Œè¡€æ´—ã€",
+    "Cuba warns US of 'bloodbath' if military action follows drone claims": "å¤å·´è­¦å‘Šç¾Žåœ‹ï¼šè‹¥å› ç„¡äººæ©ŸæŒ‡æŽ§æŽ¡å–è»äº‹è¡Œå‹•ï¼Œå°‡é€ æˆã€Œè¡€æ´—ã€",
+    "Middle East crisis live: Trump claims â€˜very good chanceâ€™ of deal to prevent Iran strike": "ä¸­æ±å±æ©Ÿç›´æ’­ï¼šå·æ™®ç¨±æœ‰ã€Œå¾ˆå¤§æ©Ÿæœƒã€é”æˆå”è­°ä»¥é¿å…æ”»æ“Šä¼Šæœ—",
+    "Trump says he called off new Iran attack at request of Gulf states": "å·æ™®ç¨±æ‡‰æµ·ç£åœ‹å®¶è¦æ±‚å–æ¶ˆæ–°ä¸€è¼ªå°ä¼Šæœ—æ”»æ“Š",
+    "Trump told Taiwan not to 'go independent' - but does it want to?": "å·æ™®è¦æ±‚å°ç£ä¸è¦èµ°å‘ç¨ç«‹ï¼Œå°ç£å…§éƒ¨æ„å‘å†å—æª¢è¦–",
+    "Trump pauses possible Iran strike after Gulf intervention": "æµ·ç£åœ‹å®¶ä»‹å…¥å¾Œï¼Œå·æ™®æš«ç·©å¯èƒ½çš„ä¼Šæœ—æ‰“æ“Š",
+    "Trump claims planned attack on Iran postponed after Tehran makes new proposal": "å·æ™®ç¨±ä¼Šæœ—æå‡ºæ–°æ–¹æ¡ˆå¾Œï¼ŒåŽŸå®šæ”»æ“Šè¨ˆç•«å·²è¢«æŽ¨é²",
+    "Trump delays â€˜scheduled attackâ€™ on Iran, crediting â€˜serious negotiationsâ€™": "å·æ™®å› ã€ŒèªçœŸè«‡åˆ¤ã€æŽ¨é²å°ä¼Šæœ—çš„ã€Œé å®šæ”»æ“Šã€",
+    "Trump delays 'scheduled attack' on Iran, crediting 'serious negotiations'": "å·æ™®å› ã€ŒèªçœŸè«‡åˆ¤ã€æŽ¨é²å°ä¼Šæœ—çš„ã€Œé å®šæ”»æ“Šã€",
+    "Could the Iran war trigger the next debt shock?": "ä¼Šæœ—æˆ°çˆ­å¯èƒ½å¼•ç™¼ä¸‹ä¸€æ³¢å‚µå‹™è¡æ“Š",
+    "Drone strikes UAE nuclear plant highlighting risk of renewed war": "ç„¡äººæ©Ÿæ”»æ“Šé˜¿è¯é…‹æ ¸é›»å» ï¼Œå‡¸é¡¯æˆ°ç«é‡ç‡ƒé¢¨éšª",
+    "Taiwan will not provoke conflict nor give up sovereignty, says president": "å°ç£ä¸æœƒæŒ‘é‡è¡çªï¼Œä¹Ÿä¸æœƒæ”¾æ£„ä¸»æ¬Šï¼Œç¸½çµ±è¡¨ç¤º",
+    "Taiwan insists it is independent after Trump warning": "å·æ™®è­¦å‘Šå¾Œï¼Œå°ç£å …ç¨±è‡ªèº«ç¨ç«‹"
   };
   if (exact[normalized]) return statementTitle(exact[normalized]);
 
   const summaryExact = {
-    "It marks a grim milestone in the conflict between Israel and the Lebanese armed group Hezbollah since March, despite a nominal ceasefire.": "這標誌著自三月以來以色列與黎巴嫩武裝組織真主黨衝突中的嚴峻里程碑，儘管名義上已有停火。",
-    "US President Donald Trump has announced that he is delaying a planned attack on Iran.": "美國總統唐納德·川普宣布，他正在推遲一項針對伊朗的攻擊計畫。",
-    "The US president says he is holding off on a US attack planned for Tuesday as \"serious negotiations are now taking place\".": "美國總統表示，由於「認真談判正在進行」，他暫緩原定週二進行的美方攻擊。",
-    "Government bonds are under pressure and households could soon feel the impact.": "政府債券承壓，家庭可能很快感受到影響。",
-    "Lai Ching-te made his first direct response to Trump and Xi's meeting where they discussed Taiwan independence.": "賴清德首次直接回應川普與習近平會晤中有關台灣獨立的討論。"
+    "It marks a grim milestone in the conflict between Israel and the Lebanese armed group Hezbollah since March, despite a nominal ceasefire.": "é€™æ¨™èªŒè‘—è‡ªä¸‰æœˆä»¥ä¾†ä»¥è‰²åˆ—èˆ‡é»Žå·´å«©æ­¦è£çµ„ç¹”çœŸä¸»é»¨è¡çªä¸­çš„åš´å³»é‡Œç¨‹ç¢‘ï¼Œå„˜ç®¡åç¾©ä¸Šå·²æœ‰åœç«ã€‚",
+    "US President Donald Trump has announced that he is delaying a planned attack on Iran.": "ç¾Žåœ‹ç¸½çµ±å”ç´å¾· ï¿½ å·æ™®å®£å¸ƒï¼Œä»–æ­£åœ¨æŽ¨é²ä¸€é …é‡å°ä¼Šæœ—çš„æ”»æ“Šè¨ˆç•«ã€‚",
+    "The US president says he is holding off on a US attack planned for Tuesday as \"serious negotiations are now taking place\".": "ç¾Žåœ‹ç¸½çµ±è¡¨ç¤ºï¼Œç”±æ–¼ã€ŒèªçœŸè«‡åˆ¤æ­£åœ¨é€²è¡Œã€ï¼Œä»–æš«ç·©åŽŸå®šé€±äºŒé€²è¡Œçš„ç¾Žæ–¹æ”»æ“Šã€‚",
+    "Government bonds are under pressure and households could soon feel the impact.": "æ”¿åºœå‚µåˆ¸æ‰¿å£“ï¼Œå®¶åº­å¯èƒ½å¾ˆå¿«æ„Ÿå—åˆ°å½±éŸ¿ã€‚",
+    "Lai Ching-te made his first direct response to Trump and Xi's meeting where they discussed Taiwan independence.": "è³´æ¸…å¾·é¦–æ¬¡ç›´æŽ¥å›žæ‡‰å·æ™®èˆ‡ç¿’è¿‘å¹³æœƒæ™¤ä¸­æœ‰é—œå°ç£ç¨ç«‹çš„è¨Žè«–ã€‚"
   };
   if (summaryExact[normalized]) return statementTitle(summaryExact[normalized]);
 
@@ -2702,9 +4048,9 @@ function translateReportText(text) {
 
 function statementTitle(text) {
   return String(text || "")
-    .replace(/嗎？$/u, "")
-    .replace(/嗎$/u, "")
-    .replace(/？$/u, "")
+    .replace(/å—Žï¼Ÿ$/u, "")
+    .replace(/å—Ž$/u, "")
+    .replace(/ï¼Ÿ$/u, "")
     .replace(/\?$/u, "")
     .trim();
 }
@@ -2713,7 +4059,7 @@ function directReportSourceText(event) {
   let text = String(event?.statement || event?.title || "").replace(/\s+/g, " ").trim();
   text = text.replace(/^(analysis|comment|commentary|explainer|opinion)\s*:\s*/i, "");
   text = text.replace(/^[^:]{1,56}\blive\s*:\s*/i, "");
-  if (!/^[‘’“”"']/u.test(text)) {
+  if (!/^[â€˜â€™â€œâ€"']/u.test(text)) {
     text = text.replace(/^([^:]{4,90}):\s*(why|how|what|when|where|could|should|can|is|does|do)\b.*$/i, "$1");
   }
   return statementTitle(text);
@@ -2731,24 +4077,24 @@ function isGenericReportTitle(text) {
   const normalized = String(text || "").replace(/\s+/g, "");
   if (!normalized) return true;
   return [
-    "局勢",
-    "局势",
-    "局勢持續發酵",
-    "局势持续发酵",
-    "局勢出現新動向",
-    "局势出现新动向",
-    "局勢出現新進展",
-    "局势出现新进展",
-    "局勢壓力升高",
-    "局势压力升高",
-    "相關報導",
-    "相关报道",
-    "成為焦點",
-    "成为焦点",
-    "出現新進展",
-    "出现新进展",
-    "成為焦點",
-    "成为焦点"
+    "å±€å‹¢",
+    "å±€åŠ¿",
+    "å±€å‹¢æŒçºŒç™¼é…µ",
+    "å±€åŠ¿æŒç»­å‘é…µ",
+    "å±€å‹¢å‡ºç¾æ–°å‹•å‘",
+    "å±€åŠ¿å‡ºçŽ°æ–°åŠ¨å‘",
+    "å±€å‹¢å‡ºç¾æ–°é€²å±•",
+    "å±€åŠ¿å‡ºçŽ°æ–°è¿›å±•",
+    "å±€å‹¢å£“åŠ›å‡é«˜",
+    "å±€åŠ¿åŽ‹åŠ›å‡é«˜",
+    "ç›¸é—œå ±å°Ž",
+    "ç›¸å…³æŠ¥é“",
+    "æˆç‚ºç„¦é»ž",
+    "æˆä¸ºç„¦ç‚¹",
+    "å‡ºç¾æ–°é€²å±•",
+    "å‡ºçŽ°æ–°è¿›å±•",
+    "æˆç‚ºç„¦é»ž",
+    "æˆä¸ºç„¦ç‚¹"
   ].some(phrase => normalized.includes(phrase));
 }
 
@@ -2768,7 +4114,7 @@ function feedMetaText(event) {
 function normalizedDisplayTitleKey(text) {
   return String(text || "")
     .toLowerCase()
-    .replace(/[“”‘’"'`]/g, "")
+    .replace(/[â€œâ€â€˜â€™"'`]/g, "")
     .replace(/[^\p{L}\p{N}]+/gu, " ")
     .trim();
 }
@@ -2878,6 +4224,8 @@ function rerenderLanguageSensitiveViews() {
     selectMarket(selectedMarketId);
   } else if (isCityMapMode()) {
     selectCity(selectedCityId);
+  } else if (isEarningMode()) {
+    selectEarning(selectedEarningId);
   } else if (!events.length) {
     renderNoRecentEvents();
   } else {
@@ -3069,6 +4417,7 @@ function saveViewState() {
     mapMode,
     selectedEventId,
     selectedCityId,
+    selectedEarningId,
     selectedMarketId,
     selectedMarketRange,
     selectedCurrencyAnchor,
@@ -3076,6 +4425,7 @@ function saveViewState() {
     selectedCurrencyRange,
     marketAskMode,
     cityPhotoRangeMinutes,
+    earningFilters,
     includeMetals: marketGroupFilters.metals,
     includeCrypto: marketGroupFilters.crypto
   });
@@ -3087,11 +4437,13 @@ function initialMapMode() {
     if (requested === "stats") return "stats";
     if (requested === "markets") return "markets";
     if (requested === "events") return "events";
+    if (requested === "earning") return "earning";
   } catch {
     // Fall through to the last saved view.
   }
   if (viewState.mapMode === "stats") return "stats";
   if (viewState.mapMode === "markets") return "markets";
+  if (viewState.mapMode === "earning") return "earning";
   return "events";
 }
 
@@ -3230,6 +4582,10 @@ function isMarketMode(mode = mapMode) {
   return mode === "markets";
 }
 
+function isEarningMode(mode = mapMode) {
+  return mode === "earning";
+}
+
 function cityModeLabel() {
   return t("cityMode");
 }
@@ -3248,23 +4604,23 @@ function significantWeatherText(city, item) {
   const wind = Number(item?.wind);
   const place = cityName(city);
   const parts = [];
-  if ([95, 96, 99].includes(code)) parts.push(currentLanguage === "zh" ? "有雷暴" : "has storms");
-  else if ([71, 73, 75, 85, 86].includes(code)) parts.push(currentLanguage === "zh" ? "有降雪" : "has snow");
-  else if ([65, 81, 82].includes(code)) parts.push(currentLanguage === "zh" ? "有较强降雨" : "has heavy rain");
-  else if ([45, 48].includes(code)) parts.push(currentLanguage === "zh" ? "有雾" : "has fog");
-  if (Number.isFinite(wind) && wind >= 40) parts.push(currentLanguage === "zh" ? `风速约 ${Math.round(wind)} km/h` : `wind around ${Math.round(wind)} km/h`);
-  if (Number.isFinite(temp) && temp >= 38) parts.push(currentLanguage === "zh" ? `高温约 ${Math.round(temp)} C` : `heat around ${Math.round(temp)} C`);
-  if (Number.isFinite(temp) && temp <= -5) parts.push(currentLanguage === "zh" ? `低温约 ${Math.round(temp)} C` : `cold around ${Math.round(temp)} C`);
+  if ([95, 96, 99].includes(code)) parts.push(currentLanguage === "zh" ? "æœ‰é›·æš´" : "has storms");
+  else if ([71, 73, 75, 85, 86].includes(code)) parts.push(currentLanguage === "zh" ? "æœ‰é™é›ª" : "has snow");
+  else if ([65, 81, 82].includes(code)) parts.push(currentLanguage === "zh" ? "æœ‰è¾ƒå¼ºé™é›¨" : "has heavy rain");
+  else if ([45, 48].includes(code)) parts.push(currentLanguage === "zh" ? "æœ‰é›¾" : "has fog");
+  if (Number.isFinite(wind) && wind >= 40) parts.push(currentLanguage === "zh" ? `é£Žé€Ÿçº¦ ${Math.round(wind)} km/h` : `wind around ${Math.round(wind)} km/h`);
+  if (Number.isFinite(temp) && temp >= 38) parts.push(currentLanguage === "zh" ? `é«˜æ¸©çº¦ ${Math.round(temp)} C` : `heat around ${Math.round(temp)} C`);
+  if (Number.isFinite(temp) && temp <= -5) parts.push(currentLanguage === "zh" ? `ä½Žæ¸©çº¦ ${Math.round(temp)} C` : `cold around ${Math.round(temp)} C`);
   if (!parts.length) return "";
   return currentLanguage === "zh"
-    ? `${place}${parts.join("，")}。`
+    ? `${place}${parts.join("ï¼Œ")}ã€‚`
     : `${place} ${parts.join(" and ")}.`;
 }
 
 function cityModeSummary(city, item) {
   return significantWeatherText(city, item);
   if (currentLanguage === "zh") {
-    return `當地時間 ${formatTime(city.zone)}。天氣 ${weatherText(item.code)}。溫度 ${Math.round(item.temperature)} C。濕度 ${Math.round(item.humidity)}%。風速 ${Math.round(item.wind)} km/h。`;
+    return `ç•¶åœ°æ™‚é–“ ${formatTime(city.zone)}ã€‚å¤©æ°£ ${weatherText(item.code)}ã€‚æº«åº¦ ${Math.round(item.temperature)} Cã€‚æ¿•åº¦ ${Math.round(item.humidity)}%ã€‚é¢¨é€Ÿ ${Math.round(item.wind)} km/hã€‚`;
   }
   return `Local time ${formatTime(city.zone)}. Weather ${weatherText(item.code)}. Temperature ${Math.round(item.temperature)} C. Humidity ${Math.round(item.humidity)}%. Wind ${Math.round(item.wind)} km/h.`;
 }
@@ -3328,7 +4684,7 @@ function cityPhotoBucketAgeMinutes(bucket = cityPhotoBucket()) {
 }
 
 function cityPhotoRangeLabel(minutes) {
-  if (currentLanguage === "zh") return minutes >= 60 ? "1小时" : `${minutes}分`;
+  if (currentLanguage === "zh") return minutes >= 60 ? "1å°æ—¶" : `${minutes}åˆ†`;
   return minutes >= 60 ? "1h" : `${minutes}m`;
 }
 
@@ -3443,9 +4799,9 @@ function commonsImageSearchUrl(query) {
 
 function cityPhotoDaypartTitleScore(title, daypart) {
   const normalized = String(title || "").toLowerCase();
-  const night = /\b(night|nighttime|nocturne|after dark|city lights?|illuminated)\b|夜|夜景|nachts|nuit|notte/.test(normalized);
-  const evening = /\b(evening|dusk|sunset|twilight|blue hour)\b|黄昏|傍晚|夕/.test(normalized);
-  const morning = /\b(morning|sunrise|dawn|daybreak|early morning)\b|清晨|早晨|日出/.test(normalized);
+  const night = /\b(night|nighttime|nocturne|after dark|city lights?|illuminated)\b|å¤œ|å¤œæ™¯|nachts|nuit|notte/.test(normalized);
+  const evening = /\b(evening|dusk|sunset|twilight|blue hour)\b|é»„æ˜|å‚æ™š|å¤•/.test(normalized);
+  const morning = /\b(morning|sunrise|dawn|daybreak|early morning)\b|æ¸…æ™¨|æ—©æ™¨|æ—¥å‡º/.test(normalized);
   if (daypart === "night") return night || evening ? (night ? 4 : 2) : -1;
   if (daypart === "evening") return evening || night ? (evening ? 4 : 1) : -1;
   if (daypart === "morning") return morning ? 4 : (night || evening ? -1 : 1);
@@ -3608,7 +4964,7 @@ function hasMapLocation(item) {
 }
 
 function unplacedLabel() {
-  return currentLanguage === "zh" ? "未定位" : "Unplaced";
+  return currentLanguage === "zh" ? "æœªå®šä½" : "Unplaced";
 }
 
 function formatPlaceName(item) {
@@ -4603,7 +5959,7 @@ function assetMetaText(asset) {
   if (Number.isFinite(rank)) pieces.push(`#${rank}`);
   pieces.push(marketGroupLabel(asset.group));
   if (asset.symbol) pieces.push(asset.symbol);
-  return pieces.join(" · ");
+  return pieces.join(" - ");
 }
 
 function assetFallbackText(asset) {
@@ -4772,7 +6128,7 @@ function createMarketTile(asset, className = "market-tile") {
   tile.appendChild(heading);
 
   const group = document.createElement("span");
-  group.textContent = `${marketGroupLabel(asset.group)} · ${asset.symbol || ""}`.trim();
+  group.textContent = `${marketGroupLabel(asset.group)} - ${asset.symbol || ""}`.trim();
   tile.appendChild(group);
 
   const name = document.createElement("strong");
@@ -4951,7 +6307,7 @@ function renderMarketBoard() {
 
   const titleBlock = document.createElement("div");
   const group = document.createElement("p");
-  group.textContent = `${marketGroupLabel(active.group)} · ${active.symbol || ""}`.trim();
+  group.textContent = `${marketGroupLabel(active.group)} - ${active.symbol || ""}`.trim();
   titleBlock.appendChild(group);
 
   const title = document.createElement("h3");
@@ -4966,7 +6322,7 @@ function renderMarketBoard() {
   price.appendChild(value);
   const change = document.createElement("span");
   change.className = `market-change ${marketChangeClass(active)}`;
-  change.textContent = `${formatMarketChange(active)} · ${formatAssetPrice(active)}`;
+  change.textContent = `${formatMarketChange(active)} - ${formatAssetPrice(active)}`;
   price.appendChild(change);
   focus.appendChild(price);
   main.appendChild(focus);
@@ -5063,7 +6419,7 @@ function renderMarketBoard() {
       row.appendChild(cap);
 
       const meta = document.createElement("span");
-      meta.textContent = `${asset.symbol} · ${formatMarketChange(asset)}`;
+      meta.textContent = `${asset.symbol} - ${formatMarketChange(asset)}`;
       row.appendChild(meta);
       leaders.appendChild(row);
     });
@@ -5150,7 +6506,7 @@ function renderMarketInspect(asset) {
       [t("marketValue"), formatAssetPrice(asset)],
       [t("marketMove"), formatMarketChange(asset)]
     ];
-    if (asset.country) metrics.push([currentLanguage === "zh" ? "国家/地区" : "Country", asset.country]);
+    if (asset.country) metrics.push([currentLanguage === "zh" ? "å›½å®¶/åœ°åŒº" : "Country", asset.country]);
   }
 
   metrics.forEach(([label, value, valueClass]) => {
@@ -5195,7 +6551,7 @@ function selectedCurrencyAskContext() {
   };
 }
 
-const marketAskSemiconductorPattern = /(nvda|nvidia|英伟达|amd|avgo|broadcom|博通|tsm|tsmc|台积电|asml|mu|micron|美光|qcom|qualcomm|高通|intc|intel|英特尔|arm|samsung|三星|sk hynix|hynix|海力士|mediatek|联发科|marvell|mrvl|amat|applied materials|应用材料|lrcx|lam research|泛林|klac|kla|txn|adi|on semiconductor|stm|infineon|tokyo electron|半导体|芯片|chip|semiconductor)/i;
+const marketAskSemiconductorPattern = /(nvda|nvidia|è‹±ä¼Ÿè¾¾|amd|avgo|broadcom|åšé€š|tsm|tsmc|å°ç§¯ç”µ|asml|mu|micron|ç¾Žå…‰|qcom|qualcomm|é«˜é€š|intc|intel|è‹±ç‰¹å°”|arm|samsung|ä¸‰æ˜Ÿ|sk hynix|hynix|æµ·åŠ›å£«|mediatek|è”å‘ç§‘|marvell|mrvl|amat|applied materials|åº”ç”¨ææ–™|lrcx|lam research|æ³›æž—|klac|kla|txn|adi|on semiconductor|stm|infineon|tokyo electron|åŠå¯¼ä½“|èŠ¯ç‰‡|chip|semiconductor)/i;
 
 function compactAskAsset(asset) {
   const displayRank = marketDisplayRank(asset);
@@ -5526,6 +6882,7 @@ function createCurrencyCard(currency, anchor) {
 
 function renderMarketAssets() {
   updateModeChrome();
+  els.earningFilters.hidden = true;
   els.cityGrid.classList.add("currency-grid");
   els.cityGrid.innerHTML = "";
   if (!marketCurrencies.length) {
@@ -5549,7 +6906,7 @@ function renderMarketAssets() {
   eyebrow.textContent = t("currencyPair");
   titleBlock.appendChild(eyebrow);
   const title = document.createElement("h3");
-  title.textContent = `${anchor.code} → ${selected.code}`;
+  title.textContent = `${anchor.code} -> ${selected.code}`;
   titleBlock.appendChild(title);
   top.appendChild(titleBlock);
 
@@ -5793,7 +7150,7 @@ function renderCityPhotoPanel() {
   tools.className = "city-photo-tools";
   const meta = document.createElement("span");
   meta.className = "city-photo-meta";
-  meta.textContent = `${t("cityPhotoRange")} · ${t("cityPhotoUpdated", cityPhotoBucketAgeMinutes(bucket))}`;
+  meta.textContent = `${t("cityPhotoRange")} - ${t("cityPhotoUpdated", cityPhotoBucketAgeMinutes(bucket))}`;
   tools.appendChild(meta);
   const rangeGroup = document.createElement("div");
   rangeGroup.className = "city-photo-range";
@@ -6223,7 +7580,7 @@ function drawFallbackLand(ctx, width, height, dpr) {
 }
 
 function drawEventArcs(ctx, width, height, dpr) {
-  if (isCityMapMode() || isMarketMode()) return;
+  if (isCityMapMode() || isMarketMode() || isEarningMode()) return;
   const active = buildEventPlaces().slice(0, 8);
   if (active.length < 2) return;
 
@@ -6256,6 +7613,7 @@ function updateModeChrome() {
   updateMapModeButtons();
   const marketMode = isMarketMode();
   const cityMode = isCityMapMode();
+  const earningMode = isEarningMode();
 
   els.mapStage?.classList.toggle("market-mode", marketMode);
   if (els.marketBoard) {
@@ -6263,6 +7621,10 @@ function updateModeChrome() {
   }
   document.body.classList.toggle("market-page", marketMode);
   document.body.classList.toggle("stats-mode", cityMode);
+  document.body.classList.toggle("earning-mode", earningMode);
+  if (earningMode && isMapMenuOpen()) {
+    setMapMenuOpen(false);
+  }
   els.secondaryPanel?.classList.toggle("market-mode", marketMode);
 
   if (marketMode) {
@@ -6279,6 +7641,16 @@ function updateModeChrome() {
     els.secondaryPanelTitle.textContent = t("cityStats");
     els.secondaryPanelSubhead.textContent = t("cityStatsSubhead");
     els.feedTitle.textContent = cityPhotoPanelTitle(cities.find(item => item.id === selectedCityId) || cities[0]);
+  } else if (earningMode) {
+    const activeCount = visibleEarningOpportunities().length;
+    els.mapPanelTitle.textContent = t("earningMap");
+    els.mapPanelSubhead.textContent = t("earningMapSubhead");
+    els.secondaryPanelTitle.textContent = t("earningSources");
+    els.secondaryPanelSubhead.textContent = t("earningSourcesSubhead");
+    els.feedTitle.textContent = t("earningStream");
+    if (!activeCount) {
+      els.secondaryPanelSubhead.textContent = t("earningEmpty");
+    }
   } else {
     els.mapPanelTitle.textContent = t("eventMap");
     els.mapPanelSubhead.textContent = t("mapSubhead");
@@ -6427,6 +7799,10 @@ function renderFeed() {
     renderCityPhotoPanel();
     return;
   }
+  if (isEarningMode()) {
+    els.feed.innerHTML = "";
+    return;
+  }
   if (translationEnabled && !isMarketMode()) {
     renderTranslationPanel();
     return;
@@ -6464,6 +7840,7 @@ function restoreFeedScroll(scrollTop) {
 }
 
 function setMapMode(mode) {
+  mapMode = mode === "earning" ? "earning" : mapMode;
   if (isMarketMode(mode)) {
     selectMarket(selectedMarketId, { focusList: true });
     return;
@@ -6472,6 +7849,12 @@ function setMapMode(mode) {
   if (isCityMapMode(mode)) {
     mapMode = "stats";
     selectCity(selectedCityId);
+    return;
+  }
+
+  if (isEarningMode(mode)) {
+    setMapMenuOpen(false);
+    selectEarning(selectedEarningId);
     return;
   }
 
@@ -6489,13 +7872,13 @@ function renderNoRecentEvents() {
   selectedEventId = "";
   selectedPlaceKey = "";
   els.reportSeverity.className = "severity";
-  els.reportLocation.textContent = currentLanguage === "zh" ? "近期重大事件" : "Recent major events";
-  els.reportMeta.textContent = currentLanguage === "zh" ? "没有符合条件的事件" : "No qualifying events";
+  els.reportLocation.textContent = currentLanguage === "zh" ? "è¿‘æœŸé‡å¤§äº‹ä»¶" : "Recent major events";
+  els.reportMeta.textContent = currentLanguage === "zh" ? "æ²¡æœ‰ç¬¦åˆæ¡ä»¶çš„äº‹ä»¶" : "No qualifying events";
   els.reportSeverity.textContent = "--";
-  els.reportTitle.textContent = currentLanguage === "zh" ? "地图暂不显示事件" : "No events on the map";
+  els.reportTitle.textContent = currentLanguage === "zh" ? "åœ°å›¾æš‚ä¸æ˜¾ç¤ºäº‹ä»¶" : "No events on the map";
   els.reportSummary.hidden = false;
   els.reportSummary.textContent = currentLanguage === "zh"
-    ? "只有能直说发生了什么、且足够近期或足够重要的事件才会出现在地图上。"
+    ? "åªæœ‰èƒ½ç›´è¯´å‘ç”Ÿäº†ä»€ä¹ˆã€ä¸”è¶³å¤Ÿè¿‘æœŸæˆ–è¶³å¤Ÿé‡è¦çš„äº‹ä»¶æ‰ä¼šå‡ºçŽ°åœ¨åœ°å›¾ä¸Šã€‚"
     : "Only recent, important reports that directly say what happened appear on the map.";
   hideReportImage();
   els.reportLink.textContent = t("openSource");
@@ -6615,7 +7998,7 @@ function selectMarket(id, options = {}) {
   const detailUrl = "";
   if (detailUrl) {
     els.reportLink.href = detailUrl;
-    els.reportLink.textContent = currentLanguage === "zh" ? "打开 CompaniesMarketCap" : "Open CompaniesMarketCap";
+    els.reportLink.textContent = currentLanguage === "zh" ? "æ‰“å¼€ CompaniesMarketCap" : "Open CompaniesMarketCap";
     els.reportLink.style.visibility = "visible";
   } else {
     els.reportLink.style.visibility = "hidden";
@@ -6631,11 +8014,366 @@ function selectMarket(id, options = {}) {
   fetchMarketHistory(asset);
 }
 
+function setEarningFilterState(nextFilters) {
+  earningFilters = normalizeEarningFilters(nextFilters);
+  const visible = visibleEarningOpportunities();
+  if (visible.length && !visible.some(item => item.id === selectedEarningId)) {
+    selectedEarningId = visible[0].id;
+  }
+  if (isEarningMode()) {
+    const visibleAfterApply = visibleEarningOpportunities();
+    selectEarning(visibleAfterApply[0]?.id || "");
+  }
+  saveViewState();
+  renderCities();
+  renderFeed();
+}
+
+function selectEarning(id) {
+  mapMode = "earning";
+  const candidates = visibleEarningOpportunities();
+  const first = candidates[0] || earningOpportunities[0];
+  const normalized = normalizeEarningId(id);
+  const chosen = candidates.find(item => item.id === normalized) || first;
+  if (!chosen) {
+    selectedEarningId = "";
+    els.reportSeverity.className = "severity";
+    els.reportLocation.textContent = t("earningModeTitle");
+    els.reportMeta.textContent = t("earningEmpty");
+    els.reportSeverity.textContent = "--";
+    els.reportTitle.textContent = t("earningEmpty");
+    els.reportSummary.hidden = false;
+    els.reportSummary.textContent = t("earningEmpty");
+    hideReportImage();
+    els.reportLink.hidden = true;
+    els.reportLink.style.visibility = "hidden";
+    els.earningFilters.hidden = true;
+    renderEarningGrid();
+    renderFeed();
+    drawWorld();
+    positionEventPins();
+    saveViewState();
+    return;
+  }
+
+  selectedEarningId = chosen.id;
+  const difficulty = earningDifficultyClass(chosen);
+  els.reportSeverity.className = `severity${difficulty === "low" ? " positive" : difficulty === "high" ? " negative" : ""}`;
+  els.reportLocation.textContent = t("earningModeTitle");
+  els.reportMeta.textContent = `${earningLabelForCategory(chosen.category)} - ${earningDisplayPayout(chosen)} - ${earningDisplayRegion(chosen)}`;
+  els.reportSeverity.textContent = earningLabelForDifficulty(chosen.difficulty);
+  els.reportTitle.textContent = earningDisplayTitle(chosen);
+  els.reportSummary.hidden = false;
+  els.reportSummary.textContent = clampUiText(earningDisplaySummary(chosen), 180);
+  clearReportImage();
+  if (chosen.link) {
+    els.reportLink.href = chosen.link;
+    els.reportLink.textContent = t("earningOpenListing");
+    els.reportLink.hidden = false;
+    els.reportLink.style.visibility = "visible";
+  } else {
+    els.reportLink.hidden = true;
+    els.reportLink.style.visibility = "hidden";
+  }
+  renderEarningInspect(chosen);
+  renderEarningFilters();
+  renderEarningGrid();
+  renderFeed();
+  drawWorld();
+  positionEventPins();
+  saveViewState();
+}
+
+function toggleEarningFilter(key) {
+  const next = { ...earningFilters, [key]: !earningFilters[key] };
+  setEarningFilterState(next);
+}
+
+function renderEarningFilters() {
+  if (!els.earningFilters) return;
+  const filters = earningSourceFilters;
+  const visibleCount = visibleEarningOpportunities().length;
+  els.earningFilters.hidden = false;
+  els.earningFilters.innerHTML = "";
+  const title = document.createElement("strong");
+  title.className = "earning-filter-title";
+  title.textContent = `${t("earningFilterTitle")}: ${t("earningFilterTitleLabel")}`;
+  els.earningFilters.appendChild(title);
+
+  const actions = document.createElement("div");
+  actions.className = "earning-filter-actions";
+  const allActive = filters.every(item => earningFilters[item.key]);
+  const allBtn = document.createElement("button");
+  allBtn.type = "button";
+  allBtn.className = `earning-filter-btn ${allActive ? "active" : ""}`;
+  allBtn.innerHTML = `<strong>*</strong>${t("earningAllFilters")}`;
+  allBtn.addEventListener("click", () => {
+    setEarningFilterState(earningSourceFilters.reduce((next, item) => {
+      next[item.key] = true;
+      return next;
+    }, {}));
+  });
+  actions.appendChild(allBtn);
+
+  filters.forEach(item => {
+    const btn = document.createElement("button");
+    const active = Boolean(earningFilters[item.key]);
+    btn.type = "button";
+    btn.className = `earning-filter-btn ${active ? "active" : ""}`;
+    btn.innerHTML = `<strong>${active ? "&#10003;" : ""}</strong>${t(item.labelKey)}`;
+    btn.addEventListener("click", () => toggleEarningFilter(item.key));
+    actions.appendChild(btn);
+  });
+  els.earningFilters.appendChild(actions);
+
+  const note = document.createElement("div");
+  note.className = "earning-filter-note";
+  if (!visibleCount) {
+    note.textContent = t("earningEmpty");
+  } else if (filters.length === Object.values(earningFilters).filter(Boolean).length) {
+    note.textContent = `${visibleCount} ${t("earningModeTitle")}`;
+  } else {
+    const selected = Object.entries(earningFilters).filter(([, enabled]) => enabled).map(([key]) => t(`earningFilter${key.charAt(0).toUpperCase() + key.slice(1)}`));
+    note.textContent = `${selected.length}/${filters.length} ${t("earningFilterTitleLabel")}: ${selected.join(", ")}`;
+  }
+  els.earningFilters.appendChild(note);
+}
+
+function renderEarningGrid() {
+  updateModeChrome();
+  els.earningFilters.hidden = false;
+  els.cityGrid.classList.remove("currency-grid");
+  els.cityGrid.classList.add("earning-grid");
+  els.cityGrid.innerHTML = "";
+  const opportunities = visibleEarningOpportunities();
+  if (!opportunities.length) {
+    const empty = document.createElement("article");
+    empty.className = "city-card";
+    empty.innerHTML = `<strong>${t("earningEmpty")}</strong><span>${t("earningSourcesSubhead")}</span>`;
+    els.cityGrid.appendChild(empty);
+    renderEarningFilters();
+    return;
+  }
+
+  opportunities.forEach(item => {
+    const card = document.createElement("button");
+    card.className = `city-card earning-card ${item.id === selectedEarningId ? "active" : ""}`;
+    card.type = "button";
+    card.setAttribute("role", "button");
+    card.tabIndex = 0;
+    card.addEventListener("click", () => selectEarning(item.id));
+    card.addEventListener("keydown", event => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        selectEarning(item.id);
+      }
+    });
+    const name = document.createElement("div");
+    name.className = "earning-name";
+    const left = document.createElement("span");
+    left.textContent = earningDisplayTitle(item);
+    name.appendChild(left);
+    const region = document.createElement("small");
+    region.textContent = `${earningDisplayRegion(item)} • ${earningRemoteLabel(item)}`;
+    name.appendChild(region);
+    card.appendChild(name);
+
+    const tags = Array.isArray(item.tags)
+      ? item.tags
+        .map(tag => String(tag || "").trim())
+        .filter(Boolean)
+        .slice(0, 3)
+      : [];
+    if (tags.length) {
+      const tagsRow = document.createElement("div");
+      tagsRow.className = "earning-tags";
+      tags.forEach(tag => {
+        const chip = document.createElement("span");
+        chip.className = "earning-tag";
+        chip.textContent = tag;
+        tagsRow.appendChild(chip);
+      });
+      card.appendChild(tagsRow);
+    }
+
+    const meta = document.createElement("div");
+    meta.className = "earning-meta";
+    meta.textContent = `${earningLabelForCategory(item.category)} • ${earningDisplayRegion(item)} • ${earningDisplayPayout(item)} • ${earningLabelForDifficulty(item.difficulty)}`;
+    card.appendChild(meta);
+
+    const summary = document.createElement("p");
+    summary.className = "earning-summary";
+    summary.textContent = clampUiText(earningDisplaySummary(item), 82);
+    card.appendChild(summary);
+
+    const copyPreview = document.createElement("p");
+    copyPreview.className = "earning-copy-preview";
+    copyPreview.textContent = `${t("earningCopyPreviewLabel")}: ${clampUiText(earningCopyPreview(item), 90)}`;
+    card.appendChild(copyPreview);
+
+    els.cityGrid.appendChild(card);
+  });
+  renderEarningFilters();
+}
+
+function renderEarningFeed() {
+  els.feed.innerHTML = "";
+  const opportunities = visibleEarningOpportunities();
+  if (!opportunities.length) {
+    const line = document.createElement("div");
+    line.className = "feed-line";
+    const headline = document.createElement("strong");
+    headline.textContent = t("earningEmpty");
+    line.appendChild(headline);
+    const meta = document.createElement("span");
+    meta.textContent = t("earningSourcesSubhead");
+    line.appendChild(meta);
+    els.feed.appendChild(line);
+    return;
+  }
+
+  opportunities.forEach(item => {
+    const line = document.createElement("button");
+    line.type = "button";
+    line.className = `feed-line ${item.id === selectedEarningId ? "active" : ""}`;
+    const title = document.createElement("strong");
+    title.textContent = clampUiText(earningDisplayTitle(item), 48);
+    line.appendChild(title);
+    const meta = document.createElement("span");
+    meta.textContent = clampUiText(`${earningLabelForCategory(item.category)} • ${earningDisplayRegion(item)} • ${earningDisplayPayout(item)} • ${earningLabelForDifficulty(item.difficulty)}`, 90);
+    line.appendChild(meta);
+    line.addEventListener("click", () => selectEarning(item.id));
+    els.feed.appendChild(line);
+  });
+}
+
+function renderEarningInspect(opportunity) {
+  els.placeReports.innerHTML = "";
+  if (!opportunity) return;
+
+  const grid = document.createElement("div");
+  grid.className = "earning-inspect-grid";
+  grid.appendChild(createInspectMetric(t("earningCategoryLabel"), clampUiText(`${earningLabelForCategory(opportunity.category)} / ${t("earningPlatformLabel")} ${opportunity.platform || "--"}`, 80)));
+  grid.appendChild(createInspectMetric(t("earningPayoutLabel"), clampUiText(earningDisplayPayout(opportunity), 70)));
+  grid.appendChild(createInspectMetric(t("earningDifficultyLabel"), earningLabelForDifficulty(opportunity.difficulty)));
+  grid.appendChild(createInspectMetric(t("earningRemoteLabel"), earningRemoteLabel(opportunity)));
+  grid.appendChild(createInspectMetric(t("earningRegionLabel"), clampUiText(earningDisplayRegion(opportunity), 48)));
+  grid.appendChild(createInspectMetric(t("earningSourceLabel"), clampUiText(earningLabelForSource(opportunity), 62)));
+  els.placeReports.appendChild(grid);
+
+  const quickStart = document.createElement("article");
+  quickStart.className = "earning-quickstart";
+  const quickTitle = document.createElement("div");
+  quickTitle.className = "earning-quickstart-title";
+  quickTitle.textContent = t("earningActionsTitle");
+  quickStart.appendChild(quickTitle);
+  const list = document.createElement("ul");
+  list.className = "earning-quickstart-list";
+  const actions = earningDisplayActions(opportunity);
+  if (actions.length) {
+    actions.forEach(item => {
+      const li = document.createElement("li");
+      li.textContent = item;
+      list.appendChild(li);
+    });
+  } else {
+    const li = document.createElement("li");
+    li.textContent = t("earningEmpty");
+    list.appendChild(li);
+  }
+  quickStart.appendChild(list);
+  els.placeReports.appendChild(quickStart);
+
+  const playbook = document.createElement("article");
+  playbook.className = "earning-playbook-card";
+  const playbookTitle = document.createElement("div");
+  playbookTitle.className = "earning-copy-title";
+  playbookTitle.textContent = t("earningPlaybookTitle");
+  playbook.appendChild(playbookTitle);
+  const playbookHint = document.createElement("p");
+  playbookHint.className = "earning-copy-hint";
+  playbookHint.textContent = t("earningPlaybookHint");
+  playbook.appendChild(playbookHint);
+  const playbookList = document.createElement("ul");
+  playbookList.className = "earning-quickstart-list";
+  const playActions = earningDisplayActions(opportunity);
+  if (playActions.length) {
+    playActions
+      .slice(0, 3)
+      .forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        playbookList.appendChild(li);
+      });
+  } else {
+    const li = document.createElement("li");
+    li.textContent = t("earningCopyHint");
+    playbookList.appendChild(li);
+  }
+  playbook.appendChild(playbookList);
+  els.placeReports.appendChild(playbook);
+
+  const copyCard = document.createElement("article");
+  copyCard.className = "earning-copy-card";
+  const copyTitle = document.createElement("div");
+  copyTitle.className = "earning-copy-title";
+  copyTitle.textContent = t("earningCopyLabel");
+  copyCard.appendChild(copyTitle);
+  const copyHint = document.createElement("p");
+  copyHint.className = "earning-copy-hint";
+  copyHint.textContent = t("earningCopyHint");
+  copyCard.appendChild(copyHint);
+  const copyText = document.createElement("pre");
+  copyText.className = "earning-copy-text";
+  copyText.textContent = clampUiText(earningCopyText(opportunity), 900);
+  copyCard.appendChild(copyText);
+
+  const copyTools = document.createElement("div");
+  copyTools.className = "earning-copy-tools";
+  const copyButton = document.createElement("button");
+  copyButton.type = "button";
+  copyButton.className = "earning-copy-button";
+  copyButton.textContent = t("earningCopyButton");
+  const copyStatus = document.createElement("span");
+  copyStatus.className = "earning-copy-status";
+
+  copyButton.addEventListener("click", async () => {
+    const success = await copyTextToClipboard(copyText.textContent);
+    if (!success) {
+      copyStatus.textContent = t("earningCopyFailed");
+      return;
+    }
+    copyStatus.textContent = t("earningCopyCopied");
+    copyButton.textContent = t("earningCopyCopied");
+    window.setTimeout(() => {
+      copyStatus.textContent = "";
+      if (copyButton.textContent === t("earningCopyCopied")) {
+        copyButton.textContent = t("earningCopyButton");
+      }
+    }, 1800);
+  });
+  copyTools.appendChild(copyButton);
+  copyTools.appendChild(copyStatus);
+  copyCard.appendChild(copyTools);
+  els.placeReports.appendChild(copyCard);
+}
+
+function earningLabelForSource(opportunity) {
+  return opportunity.platform ? opportunity.platform : t("earningSourceLabel");
+}
+
 function renderCities() {
   if (isMarketMode()) {
+    els.earningFilters.hidden = true;
     renderMarketAssets();
     return;
   }
+  if (isEarningMode()) {
+    els.earningFilters.hidden = false;
+    renderEarningGrid();
+    return;
+  }
+  els.earningFilters.hidden = true;
   updateModeChrome();
   els.cityGrid.classList.remove("currency-grid");
   els.cityGrid.innerHTML = "";
@@ -6695,6 +8433,15 @@ function updateSourceLabels() {
     els.weatherSource.textContent = t(weatherSourceKey);
     return;
   }
+  if (isEarningMode()) {
+    els.eventSource.textContent = t("earningSources");
+    const summary = earningSourcesSummaryLabel();
+    els.weatherSource.textContent = summary || "";
+    if (!summary) {
+      els.weatherSource.hidden = true;
+    }
+    return;
+  }
   if (translationEnabled && !isMarketMode()) {
     els.eventSource.textContent = t("translationSource");
     els.weatherSource.textContent = isMarketMode() ? t(currencySourceKey) : t(weatherSourceKey);
@@ -6720,6 +8467,8 @@ function renderInitialConsole() {
     selectMarket(selectedMarketId);
   } else if (isCityMapMode()) {
     selectCity(selectedCityId);
+  } else if (isEarningMode()) {
+    selectEarning(selectedEarningId);
   } else {
     selectEvent(selectedEventId);
   }
@@ -6795,11 +8544,14 @@ async function fetchEvents({ announce = true } = {}) {
   els.eventCount.textContent = String(events.length);
   const keepCityOpen = isCityMapMode();
   const keepMarketOpen = isMarketMode();
+  const keepEarningOpen = isEarningMode();
   renderFeed();
   if (keepMarketOpen) {
     selectMarket(selectedMarketId);
   } else if (keepCityOpen) {
     selectCity(selectedCityId);
+  } else if (keepEarningOpen) {
+    selectEarning(selectedEarningId);
   } else if (!events.length) {
     renderNoRecentEvents();
   } else {

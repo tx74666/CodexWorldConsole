@@ -9,7 +9,7 @@ localAppData = shell.ExpandEnvironmentStrings("%LOCALAPPDATA%")
 
 pythonw = FindPythonw(localAppData)
 If pythonw = "" Then
-  MsgBox "Python was not found. Install Python 3.11 or newer, then run Start-WorldConsole-Hotkey again.", vbExclamation, "Codex World Console"
+  MsgBox "Python was not found. Install Python 3.11 or newer, then run Start-WorldConsole-Hotkey again.", vbExclamation, "Codex World"
   WScript.Quit 1
 End If
 
@@ -18,7 +18,7 @@ command = """" & pythonw & """ """ & appDir & "\world_console_hotkey.py"""
 On Error Resume Next
 shell.Run command, 0, False
 If Err.Number <> 0 Then
-  MsgBox "The Alt+C hotkey listener could not start.", vbExclamation, "Codex World Console"
+  MsgBox "The Alt+C hotkey listener could not start.", vbExclamation, "Codex World"
 End If
 
 Function FindPythonw(localAppData)

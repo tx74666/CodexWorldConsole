@@ -6,7 +6,7 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $dist = Join-Path $root "dist"
 $release = Join-Path $root "release"
-$appName = "Codex World Console"
+$appName = "Codex World"
 $icon = Join-Path $root "Earth-taskbar-natural-20260521.ico"
 
 Set-Location $root
@@ -47,11 +47,11 @@ python -m PyInstaller @args
 $packageRoot = Join-Path $dist $appName
 $readme = Join-Path $packageRoot "README-FIRST.txt"
 @"
-Codex World Console
+Codex World
 Version: $Version
 
 Run:
-  Double-click "Codex World Console.exe".
+  Double-click "Codex World.exe".
 
 The app starts a local server and opens the console in an app-style browser window.
 No install step is required after unzipping.

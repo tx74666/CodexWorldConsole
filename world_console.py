@@ -3921,7 +3921,7 @@ def running_console_port(start):
             request = urllib.request.Request(url, headers={"User-Agent": "CodexWorldConsole/1.0"})
             with opener.open(request, timeout=0.35) as response:
                 body = response.read(4096).decode("utf-8", errors="ignore")
-            if "Codex World Console" in body or "World Event Console" in body:
+            if "Codex World" in body or "World Event Console" in body:
                 return port
         except Exception:
             continue
@@ -3958,7 +3958,7 @@ def open_console_window(url):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Codex World Console")
+    parser = argparse.ArgumentParser(description="Codex World")
     parser.add_argument("--port", type=int, default=DEFAULT_PORT)
     parser.add_argument("--no-browser", action="store_true")
     args = parser.parse_args()
@@ -3976,7 +3976,7 @@ def main():
 
     if sys.stdout:
         print()
-        print("Codex World Console is running.")
+        print("Codex World is running.")
         print(f"URL: {url}")
         print("Press Ctrl+C to stop it.")
         print()
