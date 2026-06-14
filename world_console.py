@@ -62,7 +62,7 @@ MARKET_REFRESH_IN_PROGRESS = False
 SELECTION_TRANSLATION_CACHE = {}
 SELECTION_TRANSLATION_CACHE_LIMIT = 160
 SELECTION_TRANSLATION_CACHE_LOCK = threading.Lock()
-SELECTION_TRANSLATION_EXTERNAL_TIMEOUT = 1.35
+SELECTION_TRANSLATION_EXTERNAL_TIMEOUT = 3.2
 SELECTION_TRANSLATION_EXECUTOR = concurrent.futures.ThreadPoolExecutor(max_workers=6)
 SELECTION_TRANSLATION_FALLBACKS = {
     "injured": {
@@ -1472,7 +1472,7 @@ def internal_translate_api_key():
     ).strip()
 
 
-def internal_translate_text(text, target="zh-CN", context="", timeout=0.55):
+def internal_translate_text(text, target="zh-CN", context="", timeout=1.15):
     endpoint = internal_translate_endpoint()
     if not endpoint:
         return None
@@ -1586,8 +1586,8 @@ def mymemory_translate_text(text, target="zh-CN", timeout=1.8):
     return None
 
 
-def google_translate_text(text, target="zh-CN", include_details=False, timeout=1.05):
-    payload = google_translate_payload(text, target, include_details=include_details, timeout=timeout, attempts=1)
+def google_translate_text(text, target="zh-CN", include_details=False, timeout=1.45, attempts=2):
+    payload = google_translate_payload(text, target, include_details=include_details, timeout=timeout, attempts=attempts)
     translated = extract_google_translation(payload)
     if not translated:
         return None
@@ -1600,10 +1600,48 @@ def google_translate_text(text, target="zh-CN", include_details=False, timeout=1
     }
 
 
+def google_cloud_translate_text(text, target="zh-CN", timeout=2.8):
+    api_key = translation_api_key()
+    if not api_key:
+        return None
+
+    url = GOOGLE_TRANSLATE_ENDPOINT + "?" + urllib.parse.urlencode({"key": api_key})
+    body = json.dumps({
+        "q": [text],
+        "target": target,
+        "format": "text",
+    }, ensure_ascii=False).encode("utf-8")
+    request = urllib.request.Request(
+        url,
+        data=body,
+        headers={"Content-Type": "application/json; charset=utf-8"},
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+        rows = payload.get("data", {}).get("translations", []) if isinstance(payload, dict) else []
+        first = rows[0] if rows else {}
+        translated = html.unescape(str(first.get("translatedText") or "")).strip()
+        if translated:
+            return {
+                "translation": translated,
+                "detected": first.get("detectedSourceLanguage") or "",
+                "dictionary": [],
+                "examples": [],
+                "sourceName": "Google Cloud Translate",
+            }
+    except Exception:
+        return None
+    return None
+
+
 def fastest_external_translate_text(text, target="zh-CN"):
     futures = [
-        SELECTION_TRANSLATION_EXECUTOR.submit(google_translate_text, text, target, False, 1.05),
-        SELECTION_TRANSLATION_EXECUTOR.submit(mymemory_translate_text, text, target, 1.15),
+        SELECTION_TRANSLATION_EXECUTOR.submit(google_cloud_translate_text, text, target, 2.8),
+        SELECTION_TRANSLATION_EXECUTOR.submit(google_translate_text, text, target, False, 1.45, 2),
+        SELECTION_TRANSLATION_EXECUTOR.submit(google_translate_text, text, target, True, 2.4, 1),
+        SELECTION_TRANSLATION_EXECUTOR.submit(mymemory_translate_text, text, target, 1.9),
     ]
     try:
         for future in concurrent.futures.as_completed(futures, timeout=SELECTION_TRANSLATION_EXTERNAL_TIMEOUT):
@@ -3610,7 +3648,7 @@ def translation_cache_key(text):
     return f"{TRANSLATION_TARGET}:{digest}"
 
 
-def google_translate_batch(texts, api_key, timeout=10):
+def google_translate_batch(texts, api_key, timeout=10, attempts=2):
     if not texts:
         return []
 
@@ -3626,14 +3664,37 @@ def google_translate_batch(texts, api_key, timeout=10):
         headers={"Content-Type": "application/json; charset=utf-8"},
         method="POST",
     )
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        payload = json.loads(response.read().decode("utf-8"))
+    last_error = None
+    for _ in range(max(1, attempts)):
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            break
+        except Exception as error:
+            last_error = error
+    else:
+        raise last_error
 
     rows = payload.get("data", {}).get("translations", [])
     translated = []
     for row in rows:
         translated.append(html.unescape(row.get("translatedText", "")).strip())
     return translated
+
+
+def translate_batch_resilient(texts, api_key):
+    if not texts:
+        return []
+    try:
+        translations = google_translate_batch(texts, api_key, timeout=12, attempts=2)
+        if len(translations) < len(texts):
+            translations.extend([""] * (len(texts) - len(translations)))
+        return translations[:len(texts)]
+    except Exception:
+        if len(texts) <= 1:
+            return ["" for _ in texts]
+        middle = max(1, len(texts) // 2)
+        return translate_batch_resilient(texts[:middle], api_key) + translate_batch_resilient(texts[middle:], api_key)
 
 
 def apply_translations(events):
@@ -3660,10 +3721,10 @@ def apply_translations(events):
 
     if missing:
         try:
-            for start in range(0, len(missing), 24):
-                batch = missing[start:start + 24]
-                batch_keys = missing_keys[start:start + 24]
-                translations = google_translate_batch(batch, api_key)
+            for start in range(0, len(missing), 16):
+                batch = missing[start:start + 16]
+                batch_keys = missing_keys[start:start + 16]
+                translations = translate_batch_resilient(batch, api_key)
                 for translated, (event, field, key) in zip(translations, batch_keys):
                     if translated:
                         cache[key] = translated

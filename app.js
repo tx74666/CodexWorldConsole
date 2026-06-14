@@ -7260,9 +7260,20 @@ async function translateSelectedText(text) {
   translationAbortController = requestController;
 
   try {
-    const response = await fetchWithTimeout(`/api/translate?${params.toString()}`, { cache: "no-store", signal: requestController.signal }, 2200);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const payload = await response.json();
+    let payload = null;
+    let lastError = null;
+    for (const timeoutMs of [5200, 7600]) {
+      try {
+        const response = await fetchWithTimeout(`/api/translate?${params.toString()}`, { cache: "no-store", signal: requestController.signal }, timeoutMs);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        payload = await response.json();
+        break;
+      } catch (error) {
+        lastError = error;
+        if (requestController.signal.aborted || requestId !== translationRequestId) throw error;
+      }
+    }
+    if (!payload) throw lastError || new Error("Translation unavailable");
     if (requestId !== translationRequestId) return;
     translationResultText = normalizedSelectionText(payload.translation || "");
     translationExplanationText = normalizedSelectionText(payload.explanation || "");

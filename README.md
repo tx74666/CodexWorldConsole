@@ -8,10 +8,10 @@ Choose your device, download one file, then open it.
 
 | Device | Download | Open |
 | --- | --- | --- |
-| Windows | [Desktop ZIP](https://github.com/tx74666/CodexWorldConsole/releases/download/v0.1.2/Codex-World-Console-Windows-v0.1.2.zip) | Unzip it, then run `Codex World.exe`. |
-| Android | [APK](https://github.com/tx74666/CodexWorldConsole/releases/download/v0.1.2/Codex-World-Console-Android-v0.1.2.apk) | Install the APK, then open Codex World. |
+| Windows | [Desktop ZIP](https://github.com/tx74666/CodexWorldConsole/releases/download/v0.1.4/Codex-World-Console-Windows-v0.1.4.zip) | Unzip it, then run `Codex World.exe`. |
+| Android | [APK](https://github.com/tx74666/CodexWorldConsole/releases/download/v0.1.4/Codex-World-Console-Android-v0.1.4.apk) | Install the APK, then open Codex World. |
 
-All downloads are also on the [v0.1.2 release page](https://github.com/tx74666/CodexWorldConsole/releases/tag/v0.1.2).
+All downloads are also on the [latest release page](https://github.com/tx74666/CodexWorldConsole/releases/latest).
 
 Need the source code instead? Use GitHub's green **Code** button, then **Download ZIP**.
 
