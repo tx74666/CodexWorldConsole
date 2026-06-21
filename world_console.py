@@ -45,18 +45,24 @@ WORLD_GEOJSON_URLS = [
 MARKET_CACHE_SECONDS = 1800
 MARKET_DISPLAY_COUNT = 50
 MARKET_FETCH_LIMIT = 120
-MARKET_HISTORY_PREP_LIMIT = 12
-MARKET_INITIAL_HISTORY_ASSET_COUNT = 12
-MARKET_CACHE_SCHEMA_VERSION = 7
-MARKET_FULL_HISTORY_POINTS = 260
-MARKET_DENSE_HISTORY_POINTS = 460
+MARKET_HISTORY_PREP_LIMIT = 8
+MARKET_INITIAL_HISTORY_ASSET_COUNT = 8
+MARKET_CACHE_SCHEMA_VERSION = 10
+MARKET_FULL_HISTORY_POINTS = 20_000
+MARKET_DENSE_HISTORY_POINTS = 20_000
 MARKET_RECENT_DENSE_DAYS = 430
-MARKET_SHORT_HISTORY_POINTS = 520
+MARKET_SHORT_HISTORY_POINTS = 20_000
+MARKET_SNAPSHOT_FULL_HISTORY_POINTS = 800
+MARKET_SNAPSHOT_DENSE_HISTORY_POINTS = 1_200
+MARKET_SNAPSHOT_SHORT_HISTORY_POINTS = 6_000
+MARKET_SNAPSHOT_SHORT_HISTORY_DAYS = 31
 MARKET_INTRADAY_HISTORY_MIN_POINTS = 30
 MARKET_INTRADAY_SESSION_MIN_POINTS = 12
 MARKET_SHORT_HISTORY_MIN_POINTS = 24
+MARKET_5D_HISTORY_MIN_POINTS = 1_000
+MARKET_1M_HISTORY_MIN_POINTS = 5_500
 MARKET_SPARKLINE_POINTS = 60
-MARKET_CACHE_REWRITE_BYTES = 5_000_000
+MARKET_CACHE_REWRITE_BYTES = 64_000_000
 MARKET_REFRESH_LOCK = threading.Lock()
 MARKET_REFRESH_IN_PROGRESS = False
 SELECTION_TRANSLATION_CACHE = {}
@@ -2121,6 +2127,16 @@ def history_points_since(history, days):
     return [item for date, item in dated if date is not None and cutoff <= date <= latest + timedelta(minutes=5)]
 
 
+def limit_recent_range_points(history, max_points, days):
+    points = [item for item in history or [] if isinstance(item, dict)]
+    if max_points <= 0:
+        return []
+    recent = history_points_since(points, days)
+    if len(recent) >= 2:
+        return limit_history_points(recent, max_points)
+    return limit_history_points(points, max_points)
+
+
 def latest_intraday_session_points(history):
     dated = [
         (history_point_datetime(item), item)
@@ -2167,9 +2183,13 @@ def compact_market_payload(payload):
             continue
         keep_chart_history = index < MARKET_INITIAL_HISTORY_ASSET_COUNT
         if keep_chart_history:
-            asset["history"] = limit_history_points(asset.get("history"), MARKET_FULL_HISTORY_POINTS)
-            asset["denseHistory"] = limit_dense_history_points(asset.get("denseHistory"), MARKET_DENSE_HISTORY_POINTS)
-            asset["shortHistory"] = limit_history_points(asset.get("shortHistory"), MARKET_SHORT_HISTORY_POINTS)
+            asset["history"] = limit_history_points(asset.get("history"), MARKET_SNAPSHOT_FULL_HISTORY_POINTS)
+            asset["denseHistory"] = limit_dense_history_points(asset.get("denseHistory"), MARKET_SNAPSHOT_DENSE_HISTORY_POINTS)
+            asset["shortHistory"] = limit_recent_range_points(
+                asset.get("shortHistory"),
+                MARKET_SNAPSHOT_SHORT_HISTORY_POINTS,
+                MARKET_SNAPSHOT_SHORT_HISTORY_DAYS,
+            )
         else:
             for key in ("history", "denseHistory", "shortHistory", "historySource", "denseHistorySource", "shortHistorySource"):
                 asset.pop(key, None)
@@ -2179,9 +2199,13 @@ def compact_market_payload(payload):
         for quote in currencies.get("quotes", []) or []:
             if not isinstance(quote, dict):
                 continue
-            quote["history"] = limit_history_points(quote.get("history"), MARKET_FULL_HISTORY_POINTS)
-            quote["denseHistory"] = limit_dense_history_points(quote.get("denseHistory"), MARKET_DENSE_HISTORY_POINTS)
-            quote["shortHistory"] = limit_history_points(quote.get("shortHistory"), MARKET_SHORT_HISTORY_POINTS)
+            quote["history"] = limit_history_points(quote.get("history"), MARKET_SNAPSHOT_FULL_HISTORY_POINTS)
+            quote["denseHistory"] = limit_dense_history_points(quote.get("denseHistory"), MARKET_SNAPSHOT_DENSE_HISTORY_POINTS)
+            quote["shortHistory"] = limit_recent_range_points(
+                quote.get("shortHistory"),
+                MARKET_SNAPSHOT_SHORT_HISTORY_POINTS,
+                MARKET_SNAPSHOT_SHORT_HISTORY_DAYS,
+            )
     return payload
 
 
@@ -2344,7 +2368,7 @@ def save_market_cache(payload):
         if isinstance(payload, dict):
             payload["schemaVersion"] = MARKET_CACHE_SCHEMA_VERSION
         payload = compact_market_payload(payload)
-        MARKET_CACHE.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        MARKET_CACHE.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
     except OSError:
         pass
 
@@ -2765,6 +2789,15 @@ def normalized_market_range(range_name):
     return range_name if range_name in {"1d", "5d", "1m", "1y", "5y", "all"} else ""
 
 
+def market_short_history_min_points(range_name):
+    range_name = normalized_market_range(range_name)
+    if range_name == "5d":
+        return MARKET_5D_HISTORY_MIN_POINTS
+    if range_name == "1m":
+        return MARKET_1M_HISTORY_MIN_POINTS
+    return 2
+
+
 def history_payload_has_range(payload, range_name):
     range_name = normalized_market_range(range_name)
     if not isinstance(payload, dict):
@@ -2775,7 +2808,10 @@ def history_payload_has_range(payload, range_name):
         days = 5 if range_name == "5d" else 31
         points = history_points_since(payload.get("shortHistory"), days)
         min_span = 2.5 if range_name == "5d" else 20
-        return history_point_count(points) >= 2 and history_span_days(points) >= min_span
+        return (
+            history_point_count(points) >= market_short_history_min_points(range_name)
+            and history_span_days(points) >= min_span
+        )
     if range_name in {"1y", "5y"}:
         return history_point_count(payload.get("denseHistory")) >= 30
     if range_name == "all":
@@ -2932,15 +2968,13 @@ def yahoo_price_history(symbol, range_name="5y", interval="1d"):
 def yahoo_short_price_history(symbol, detailed=False, range_name=""):
     range_name = normalized_market_range(range_name)
     if range_name == "1d":
-        specs = [("1d", "5m"), ("5d", "5m"), ("5d", "15m")]
+        specs = [("1d", "1m"), ("5d", "1m"), ("5d", "5m")]
     elif range_name == "5d":
-        specs = [("5d", "15m")]
+        specs = [("5d", "1m"), ("5d", "5m")]
     elif range_name == "1m":
-        specs = [("1mo", "1h")]
+        specs = [("1mo", "2m"), ("60d", "5m"), ("5d", "1m"), ("1d", "1m")]
     else:
-        specs = [("1mo", "1h")]
-        if detailed:
-            specs.append(("5d", "15m"))
+        specs = [("1mo", "2m"), ("60d", "5m"), ("5d", "1m"), ("1d", "1m")]
 
     merged = {}
     for history_range, interval in specs:
@@ -3044,8 +3078,10 @@ def attach_currency_histories(quotes):
             long_history = []
         try:
             short = merge_history_series(
-                currency_history_from_yahoo(code, range_name="1mo", interval="1h"),
-                currency_history_from_yahoo(code, range_name="1d", interval="5m"),
+                currency_history_from_yahoo(code, range_name="1mo", interval="2m"),
+                currency_history_from_yahoo(code, range_name="60d", interval="5m"),
+                currency_history_from_yahoo(code, range_name="5d", interval="1m"),
+                currency_history_from_yahoo(code, range_name="1d", interval="1m"),
             )
         except Exception:
             short = []

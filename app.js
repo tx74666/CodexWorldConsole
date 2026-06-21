@@ -1429,6 +1429,9 @@ const boardSlots = [
   [22, 45], [48, 42], [72, 46],
   [14, 70], [36, 68], [60, 70], [84, 68]
 ];
+const MARKET_HISTORY_CACHE_POINTS = 20000;
+const MARKET_RANGE_HISTORY_CACHE_POINTS = 20000;
+const MARKET_SPARKLINE_CACHE_POINTS = 1000;
 const MAX_EARNING_OPPORTUNITIES = 10;
 const earningSourceFilters = [
   { key: "job-board", labelKey: "earningFilterJobBoard" },
@@ -3169,13 +3172,19 @@ function marketRangeMinimumSpanDays(range) {
   return 0;
 }
 
+function marketShortHistoryMinimumPoints(range) {
+  if (range === "5d") return 1000;
+  if (range === "1m") return 5500;
+  return 2;
+}
+
 function marketShortHistoryCoversRange(points, range = selectedMarketRange) {
   const dated = (points || []).filter(point => pointTime(point));
   if (range === "1d") return intradayMarketHistory(dated).length >= 2;
   const days = marketRangeDays(range);
   if (!days) return false;
   const filtered = pointsWithinDays(dated, days);
-  if (filtered.length < 2) return false;
+  if (filtered.length < marketShortHistoryMinimumPoints(range)) return false;
   return marketHistorySpanDays(filtered) >= marketRangeMinimumSpanDays(range);
 }
 
@@ -3309,6 +3318,11 @@ function rangedMarketHistory(asset, range = selectedMarketRange, options = {}) {
 }
 
 function hasMarketHistoryForRange(asset, range = selectedMarketRange) {
+  if (range === "1d" || range === "5d" || range === "1m") {
+    const exactHistory = rangeMarketHistory(asset, range).filter(point => pointTime(point));
+    if (marketShortHistoryCoversRange(exactHistory, range)) return true;
+    return marketShortHistoryCoversRange(shortMarketHistory(asset).filter(point => pointTime(point)), range);
+  }
   return actualRangedMarketHistory(asset, range).length >= 2;
 }
 
@@ -4268,7 +4282,7 @@ function compactRangeHistoriesForCache(histories) {
   const compact = {};
   const normalized = normalizeMarketRangeHistories(histories);
   marketRangeOptions.forEach(range => {
-    if (normalized[range]) compact[range] = trimMarketHistoryForCache(normalized[range], range === "1m" ? 520 : 220);
+    if (normalized[range]) compact[range] = trimMarketHistoryForCache(normalized[range], MARKET_RANGE_HISTORY_CACHE_POINTS);
   });
   return compact;
 }
@@ -4297,10 +4311,10 @@ function compactMarketAssetForCache(asset, index) {
     logoUrl: asset.logoUrl,
     sourceName: asset.sourceName,
     historyUrl: asset.historyUrl,
-    sparkline: trimMarketHistoryForCache(asset.sparkline, 40),
-    history: includeChart ? trimMarketHistoryForCache(asset.history, 260) : [],
-    denseHistory: includeChart ? trimMarketHistoryForCache(asset.denseHistory, 420) : [],
-    shortHistory: includeChart ? trimMarketHistoryForCache(asset.shortHistory, 520) : [],
+    sparkline: trimMarketHistoryForCache(asset.sparkline, MARKET_SPARKLINE_CACHE_POINTS),
+    history: includeChart ? trimMarketHistoryForCache(asset.history, MARKET_HISTORY_CACHE_POINTS) : [],
+    denseHistory: includeChart ? trimMarketHistoryForCache(asset.denseHistory, MARKET_HISTORY_CACHE_POINTS) : [],
+    shortHistory: includeChart ? trimMarketHistoryForCache(asset.shortHistory, MARKET_HISTORY_CACHE_POINTS) : [],
     rangeHistories: includeChart ? compactRangeHistoriesForCache(asset.rangeHistories) : {}
   };
 }
@@ -4316,9 +4330,9 @@ function compactCurrencyForCache(currency) {
     changePct: currency.changePct,
     date: currency.date,
     source: currency.source,
-    history: trimMarketHistoryForCache(currency.history, 260),
-    denseHistory: trimMarketHistoryForCache(currency.denseHistory, 420),
-    shortHistory: trimMarketHistoryForCache(currency.shortHistory, 520)
+    history: trimMarketHistoryForCache(currency.history, MARKET_HISTORY_CACHE_POINTS),
+    denseHistory: trimMarketHistoryForCache(currency.denseHistory, MARKET_HISTORY_CACHE_POINTS),
+    shortHistory: trimMarketHistoryForCache(currency.shortHistory, MARKET_HISTORY_CACHE_POINTS)
   };
 }
 
@@ -5629,6 +5643,71 @@ function chartTickIndices(length, count = 3) {
   return Array.from(ticks).sort((a, b) => a - b);
 }
 
+function chartTimeBounds(history) {
+  const times = (history || []).map(pointTimestamp).filter(Number.isFinite);
+  if (times.length < 2) return null;
+  const min = Math.min(...times);
+  const max = Math.max(...times);
+  return max > min ? { min, max } : null;
+}
+
+function chartPointX(history, index, padLeft, chartWidth, timeBounds = chartTimeBounds(history)) {
+  const point = history[index];
+  const time = pointTimestamp(point);
+  if (timeBounds && Number.isFinite(time)) {
+    const ratio = clamp((time - timeBounds.min) / (timeBounds.max - timeBounds.min), 0, 1);
+    return padLeft + ratio * chartWidth;
+  }
+  return padLeft + (index / Math.max(1, history.length - 1)) * chartWidth;
+}
+
+function chartTickIndicesForHistory(history, count = 3) {
+  const points = Array.isArray(history) ? history : [];
+  if (points.length <= 1) return chartTickIndices(points.length, count);
+  const timeBounds = chartTimeBounds(points);
+  if (!timeBounds) return chartTickIndices(points.length, count);
+  const ticks = new Set([0, points.length - 1]);
+  for (let index = 1; index < count - 1; index += 1) {
+    const target = timeBounds.min + (index / Math.max(1, count - 1)) * (timeBounds.max - timeBounds.min);
+    let closestIndex = 0;
+    let closestDistance = Infinity;
+    points.forEach((point, pointIndex) => {
+      const time = pointTimestamp(point);
+      if (!Number.isFinite(time)) return;
+      const distance = Math.abs(time - target);
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestIndex = pointIndex;
+      }
+    });
+    ticks.add(closestIndex);
+  }
+  return Array.from(ticks).sort((a, b) => a - b);
+}
+
+function chartPercentile(sortedValues, ratio) {
+  if (!sortedValues.length) return null;
+  const position = clamp(ratio, 0, 1) * (sortedValues.length - 1);
+  const lower = Math.floor(position);
+  const upper = Math.ceil(position);
+  if (lower === upper) return sortedValues[lower];
+  const mix = position - lower;
+  return sortedValues[lower] * (1 - mix) + sortedValues[upper] * mix;
+}
+
+function nearestChartPointIndex(points, x) {
+  let closestIndex = 0;
+  let closestDistance = Infinity;
+  points.forEach((point, index) => {
+    const distance = Math.abs(point[0] - x);
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestIndex = index;
+    }
+  });
+  return closestIndex;
+}
+
 function createMarketChart(asset) {
   const ns = "http://www.w3.org/2000/svg";
   const width = 640;
@@ -5804,10 +5883,13 @@ function createCurrencyChart(anchor, quote) {
   const padRight = 14;
   const padTop = 14;
   const padBottom = 24;
-  let history = currencyPairHistory(anchor, quote);
+  const cleanHistory = items => (items || [])
+    .map(point => ({ ...point, value: Number(point?.value) }))
+    .filter(point => Number.isFinite(point.value) && point.value > 0);
+  let history = cleanHistory(currencyPairHistory(anchor, quote));
   let flatFallback = false;
   if (history.length < 2) {
-    history = flatCurrencyPairHistory(anchor, quote);
+    history = cleanHistory(flatCurrencyPairHistory(anchor, quote));
     flatFallback = history.length >= 2;
   }
   if (history.length < 2) {
@@ -5815,18 +5897,29 @@ function createCurrencyChart(anchor, quote) {
   }
 
   const values = history.map(point => point.value);
-  const rawMin = Math.min(...values);
-  const rawMax = Math.max(...values);
-  const flatChart = flatFallback || values.every(value => Math.abs(value - values[0]) <= Math.max(1, Math.abs(values[0] || 1)) * 0.000001);
-  const flatPad = Math.max(Math.abs(values[0] || 1) * 0.01, Number.EPSILON);
-  const min = flatChart ? values[0] - flatPad : rawMin;
-  const max = flatChart ? values[0] + flatPad : rawMax;
-  const range = Math.max(max - min, Math.abs(max || 1) * 0.01);
   const chartWidth = width - padLeft - padRight;
   const chartHeight = height - padTop - padBottom;
+  const sortedValues = values.slice().sort((left, right) => left - right);
+  const flatChart = flatFallback || values.every(value => Math.abs(value - values[0]) <= Math.max(1, Math.abs(values[0] || 1)) * 0.000001);
+  const rawMin = sortedValues[0];
+  const rawMax = sortedValues[sortedValues.length - 1];
+  const lowerPercentile = values.length >= 12 ? chartPercentile(sortedValues, 0.05) : rawMin;
+  const upperPercentile = values.length >= 12 ? chartPercentile(sortedValues, 0.95) : rawMax;
+  const endpointMin = Math.min(values[0], values[values.length - 1]);
+  const endpointMax = Math.max(values[0], values[values.length - 1]);
+  const visibleMin = flatChart ? values[0] : Math.min(lowerPercentile, endpointMin);
+  const visibleMax = flatChart ? values[0] : Math.max(upperPercentile, endpointMax);
+  const visibleRange = Math.max(visibleMax - visibleMin, Math.abs(visibleMax || 1) * 0.01);
+  const padding = flatChart
+    ? Math.max(Math.abs(values[0] || 1) * 0.01, Number.EPSILON)
+    : visibleRange * 0.08;
+  const min = visibleMin - padding;
+  const max = visibleMax + padding;
+  const range = Math.max(max - min, Math.abs(max || 1) * 0.01);
+  const timeBounds = chartTimeBounds(history);
   const points = history.map((point, index) => {
-    const x = padLeft + (index / Math.max(1, history.length - 1)) * chartWidth;
-    const y = padTop + (1 - ((point.value - min) / range)) * chartHeight;
+    const x = chartPointX(history, index, padLeft, chartWidth, timeBounds);
+    const y = clamp(padTop + (1 - ((point.value - min) / range)) * chartHeight, padTop, padTop + chartHeight);
     return [x, y];
   });
   const changeClass = currencyChangeClass(currencyPairChangePct(anchor, quote));
@@ -5873,7 +5966,7 @@ function createCurrencyChart(anchor, quote) {
   path.setAttribute("stroke-linejoin", "round");
   svg.appendChild(path);
 
-  chartTickIndices(history.length, 3).forEach(index => {
+  chartTickIndicesForHistory(history, 3).forEach(index => {
     const label = document.createElementNS(ns, "text");
     label.setAttribute("x", points[index][0]);
     label.setAttribute("y", height - 6);
@@ -5930,8 +6023,7 @@ function createCurrencyChart(anchor, quote) {
   overlay.addEventListener("mousemove", event => {
     const rect = svg.getBoundingClientRect();
     const localX = ((event.clientX - rect.left) / rect.width) * width;
-    const ratio = clamp((localX - padLeft) / chartWidth, 0, 1);
-    const index = clamp(Math.round(ratio * (history.length - 1)), 0, history.length - 1);
+    const index = nearestChartPointIndex(points, localX);
     const [x, y] = points[index];
     const point = history[index];
     hoverGroup.style.display = "";
@@ -7464,7 +7556,8 @@ async function fetchMarketHistory(asset, options = {}) {
     params.set("range", range);
     if (Number.isFinite(Number(asset.marketCap))) params.set("marketCap", String(asset.marketCap));
     if (Number.isFinite(Number(asset.value))) params.set("value", String(asset.value));
-    const response = await fetchWithTimeout(`/api/market-history?${params.toString()}`, { cache: "no-store" }, range === "1d" ? 6500 : 12000);
+    const historyTimeout = range === "1d" ? 12000 : range === "1m" ? 30000 : 18000;
+    const response = await fetchWithTimeout(`/api/market-history?${params.toString()}`, { cache: "no-store" }, historyTimeout);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const payload = await response.json();
     const updated = applyMarketHistoryPayload(asset, payload, range);
