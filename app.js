@@ -1,12 +1,12 @@
 ﻿const cities = [
-  { id: "shanghai", name: "Shanghai", zhName: "ä¸Šæµ·", country: "China", zhCountry: "ä¸­åœ‹", lat: 31.2304, lon: 121.4737, zone: "Asia/Shanghai" },
-  { id: "tokyo", name: "Tokyo", zhName: "æ±äº¬", country: "Japan", zhCountry: "æ—¥æœ¬", lat: 35.6762, lon: 139.6503, zone: "Asia/Tokyo" },
-  { id: "singapore", name: "Singapore", zhName: "æ–°åŠ å¡", country: "Singapore", zhCountry: "æ–°åŠ å¡", lat: 1.3521, lon: 103.8198, zone: "Asia/Singapore" },
-  { id: "dubai", name: "Dubai", zhName: "æœæ‹œ", country: "UAE", zhCountry: "é˜¿è¯é…‹", lat: 25.2048, lon: 55.2708, zone: "Asia/Dubai" },
-  { id: "london", name: "London", zhName: "å€«æ•¦", country: "UK", zhCountry: "è‹±åœ‹", lat: 51.5072, lon: -0.1276, zone: "Europe/London" },
-  { id: "newyork", name: "New York", zhName: "ç´ç´„", country: "USA", zhCountry: "ç¾Žåœ‹", lat: 40.7128, lon: -74.0060, zone: "America/New_York" },
-  { id: "saopaulo", name: "Sao Paulo", zhName: "è–ä¿ç¾…", country: "Brazil", zhCountry: "å·´è¥¿", lat: -23.5558, lon: -46.6396, zone: "America/Sao_Paulo" },
-  { id: "sydney", name: "Sydney", zhName: "æ‚‰å°¼", country: "Australia", zhCountry: "æ¾³å¤§åˆ©äºž", lat: -33.8688, lon: 151.2093, zone: "Australia/Sydney" }
+  { id: "shanghai", name: "Shanghai", zhName: "上海", country: "China", zhCountry: "中國", lat: 31.2304, lon: 121.4737, zone: "Asia/Shanghai" },
+  { id: "tokyo", name: "Tokyo", zhName: "東京", country: "Japan", zhCountry: "日本", lat: 35.6762, lon: 139.6503, zone: "Asia/Tokyo" },
+  { id: "singapore", name: "Singapore", zhName: "新加坡", country: "Singapore", zhCountry: "新加坡", lat: 1.3521, lon: 103.8198, zone: "Asia/Singapore" },
+  { id: "dubai", name: "Dubai", zhName: "杜拜", country: "UAE", zhCountry: "阿聯酋", lat: 25.2048, lon: 55.2708, zone: "Asia/Dubai" },
+  { id: "london", name: "London", zhName: "倫敦", country: "UK", zhCountry: "英國", lat: 51.5072, lon: -0.1276, zone: "Europe/London" },
+  { id: "newyork", name: "New York", zhName: "紐約", country: "USA", zhCountry: "美國", lat: 40.7128, lon: -74.0060, zone: "America/New_York" },
+  { id: "saopaulo", name: "Sao Paulo", zhName: "聖保羅", country: "Brazil", zhCountry: "巴西", lat: -23.5558, lon: -46.6396, zone: "America/Sao_Paulo" },
+  { id: "sydney", name: "Sydney", zhName: "悉尼", country: "Australia", zhCountry: "澳大利亞", lat: -33.8688, lon: 151.2093, zone: "Australia/Sydney" }
 ];
 
 const fallbackWeather = {
@@ -60,10 +60,10 @@ const cityPhotoSubjects = {
     { label: "Brooklyn Bridge", page: "Brooklyn_Bridge" }
   ],
   saopaulo: [
-    { label: "Sao Paulo", page: "SÃ£o_Paulo" },
+    { label: "Sao Paulo", page: "São_Paulo" },
     { label: "Paulista Avenue", page: "Paulista_Avenue" },
     { label: "Ibirapuera Park", page: "Ibirapuera_Park" },
-    { label: "SÃ£o Paulo Museum of Art", page: "SÃ£o_Paulo_Museum_of_Art" }
+    { label: "São Paulo Museum of Art", page: "São_Paulo_Museum_of_Art" }
   ],
   sydney: [
     { label: "Sydney", page: "Sydney" },
@@ -112,49 +112,49 @@ const fallbackMarketAssets = [
     group: "indices",
     symbol: "^GSPC",
     name: "S&P 500",
-    zhName: "æ ‡æ™®500",
+    zhName: "标普500",
     value: 5320,
     unit: "pts",
     change: 24,
     changePct: 0.45,
     history: [5070, 5108, 5088, 5142, 5168, 5150, 5212, 5240, 5226, 5288, 5320],
     summary: "The broad U.S. equity benchmark. It is the quickest read on global risk appetite.",
-    zhSummary: "ç¾Žå›½å¤§ç›˜åŸºå‡†ï¼Œæœ€é€‚åˆå¿«é€Ÿåˆ¤æ–­å…¨çƒé£Žé™©åå¥½ã€‚"
+    zhSummary: "美国大盘基准，最适合快速判断全球风险偏好。"
   },
   {
     id: "nasdaq",
     group: "indices",
     symbol: "^IXIC",
     name: "Nasdaq Composite",
-    zhName: "çº³æ–¯è¾¾å…‹ç»¼åˆæŒ‡æ•°",
+    zhName: "纳斯达克综合指数",
     value: 16860,
     unit: "pts",
     change: 96,
     changePct: 0.57,
     history: [15920, 16080, 16010, 16240, 16360, 16290, 16480, 16620, 16570, 16750, 16860],
     summary: "Technology and AI-linked growth shares carry the strongest signal here.",
-    zhSummary: "ç§‘æŠ€è‚¡å’Œ AI ç›¸å…³æˆé•¿è‚¡çš„åŠ¨å‘åœ¨è¿™é‡Œæœ€æ˜Žæ˜¾ã€‚"
+    zhSummary: "科技股和 AI 相关成长股的动向在这里最明显。"
   },
   {
     id: "hangseng",
     group: "indices",
     symbol: "^HSI",
     name: "Hang Seng",
-    zhName: "æ’ç”ŸæŒ‡æ•°",
+    zhName: "恒生指数",
     value: 19680,
     unit: "pts",
     change: -82,
     changePct: -0.41,
     history: [18760, 19020, 19210, 19140, 19480, 19820, 19740, 19920, 19870, 19760, 19680],
     summary: "Hong Kong is a useful pressure gauge for China-linked global capital.",
-    zhSummary: "é¦™æ¸¯å¸‚åœºé€‚åˆè§‚å¯Ÿä¸­å›½ç›¸å…³èµ„é‡‘çš„æ¸©åº¦ã€‚"
+    zhSummary: "香港市场适合观察中国相关资金的温度。"
   },
   {
     id: "usd_cny",
     group: "fx",
     symbol: "CNY=X",
     name: "USD/CNY",
-    zhName: "ç¾Žå…ƒ/äººæ°‘å¸",
+    zhName: "美元/人民币",
     value: 7.22,
     unit: "",
     decimals: 4,
@@ -162,14 +162,14 @@ const fallbackMarketAssets = [
     changePct: 0.14,
     history: [7.18, 7.19, 7.20, 7.19, 7.21, 7.22, 7.21, 7.23, 7.22, 7.21, 7.22],
     summary: "A direct read on dollar strength against the renminbi.",
-    zhSummary: "ç›´æŽ¥è§‚å¯Ÿç¾Žå…ƒå…‘äººæ°‘å¸å¼ºå¼±ã€‚"
+    zhSummary: "直接观察美元兑人民币强弱。"
   },
   {
     id: "eur_usd",
     group: "fx",
     symbol: "EURUSD=X",
     name: "EUR/USD",
-    zhName: "æ¬§å…ƒ/ç¾Žå…ƒ",
+    zhName: "欧元/美元",
     value: 1.087,
     unit: "",
     decimals: 4,
@@ -177,56 +177,56 @@ const fallbackMarketAssets = [
     changePct: -0.18,
     history: [1.102, 1.098, 1.095, 1.092, 1.094, 1.090, 1.088, 1.091, 1.089, 1.086, 1.087],
     summary: "The main dollar pair, useful for seeing whether the dollar move is broad.",
-    zhSummary: "æœ€ä¸»è¦çš„ç¾Žå…ƒè´§å¸å¯¹ï¼Œç”¨æ¥åˆ¤æ–­ç¾Žå…ƒå¼ºå¼±æ˜¯ä¸æ˜¯å…¨é¢å‘ç”Ÿã€‚"
+    zhSummary: "最主要的美元货币对，用来判断美元强弱是不是全面发生。"
   },
   {
     id: "gold",
     group: "commodities",
     symbol: "GC=F",
     name: "Gold",
-    zhName: "é»„é‡‘",
+    zhName: "黄金",
     value: 2395,
     unit: "USD/oz",
     change: 18,
     changePct: 0.76,
     history: [2290, 2312, 2304, 2340, 2358, 2336, 2368, 2380, 2374, 2388, 2395],
     summary: "Gold often moves with real-rate expectations and safe-haven demand.",
-    zhSummary: "é»„é‡‘é€šå¸¸åæ˜ å®žé™…åˆ©çŽ‡é¢„æœŸå’Œé¿é™©éœ€æ±‚ã€‚"
+    zhSummary: "黄金通常反映实际利率预期和避险需求。"
   },
   {
     id: "oil",
     group: "commodities",
     symbol: "CL=F",
     name: "WTI Crude",
-    zhName: "WTI åŽŸæ²¹",
+    zhName: "WTI 原油",
     value: 78.4,
     unit: "USD/bbl",
     change: -0.6,
     changePct: -0.76,
     history: [82.1, 81.4, 80.2, 79.8, 80.5, 79.1, 78.7, 77.9, 78.6, 79.0, 78.4],
     summary: "Oil connects geopolitics, inflation pressure, and demand expectations.",
-    zhSummary: "åŽŸæ²¹æŠŠåœ°ç¼˜æ”¿æ²»ã€é€šèƒ€åŽ‹åŠ›å’Œéœ€æ±‚é¢„æœŸè¿žæŽ¥åœ¨ä¸€èµ·ã€‚"
+    zhSummary: "原油把地缘政治、通胀压力和需求预期连接在一起。"
   },
   {
     id: "btc",
     group: "commodities",
     symbol: "BTC-USD",
     name: "Bitcoin",
-    zhName: "æ¯”ç‰¹å¸",
+    zhName: "比特币",
     value: 67200,
     unit: "USD",
     change: 820,
     changePct: 1.24,
     history: [61600, 62800, 62100, 64000, 64600, 63800, 65500, 66100, 65200, 66400, 67200],
     summary: "Bitcoin is the high-beta edge of global liquidity sentiment.",
-    zhSummary: "æ¯”ç‰¹å¸æ›´åƒå…¨çƒæµåŠ¨æ€§æƒ…ç»ªé‡Œæ³¢åŠ¨æœ€å¤§çš„é‚£ä¸€ç«¯ã€‚"
+    zhSummary: "比特币更像全球流动性情绪里波动最大的那一端。"
   },
   {
     id: "nvidia",
     group: "companies",
     symbol: "NVDA",
     name: "NVIDIA",
-    zhName: "è‹±ä¼Ÿè¾¾",
+    zhName: "英伟达",
     value: 1240,
     unit: "USD",
     change: 18,
@@ -234,14 +234,14 @@ const fallbackMarketAssets = [
     marketCap: 3050000000000,
     history: [1100, 1128, 1114, 1156, 1180, 1168, 1194, 1212, 1205, 1222, 1240],
     summary: "The clearest single-stock proxy for the AI infrastructure trade.",
-    zhSummary: "æœ€èƒ½ä»£è¡¨ AI åŸºç¡€è®¾æ–½äº¤æ˜“çš„å•ä¸€è‚¡ç¥¨ã€‚"
+    zhSummary: "最能代表 AI 基础设施交易的单一股票。"
   },
   {
     id: "microsoft",
     group: "companies",
     symbol: "MSFT",
     name: "Microsoft",
-    zhName: "å¾®è½¯",
+    zhName: "微软",
     value: 430,
     unit: "USD",
     change: 2.8,
@@ -249,14 +249,14 @@ const fallbackMarketAssets = [
     marketCap: 3200000000000,
     history: [408, 412, 410, 416, 421, 420, 424, 426, 423, 428, 430],
     summary: "Cloud and AI software demand make Microsoft a core mega-cap read.",
-    zhSummary: "äº‘å’Œ AI è½¯ä»¶éœ€æ±‚è®©å¾®è½¯æˆä¸ºæ ¸å¿ƒå¤§åž‹ç§‘æŠ€è‚¡è§‚å¯Ÿç‚¹ã€‚"
+    zhSummary: "云和 AI 软件需求让微软成为核心大型科技股观察点。"
   },
   {
     id: "apple",
     group: "companies",
     symbol: "AAPL",
     name: "Apple",
-    zhName: "è‹¹æžœ",
+    zhName: "苹果",
     value: 192,
     unit: "USD",
     change: -1.6,
@@ -264,14 +264,14 @@ const fallbackMarketAssets = [
     marketCap: 2950000000000,
     history: [186, 188, 187, 191, 194, 193, 195, 194, 193, 194, 192],
     summary: "Apple is still the cleanest consumer-tech mega-cap signal.",
-    zhSummary: "è‹¹æžœä»ç„¶æ˜¯æ¶ˆè´¹ç§‘æŠ€å¤§åž‹è‚¡é‡Œæœ€æ¸…æ™°çš„ä¿¡å·ã€‚"
+    zhSummary: "苹果仍然是消费科技大型股里最清晰的信号。"
   },
   {
     id: "tsmc",
     group: "companies",
     symbol: "TSM",
     name: "TSMC",
-    zhName: "å°ç§¯ç”µ",
+    zhName: "台积电",
     value: 164,
     unit: "USD",
     change: 1.9,
@@ -279,7 +279,7 @@ const fallbackMarketAssets = [
     marketCap: 850000000000,
     history: [150, 153, 151, 155, 158, 157, 160, 162, 161, 163, 164],
     summary: "TSMC anchors the semiconductor supply chain signal.",
-    zhSummary: "å°ç§¯ç”µæ˜¯åŠå¯¼ä½“ä¾›åº”é“¾æœ€å…³é”®çš„è§‚å¯Ÿç‚¹ã€‚"
+    zhSummary: "台积电是半导体供应链最关键的观察点。"
   }
 ];
 
@@ -287,29 +287,29 @@ const fallbackEarningSources = [
   {
     id: "linkedIn-jobs",
     title: "LinkedIn Jobs",
-    zhTitle: "LinkedIn æ‹›è˜",
+    zhTitle: "LinkedIn 招聘",
     category: "job-board",
     region: "Global",
-    zhRegion: "å…¨çƒ",
+    zhRegion: "全球",
     platform: "LinkedIn",
     remote: true,
     payout: "Variable",
-    zhPayout: "è§†å…¬å¸ä¸ŽèŒä½è€Œå®š",
+    zhPayout: "视公司与职位而定",
     difficulty: "medium",
     priority: 96,
     tags: ["job-board", "networking", "recruiter"],
     link: "https://www.linkedin.com/jobs/",
     summary: "Most useful for senior-to-director roles: leverage recruiter visibility and referral chains.",
-    zhSummary: "é€‚åˆä¸­é«˜é˜¶èŒä½ï¼šå¯åˆ©ç”¨æ‹›è˜è€…æ›å…‰å’Œå†…æŽ¨å…³ç³»é“¾ã€‚",
+    zhSummary: "适合中高阶职位：可利用招聘者曝光和内推关系链。",
     actions: [
       "Add 2-3 clear role keywords to job title search",
       "Enable job alerts with one location and one remote preference",
       "Comment on 2 industry posts a day to appear active"
     ],
     zhActions: [
-      "åœ¨èŒä½æœç´¢ä¸­å›ºå®š2-3ä¸ªæ ¸å¿ƒå…³é”®è¯",
-      "åˆ†åˆ«å¼€ 1 ä¸ªæœ¬åœ°åŒ–å’Œ 1 ä¸ªè¿œç¨‹å²—ä½æé†’",
-      "æ¯å¤©è¯„è®º2æ¡è¡Œä¸šåŠ¨æ€æå‡è´¦å·æ´»è·ƒ"
+      "在职位搜索中固定2-3个核心关键词",
+      "分别开 1 个本地化和 1 个远程岗位提醒",
+      "每天评论2条行业动态提升账号活跃"
     ]
   },
   {
@@ -318,54 +318,54 @@ const fallbackEarningSources = [
     zhTitle: "Indeed",
     category: "job-board",
     region: "Global",
-    zhRegion: "å…¨çƒ",
+    zhRegion: "全球",
     platform: "Indeed",
     remote: true,
     payout: "Variable",
-    zhPayout: "è§†å…¬å¸ä¸ŽèŒä½è€Œå®š",
+    zhPayout: "视公司与职位而定",
     difficulty: "low",
     priority: 92,
     tags: ["job-board", "entry", "easy-start"],
     link: "https://www.indeed.com/",
     summary: "Fastest place to collect newly posted roles with direct application flows.",
-    zhSummary: "é€‚åˆå¿«é€ŸåŒæ­¥å¤§é‡å²—ä½ï¼Œç›´æŽ¥ç”³è¯·ä½“éªŒé¡ºç•…ã€‚",
+    zhSummary: "适合快速同步大量岗位，直接申请体验顺畅。",
     actions: [
       "Collect 5 role titles and one daily location set",
       "Use title + skill + city format for filters",
       "Record response times by recruiter and keep best 3 only"
     ],
     zhActions: [
-      "å›ºå®š5ä¸ªç›®æ ‡èŒä½å…³é”®è¯+1ä¸ªåœ°åŒº",
-      "ç­›é€‰å™¨ä¿æŒâ€œèŒä½ + æŠ€èƒ½ + åŸŽå¸‚â€æ ¼å¼",
-      "è®°å½•å¯¹æ–¹å›žå¤æ—¶æ•ˆï¼Œä¿ç•™æœ€å¿«å›žåº”çš„3ä¸ªæ¸ é“"
+      "固定5个目标职位关键词+1个地区",
+      "筛选器保持“职位 + 技能 + 城市”格式",
+      "记录对方回复时效，保留最快回应的3个渠道"
     ]
   },
   {
     id: "wellfound-jobs",
     title: "Wellfound (Former AngelList)",
-    zhTitle: "Wellfoundï¼ˆåŽŸ AngelListï¼‰",
+    zhTitle: "Wellfound（原 AngelList）",
     category: "job-board",
     region: "Global",
-    zhRegion: "å…¨çƒ",
+    zhRegion: "全球",
     platform: "Wellfound",
     remote: true,
     payout: "Variable + equity",
-    zhPayout: "è§†å…¬å¸ä¸ŽèŒä½è€Œå®šï¼ˆå¸¸å«æœŸæƒï¼‰",
+    zhPayout: "视公司与职位而定（常含期权）",
     difficulty: "medium",
     priority: 82,
     tags: ["job-board", "startup", "equity"],
     link: "https://wellfound.com/jobs",
     summary: "Best for startup pipeline and product-led engineering/business roles with small teams.",
-    zhSummary: "é€‚åˆå°å›¢é˜Ÿ/åˆåˆ›å…¬å¸ï¼Œå¸¸è§è‚¡æƒæˆ–æˆé•¿åž‹æ¿€åŠ±ã€‚",
+    zhSummary: "适合小团队/初创公司，常见股权或成长型激励。",
     actions: [
       "Follow 30+ target startup tags",
       "Update one short founder-style cover note",
       "Prioritize roles with explicit stack and growth stage"
     ],
     zhActions: [
-      "å…³æ³¨ 30 ä¸ªä»¥ä¸Šç›®æ ‡å…¬å¸æ ‡ç­¾",
-      "å‡†å¤‡ä¸€æ®µç²¾ç®€çš„åˆ›å§‹äººé£Žæ ¼åŠ¨æœºä¿¡",
-      "ä¼˜å…ˆçœ‹å²—ä½è¦æ±‚ä¸Žå…¬å¸é˜¶æ®µæ¸…æ™°çš„ JD"
+      "关注 30 个以上目标公司标签",
+      "准备一段精简的创始人风格动机信",
+      "优先看岗位要求与公司阶段清晰的 JD"
     ]
   },
   {
@@ -374,26 +374,26 @@ const fallbackEarningSources = [
     zhTitle: "Upwork",
     category: "freelance",
     region: "Global",
-    zhRegion: "å…¨çƒ",
+    zhRegion: "全球",
     platform: "Upwork",
     remote: true,
     payout: "Hourly / fixed",
-    zhPayout: "æŒ‰å°æ—¶æˆ–å›ºå®šé¡¹ç›®",
+    zhPayout: "按小时或固定项目",
     difficulty: "low",
     priority: 90,
     tags: ["freelance", "client-work", "portfolio"],
     link: "https://www.upwork.com/",
     summary: "Quickest way to convert skills into real invoices with a visible client workflow.",
-    zhSummary: "æŠ€èƒ½è½¬çŽ°é‡‘æœ€å¿«çš„è‡ªç”±èŒä¸šå…¥å£ä¹‹ä¸€ï¼Œå®¢æˆ·æµç¨‹é—­çŽ¯æ¸…æ™°ã€‚",
+    zhSummary: "技能转现金最快的自由职业入口之一，客户流程闭环清晰。",
     actions: [
       "Create 3 concrete sample packages with fixed prices",
       "Set availability + timezone in profile",
       "Bid on 3 projects/day and reply within 30 minutes"
     ],
     zhActions: [
-      "åˆ›å»º3ä¸ªæ ‡å‡†åŒ–æœåŠ¡åŒ…å’Œå›ºå®šæŠ¥ä»·",
-      "å®Œå–„å¯ç”¨æ—¶æ®µä¸Žæ—¶åŒº",
-      "æ¯å¤©è·Ÿè¿›3ä¸ªé¡¹ç›®ï¼Œå°½é‡30åˆ†é’Ÿå†…å›žå¤"
+      "创建3个标准化服务包和固定报价",
+      "完善可用时段与时区",
+      "每天跟进3个项目，尽量30分钟内回复"
     ]
   },
   {
@@ -402,26 +402,26 @@ const fallbackEarningSources = [
     zhTitle: "Fiverr",
     category: "freelance",
     region: "Global",
-    zhRegion: "å…¨çƒ",
+    zhRegion: "全球",
     platform: "Fiverr",
     remote: true,
     payout: "Gig-based",
-    zhPayout: "æŒ‰ä»»åŠ¡è®¡è´¹",
+    zhPayout: "按任务计费",
     difficulty: "low",
     priority: 78,
     tags: ["freelance", "micro-task", "portfolio"],
     link: "https://www.fiverr.com/",
     summary: "Good for short task monetization and packaging niche expertise into digital gigs.",
-    zhSummary: "é€‚åˆç”¨å°è€Œå¿«çš„ä»»åŠ¡æ‰¿æŽ¥æŠ€èƒ½åž‹å˜çŽ°ã€‚",
+    zhSummary: "适合用小而快的任务承接技能型变现。",
     actions: [
       "Start with 3 micro-services with one clear pain point",
       "Use before/after examples in first 2 lines",
       "Test one new gig title weekly"
     ],
     zhActions: [
-      "å…ˆåš3ä¸ªèšç„¦1ä¸ªç—›ç‚¹çš„å¾®æœåŠ¡",
-      "æœåŠ¡æè¿°å‰2è¡Œæ”¾â€œæ”¹é€ å‰åŽâ€ç¤ºä¾‹",
-      "æ¯å‘¨æµ‹è¯•1ä¸ªæ–°Gigæ ‡é¢˜"
+      "先做3个聚焦1个痛点的微服务",
+      "服务描述前2行放“改造前后”示例",
+      "每周测试1个新Gig标题"
     ]
   },
   {
@@ -430,26 +430,26 @@ const fallbackEarningSources = [
     zhTitle: "RemoteOK",
     category: "remote",
     region: "Global",
-    zhRegion: "å…¨çƒ",
+    zhRegion: "全球",
     platform: "RemoteOK",
     remote: true,
     payout: "Variable",
-    zhPayout: "è§†å…¬å¸ä¸Žè§’è‰²è€Œå®š",
+    zhPayout: "视公司与角色而定",
     difficulty: "medium",
     priority: 84,
     tags: ["remote", "tech", "salaried"],
     link: "https://remoteok.com/",
     summary: "Strong source for remote tech roles, especially for full-time global teams.",
-    zhSummary: "é¢å‘è¿œç¨‹æŠ€æœ¯å²—ä½ï¼Œé€‚åˆé•¿æœŸå…¨èŒå²—ä½å¸ƒå±€ã€‚",
+    zhSummary: "面向远程技术岗位，适合长期全职岗位布局。",
     actions: [
       "Keep one tech stack + one role pair for filters",
       "Apply in batches across timezone groups",
       "Capture time-to-response trend weekly"
     ],
     zhActions: [
-      "å›ºå®š1å¥—æŠ€æœ¯æ ˆ+1ä¸ªå²—ä½ç»„åˆç­›é€‰",
-      "æŒ‰æ—¶åŒºåˆ†ç»„æ‰¹é‡æŠ•é€’",
-      "æ¯å‘¨è·Ÿè¸ªä¸€æ¬¡å¹³å‡å“åº”æ—¶é•¿"
+      "固定1套技术栈+1个岗位组合筛选",
+      "按时区分组批量投递",
+      "每周跟踪一次平均响应时长"
     ]
   },
   {
@@ -458,26 +458,26 @@ const fallbackEarningSources = [
     zhTitle: "We Work Remotely",
     category: "remote",
     region: "Global",
-    zhRegion: "å…¨çƒ",
+    zhRegion: "全球",
     platform: "We Work Remotely",
     remote: true,
     payout: "Variable",
-    zhPayout: "è§†å…¬å¸ä¸Žè§’è‰²è€Œå®š",
+    zhPayout: "视公司与角色而定",
     difficulty: "medium",
     priority: 80,
     tags: ["remote", "design", "engineering", "ops"],
     link: "https://weworkremotely.com/",
     summary: "High-quality remote roles, often in engineering, support, design, and ops.",
-    zhSummary: "å²—ä½è´¨é‡ç›¸å¯¹è¾ƒé«˜ï¼Œå¸¸è§å·¥ç¨‹ã€è®¾è®¡ã€è¿è¥æ–¹å‘ã€‚",
+    zhSummary: "岗位质量相对较高，常见工程、设计、运营方向。",
     actions: [
       "Filter one remote + one contract-only queue",
       "Store required stack and matching project examples",
       "Shortlist 8 roles and tailor each resume version"
     ],
     zhActions: [
-      "å»º1ä¸ªè¿œç¨‹å…¨èŒå’Œ1ä¸ªçŸ­çº¦å²—ä½é˜Ÿåˆ—",
-      "æ•´ç†å¿…éœ€æŠ€èƒ½æ ˆ+å¯¹åº”é¡¹ç›®æ¡ˆä¾‹",
-      "ä¸€æ¬¡æ€§æŒ‘8ä¸ªå²—ä½åšå®šåˆ¶åŒ–ç®€åŽ†"
+      "建1个远程全职和1个短约岗位队列",
+      "整理必需技能栈+对应项目案例",
+      "一次性挑8个岗位做定制化简历"
     ]
   },
   {
@@ -486,54 +486,54 @@ const fallbackEarningSources = [
     zhTitle: "Toptal",
     category: "freelance",
     region: "Global",
-    zhRegion: "å…¨çƒ",
+    zhRegion: "全球",
     platform: "Toptal",
     remote: true,
     payout: "Premium project + retainer",
-    zhPayout: "é«˜ç«¯é¡¹ç›®æˆ–é•¿æœŸé¡¾é—®åˆä½œ",
+    zhPayout: "高端项目或长期顾问合作",
     difficulty: "high",
     priority: 72,
     tags: ["freelance", "premium", "screening"],
     link: "https://www.toptal.com/",
     summary: "Higher-bar platform for premium freelancers with strict profile screening.",
-    zhSummary: "é—¨æ§›è¾ƒé«˜ä½†å•ä»·æ›´å¥½ï¼Œé‡è§†ä½œå“ä¸Žæ²Ÿé€šä¸€è‡´æ€§ã€‚",
+    zhSummary: "门槛较高但单价更好，重视作品与沟通一致性。",
     actions: [
       "Prepare one flagship case and one teardown case",
       "Rehearse short technical explanation in 90 seconds",
       "Build a one-page fee and SLA statement"
     ],
     zhActions: [
-      "å‡†å¤‡1ä¸ªä¸»æ¡ˆä¾‹+1ä¸ªé—®é¢˜åˆ†æžæ¡ˆä¾‹",
-      "ç»ƒä¹ 90ç§’æŠ€æœ¯è§£è¯´ç‰ˆæœ¬",
-      "ç»™è‡ªå·±å‡†å¤‡1é¡µæŠ¥ä»·ä¸ŽæœåŠ¡SLA"
+      "准备1个主案例+1个问题分析案例",
+      "练习90秒技术解说版本",
+      "给自己准备1页报价与服务SLA"
     ]
   },
   {
     id: "local-gigs",
     title: "Local freelance teams / communities",
-    zhTitle: "æœ¬åœ°è‡ªç”±èŒä¸šå›¢é˜Ÿ/ç¤¾ç¾¤",
+    zhTitle: "本地自由职业团队/社群",
     category: "local",
     region: "Local",
-    zhRegion: "æœ¬åœ°",
-    platform: "Discord, Telegram, å¾®ä¿¡ç¾¤",
+    zhRegion: "本地",
+    platform: "Discord, Telegram, 微信群",
     remote: false,
     payout: "Negotiated",
-    zhPayout: "å¯è®®ä»·ï¼Œçµæ´»ç»“ç®—",
+    zhPayout: "可议价，灵活结算",
     difficulty: "low",
     priority: 68,
     tags: ["local", "network", "small-project"],
     link: "https://www.google.com/search?q=local+freelance+jobs",
     summary: "Often lower friction for fast onboarding, especially for short business projects.",
-    zhSummary: "æœ¬åœ°ç¤¾ç¾¤é€šå¸¸ä¸Šæ‰‹æ›´å¿«ï¼Œé€‚åˆçŸ­å¹³å¿«ä¸šåŠ¡å•ã€‚",
+    zhSummary: "本地社群通常上手更快，适合短平快业务单。",
     actions: [
       "Post one concise offer card in 2 relevant groups",
       "Offer 1-2 pilot tasks as no-cost samples",
       "Capture referrals and warm-intros"
     ],
     zhActions: [
-      "åœ¨2ä¸ªç›¸å…³ç¾¤å‘å¸ƒ1å¼ æ¸…æ™°æŠ¥ä»·å¡",
-      "æä¾›1-2ä¸ªå°è§„æ¨¡è¯•å•æ ·æœ¬",
-      "æ¯æ¬¡æˆäº¤åŽè¯·æŽ¨èäººå¹¶è®°å½•è½¬ä»‹ç»"
+      "在2个相关群发布1张清晰报价卡",
+      "提供1-2个小规模试单样本",
+      "每次成交后请推荐人并记录转介绍"
     ]
   }
 ,
@@ -543,26 +543,26 @@ const fallbackEarningSources = [
     zhTitle: "ZipRecruiter",
     category: "job-board",
     region: "Global",
-    zhRegion: "Global",
+    zhRegion: "全球",
     platform: "ZipRecruiter",
     remote: true,
     payout: "Variable",
-    zhPayout: "Variable",
+    zhPayout: "视公司与职位而定",
     difficulty: "medium",
     priority: 86,
     tags: ["job-board", "high-volume", "alerts"],
     link: "https://www.ziprecruiter.com/jobs",
     summary: "Large platform with fast posting cadence and good support for volume applications across roles.",
-    zhSummary: "Large platform with fast posting cadence and good support for volume applications across roles.",
+    zhSummary: "岗位更新频率高，适合集中筛选并批量投递多个职位方向。",
     actions: [
       "Import one job-search keyword pack and save by salary band",
       "Enable one remote preference and one onsite preference only",
       "Apply to 5 relevant openings in one focused 30-minute block"
     ],
     zhActions: [
-      "Import one job-search keyword pack and save by salary band",
-      "Enable one remote preference and one onsite preference only",
-      "Apply to 5 relevant openings in one focused 30-minute block"
+      "整理一组求职关键词，并按薪资区间保存",
+      "只保留一个远程和一个现场岗位偏好",
+      "集中 30 分钟投递 5 个高匹配岗位"
     ]
   },
   {
@@ -571,26 +571,26 @@ const fallbackEarningSources = [
     zhTitle: "Glassdoor",
     category: "job-board",
     region: "Global",
-    zhRegion: "Global",
+    zhRegion: "全球",
     platform: "Glassdoor",
     remote: true,
     payout: "Variable",
-    zhPayout: "Variable",
+    zhPayout: "视公司与职位而定",
     difficulty: "medium",
     priority: 84,
     tags: ["job-board", "salary", "reviews"],
     link: "https://www.glassdoor.com/Job/index.htm",
     summary: "Use employer reviews and salary ranges to pre-score companies before applying.",
-    zhSummary: "Use employer reviews and salary ranges to pre-score companies before applying.",
+    zhSummary: "可先查看公司评价和薪资区间，再决定是否值得投递。",
     actions: [
       "Pick 3 target companies and read their salary pages first",
       "Save 6 roles with clear interview-fit reasons",
       "Prioritize roles with explicit remote label and transparent compensation"
     ],
     zhActions: [
-      "Pick 3 target companies and read their salary pages first",
-      "Save 6 roles with clear interview-fit reasons",
-      "Prioritize roles with explicit remote label and transparent compensation"
+      "先选 3 家目标公司并查看薪资页面",
+      "收藏 6 个与经历匹配的岗位",
+      "优先投递远程标记和薪资信息清楚的岗位"
     ]
   },
   {
@@ -599,26 +599,26 @@ const fallbackEarningSources = [
     zhTitle: "FlexJobs",
     category: "job-board",
     region: "Global",
-    zhRegion: "Global",
+    zhRegion: "全球",
     platform: "FlexJobs",
     remote: true,
     payout: "Variable",
-    zhPayout: "Variable",
+    zhPayout: "视公司与职位而定",
     difficulty: "low",
     priority: 82,
     tags: ["job-board", "verified", "remote", "part-time"],
     link: "https://www.flexjobs.com/",
     summary: "Good for screened part-time and full-time remote roles with fewer fake postings.",
-    zhSummary: "Good for screened part-time and full-time remote roles with fewer fake postings.",
+    zhSummary: "适合寻找经过筛选的远程全职和兼职岗位，低质量职位相对更少。",
     actions: [
       "Filter one remote + one part-time lane",
       "Add your top 10 matching skills in every query",
       "Apply to 3 roles where recruiter response is visible"
     ],
     zhActions: [
-      "Filter one remote + one part-time lane",
-      "Add your top 10 matching skills in every query",
-      "Apply to 3 roles where recruiter response is visible"
+      "分别保存一个远程和一个兼职筛选条件",
+      "每次搜索加入最匹配的 10 项技能",
+      "优先投递能看到招聘方活跃度的 3 个岗位"
     ]
   },
   {
@@ -655,26 +655,26 @@ const fallbackEarningSources = [
     zhTitle: "JustRemote",
     category: "remote",
     region: "Global",
-    zhRegion: "Global",
+    zhRegion: "全球",
     platform: "JustRemote",
     remote: true,
     payout: "Variable",
-    zhPayout: "Variable",
+    zhPayout: "视公司与职位而定",
     difficulty: "medium",
     priority: 83,
     tags: ["remote", "contract", "tech"],
     link: "https://justremote.co/",
     summary: "Curated remote job board with strong startup and product team focus.",
-    zhSummary: "Curated remote job board with strong startup and product team focus.",
+    zhSummary: "精选远程岗位较多，尤其适合初创公司和产品团队方向。",
     actions: [
       "Track timezone match and align meeting-ready windows",
       "Keep roles filtered by contract length and team size",
       "Apply quickly and only after role-tech compatibility check"
     ],
     zhActions: [
-      "Track timezone match and align meeting-ready windows",
-      "Keep roles filtered by contract length and team size",
-      "Apply quickly and only after role-tech compatibility check"
+      "确认时区匹配并标出可参加会议的时段",
+      "按合同周期和团队规模筛选岗位",
+      "检查岗位与技能匹配后尽快投递"
     ]
   },
   {
@@ -876,7 +876,7 @@ const fallbackEarningSources = [
   {
     id: "bosszhipin-jobs",
     title: "BOSS Zhipin",
-    zhTitle: "BOSS ç›´è˜",
+    zhTitle: "BOSS 直聘",
     category: "job-board",
     region: "China",
     zhRegion: "China",
@@ -935,26 +935,26 @@ const fallbackEarningSources = [
     zhTitle: "Remotive",
     category: "remote",
     region: "Global",
-    zhRegion: "å…¨çƒ",
+    zhRegion: "全球",
     platform: "Remotive",
     remote: true,
     payout: "Variable",
-    zhPayout: "Variable",
+    zhPayout: "视公司与职位而定",
     difficulty: "low",
     priority: 80,
     tags: ["remote", "startup", "tech", "curated"],
     link: "https://remotive.com/remote-jobs",
     summary: "Remotive curates remote roles from startups and scale-ups with stronger role clarity.",
-    zhSummary: "Remotive æ±‡æ€»äº†å¤§é‡åˆåˆ›å’Œæˆé•¿åž‹å…¬å¸å²—ä½ï¼Œå²—ä½èŒè´£é€šå¸¸æ›´æ¸…æ™°ã€‚",
+    zhSummary: "Remotive 汇总了大量初创和成长型公司岗位，岗位职责通常更清晰。",
     actions: [
       "Set one skills + one location preference per alert",
       "Tag each opening with one role level and one stack",
       "Follow up every qualified opening within 30 minutes"
     ],
     zhActions: [
-      "æ¯æ¡æé†’å›ºå®š 1 ä¸ªæŠ€èƒ½æ ‡ç­¾å’Œ 1 ä¸ªåœ°åŒºåå¥½",
-      "æ¯ä¸ªå²—ä½åŠ  1 ä¸ªç­‰çº§ + 1 ä¸ªæŠ€æœ¯æ ˆæ ‡ç­¾",
-      "å¯¹æ¯ä¸ªé«˜åŒ¹é…å²—ä½ 30 åˆ†é’Ÿå†…å®Œæˆå›žå¤"
+      "每条提醒固定 1 个技能标签和 1 个地区偏好",
+      "每个岗位加 1 个等级 + 1 个技术栈标签",
+      "对每个高匹配岗位 30 分钟内完成回复"
     ]
   },
   {
@@ -963,26 +963,26 @@ const fallbackEarningSources = [
     zhTitle: "Remote.co",
     category: "remote",
     region: "Global",
-    zhRegion: "å…¨çƒ",
+    zhRegion: "全球",
     platform: "Remote.co",
     remote: true,
     payout: "Variable",
-    zhPayout: "æŒ‰å²—ä½",
+    zhPayout: "按岗位",
     difficulty: "medium",
     priority: 77,
     tags: ["remote", "curated", "customer-support", "operations"],
     link: "https://remote.co/remote-jobs/",
     summary: "Useful for support, operations, design, and marketing roles with clear posting quality.",
-    zhSummary: "é€‚åˆè¿è¥ã€å®¢æœã€è®¾è®¡å’Œå¸‚åœºå²—ä½ï¼Œå²—ä½è¯´æ˜Žé€šå¸¸è¾ƒå®Œæ•´ã€‚",
+    zhSummary: "适合运营、客服、设计和市场岗位，岗位说明通常较完整。",
     actions: [
       "Filter one operational role and one technical role each day",
       "Use one tailored cover note per team/function",
       "Collect 3 interview questions likely in each job family"
     ],
     zhActions: [
-      "æ¯å¤©å„ç­› 1 ä¸ªè¿è¥æ–¹å‘ä¸Ž 1 ä¸ªæŠ€æœ¯æ–¹å‘å²—ä½",
-      "æ¯ä¸ªèŒèƒ½å®šåˆ¶ 1 ä»½æŠ•é€’è¯´æ˜Ž",
-      "æå‰å‡†å¤‡æ¯ç±»å²—ä½å¸¸è§çš„ 3 é“é¢è¯•é—®é¢˜"
+      "每天各筛 1 个运营方向与 1 个技术方向岗位",
+      "每个职能定制 1 份投递说明",
+      "提前准备每类岗位常见的 3 道面试问题"
     ]
   },
   {
@@ -991,26 +991,26 @@ const fallbackEarningSources = [
     zhTitle: "Jobspresso",
     category: "remote",
     region: "Global",
-    zhRegion: "å…¨çƒ",
+    zhRegion: "全球",
     platform: "Jobspresso",
     remote: true,
     payout: "Variable",
-    zhPayout: "æŒ‰å²—ä½",
+    zhPayout: "按岗位",
     difficulty: "low",
     priority: 76,
     tags: ["remote", "quality", "curated", "admin"],
     link: "https://jobspresso.co/remote-jobs/",
     summary: "A curated remote-only board with stable postings for marketing, admin, and support jobs.",
-    zhSummary: "ç¨³å®šçš„è¿œç¨‹å²—ä½èšåˆå…¥å£ï¼Œé€‚åˆå¸‚åœºã€è¡Œæ”¿å’Œå®¢æœç±»ç®€åŒ–æµç¨‹ã€‚",
+    zhSummary: "稳定的远程岗位聚合入口，适合市场、行政和客服类简化流程。",
     actions: [
       "Create separate inbox folders for each role stream",
       "Keep a cover note bank for recurring role templates",
       "Track weekly response rates and remove low-response keywords"
     ],
     zhActions: [
-      "æŒ‰å²—ä½æ–¹å‘å»ºç‹¬ç«‹é‚®ä»¶æ–‡ä»¶å¤¹",
-      "å»ºç«‹é€šç”¨æŠ•é€’æ¨¡æ¿åº“ï¼ˆæ¯ç±»å²—ä½ä¸€ä¸ªï¼‰",
-      "æ¯å‘¨ç»Ÿè®¡å›žå¤çŽ‡ï¼Œå‰”é™¤ä½Žå›žä¿¡å…³é”®è¯"
+      "按岗位方向建独立邮件文件夹",
+      "建立通用投递模板库（每类岗位一个）",
+      "每周统计回复率，剔除低回信关键词"
     ]
   },
   {
@@ -1019,26 +1019,26 @@ const fallbackEarningSources = [
     zhTitle: "Hired",
     category: "job-board",
     region: "Global",
-    zhRegion: "å…¨çƒ",
+    zhRegion: "全球",
     platform: "Hired",
     remote: true,
     payout: "Variable",
-    zhPayout: "æŒ‰å²—ä½",
+    zhPayout: "按岗位",
     difficulty: "high",
     priority: 74,
     tags: ["job-board", "engineering", "tech-senior", "offers"],
     link: "https://hired.com/",
     summary: "Candidate-first technical hiring platform; useful for salary-aware applicants in engineering roles.",
-    zhSummary: "å€™é€‰äººå‹å¥½çš„æŠ€æœ¯å²—ä½å¹³å°ï¼Œé€‚åˆå…³æ³¨è–ªèµ„å¼¹æ€§çš„å·¥ç¨‹èŒä½ã€‚",
+    zhSummary: "候选人友好的技术岗位平台，适合关注薪资弹性的工程职位。",
     actions: [
       "Complete full profile and highlight compensation expectations",
       "Keep responses in 1-hour batches during trading hours",
       "Choose roles with clear stack and interview timeline in profile page"
     ],
     zhActions: [
-      "å®Œæ•´å¡«å†™æŠ€èƒ½ä¸Žè–ªèµ„æœŸæœ›",
-      "åœ¨å·¥ä½œæ—¶æ®µå†…æ¯å°æ—¶å¤„ç†ä¸€æ‰¹å›žå¤",
-      "åªé€‰æŠ€æœ¯æ ˆå’Œé¢è¯•æµç¨‹æ¸…æ™°çš„å²—ä½"
+      "完整填写技能与薪资期望",
+      "在工作时段内每小时处理一批回复",
+      "只选技术栈和面试流程清晰的岗位"
     ]
   },
   {
@@ -1047,26 +1047,26 @@ const fallbackEarningSources = [
     zhTitle: "Arc",
     category: "freelance",
     region: "Global",
-    zhRegion: "å…¨çƒ",
+    zhRegion: "全球",
     platform: "Arc",
     remote: true,
     payout: "Project-based",
-    zhPayout: "é¡¹ç›®åˆ¶",
+    zhPayout: "项目制",
     difficulty: "medium",
     priority: 72,
     tags: ["freelance", "engineering", "high-quality"],
     link: "https://arc.dev/",
     summary: "Senior-engineering freelance and contract hiring, often with explicit budgets and durations.",
-    zhSummary: "åå·¥ç¨‹çš„è¿œç¨‹å¤–åŒ…ä¸ŽåˆåŒé¡¹ç›®å¹³å°ï¼Œå¸¸è§é¢„ç®—ä¸Žå‘¨æœŸæ›´æ˜Žç¡®ã€‚",
+    zhSummary: "偏工程的远程外包与合同项目平台，常见预算与周期更明确。",
     actions: [
       "Upload one concrete case-study + one measurable metric",
       "State availability window and communication SLA clearly",
       "Reply first to roles with defined scope and timeline"
     ],
     zhActions: [
-      "ä¸Šä¼ ä¸€ä¸ªæ¡ˆä¾‹ + é‡åŒ–ç»“æžœæ•°æ®",
-      "æ˜Žç¡®å¯ç”¨æ—¶é—´çª—å’Œæ²Ÿé€š SLA",
-      "ä¼˜å…ˆå¤„ç†æœ‰æ˜Žç¡®èŒƒå›´å’Œå‘¨æœŸçš„å²—ä½"
+      "上传一个案例 + 量化结果数据",
+      "明确可用时间窗和沟通 SLA",
+      "优先处理有明确范围和周期的岗位"
     ]
   },
   {
@@ -1075,26 +1075,26 @@ const fallbackEarningSources = [
     zhTitle: "Topcoder",
     category: "freelance",
     region: "Global",
-    zhRegion: "å…¨çƒ",
+    zhRegion: "全球",
     platform: "Topcoder",
     remote: true,
     payout: "Contest / project",
-    zhPayout: "ç«žèµ› / é¡¹ç›®åˆ¶",
+    zhPayout: "竞赛 / 项目制",
     difficulty: "medium",
     priority: 70,
     tags: ["freelance", "competitions", "coding", "algorithms"],
     link: "https://www.topcoder.com/challenges/",
     summary: "Competition plus workboard model; useful for coding speed and benchmark-style outputs.",
-    zhSummary: "ç«žèµ›ä¸Žä»»åŠ¡å¹¶è¡Œæ¨¡å¼ï¼Œé€‚åˆå±•ç¤ºä»£ç è¾“å‡ºé€Ÿåº¦å’Œæ‰§è¡Œç»“æžœã€‚",
+    zhSummary: "竞赛与任务并行模式，适合展示代码输出速度和执行结果。",
     actions: [
       "Join one easy challenge per week",
       "Post one reusable template pack after first win",
       "Track submission-to-feedback time by challenge tier"
     ],
     zhActions: [
-      "æ¯å‘¨å‚åŠ  1 ä¸ªéš¾åº¦è¾ƒä½Žçš„æŒ‘æˆ˜",
-      "é¦–æ¬¡æ‹¿ä¸‹åŽæ‰“åŒ…å‘å¸ƒä¸€ä¸ªå¯å¤ç”¨æˆæžœ",
-      "æŒ‰æŒ‘æˆ˜ç­‰çº§è®°å½•æäº¤é€šçŸ¥æ—¶å»¶"
+      "每周参加 1 个难度较低的挑战",
+      "首次拿下后打包发布一个可复用成果",
+      "按挑战等级记录提交通知时延"
     ]
   },
   {
@@ -1103,26 +1103,26 @@ const fallbackEarningSources = [
     zhTitle: "99designs",
     category: "freelance",
     region: "Global",
-    zhRegion: "å…¨çƒ",
+    zhRegion: "全球",
     platform: "99designs",
     remote: true,
     payout: "Project-based",
-    zhPayout: "é¡¹ç›®åˆ¶",
+    zhPayout: "项目制",
     difficulty: "medium",
     priority: 68,
     tags: ["freelance", "design", "portfolio"],
     link: "https://99designs.com/graphics/logos",
     summary: "Strong for branding, logo, and visual identity work with contest and direct-work options.",
-    zhSummary: "é€‚åˆå“ç‰Œè®¾è®¡ã€logo ä¸Žè§†è§‰è¯†åˆ«ï¼Œæ”¯æŒç«žæ ‡å¼ä¸Žç›´ç­¾ã€‚",
+    zhSummary: "适合品牌设计、logo 与视觉识别，支持竞标式与直签。",
     actions: [
       "Create one style preset with 3 core logo directions",
       "Prepare one package for startups and one for local business",
       "Follow up with 2 revised rounds within first 5 days"
     ],
     zhActions: [
-      "å»ºç«‹ 3 å¥—é£Žæ ¼æ–¹å‘çš„å“ç‰Œææ¡ˆ",
-      "åˆ†åˆ«å‡†å¤‡åˆ›ä¸šå…¬å¸ç‰ˆå’Œæœ¬åœ°å•†å®¶ç‰ˆçš„æœåŠ¡åŒ…",
-      "å‰ 5 å¤©å†…ä¸»åŠ¨æŽ¨è¿› 2 è½®ä¿®æ”¹"
+      "建立 3 套风格方向的品牌提案",
+      "分别准备创业公司版和本地商家版的服务包",
+      "前 5 天内主动推进 2 轮修改"
     ]
   },
   {
@@ -1131,54 +1131,54 @@ const fallbackEarningSources = [
     zhTitle: "Dribbble",
     category: "freelance",
     region: "Global",
-    zhRegion: "å…¨çƒ",
+    zhRegion: "全球",
     platform: "Dribbble",
     remote: true,
     payout: "Project-based",
-    zhPayout: "é¡¹ç›®åˆ¶",
+    zhPayout: "项目制",
     difficulty: "low",
     priority: 67,
     tags: ["freelance", "design", "portfolio", "visual"],
     link: "https://dribbble.com/jobs",
     summary: "Great for design-first talent where portfolio quality drives fast callbacks.",
-    zhSummary: "è®¾è®¡æ–¹å‘æ•ˆæžœæ˜Žæ˜¾ï¼Œä½œå“è´¨é‡é«˜æ—¶å“åº”é€Ÿåº¦å¿«ã€‚",
+    zhSummary: "设计方向效果明显，作品质量高时响应速度快。",
     actions: [
       "Keep portfolio sections by role category",
       "Publish one process case for each signature style",
       "Reach out to designers-to-businesses posts with clear scope notes"
     ],
     zhActions: [
-      "æŒ‰å²—ä½æ–¹å‘æ‹†åˆ†ä½œå“é›†ç›®å½•",
-      "æ¯ç§ä¸»è¦é£Žæ ¼æ”¾ä¸€ä¸ªæµç¨‹æ¡ˆä¾‹",
-      "å¯¹å•†å®¶å²—ä½è´´æ–‡é™„å¸¦æ˜Žç¡®äº¤ä»˜èŒƒå›´å›žå¤"
+      "按岗位方向拆分作品集目录",
+      "每种主要风格放一个流程案例",
+      "对商家岗位贴文附带明确交付范围回复"
     ]
   },
   {
     id: "toptal-redo",
     title: "Freelance via Toptal Projects",
-    zhTitle: "Toptal æ‹›è˜é¡¹ç›®",
+    zhTitle: "Toptal 招聘项目",
     category: "freelance",
     region: "Global",
-    zhRegion: "å…¨çƒ",
+    zhRegion: "全球",
     platform: "Toptal",
     remote: true,
     payout: "Premium project + retainer",
-    zhPayout: "é«˜ç«¯é¡¹ç›®æˆ–é•¿æœŸåˆä½œ",
+    zhPayout: "高端项目或长期合作",
     difficulty: "high",
     priority: 66,
     tags: ["freelance", "premium", "screening", "long-term"],
     link: "https://www.toptal.com/projects",
     summary: "Premium contracting model for proven specialists and repeat clients.",
-    zhSummary: "é«˜ç«¯å¤–åŒ…æ¨¡åž‹ï¼Œé€‚åˆé«˜è´¨é‡æœåŠ¡å’Œç¨³å®šå¤è´­ã€‚",
+    zhSummary: "高端外包模型，适合高质量服务和稳定复购。",
     actions: [
       "Use one flagship case tailored to client vertical",
       "Attach delivery SLA and timeline in all first responses",
       "Prioritize long-term contracts only after first milestone fit"
     ],
     zhActions: [
-      "æ¯æ¡å›žå¤å¸¦ä¸Šåž‚ç›´è¡Œä¸šä¸»æ¡ˆä¾‹",
-      "ç¬¬ä¸€è½®æ²Ÿé€šå³å£°æ˜Žäº¤ä»˜ SLA ä¸Žå‘¨æœŸ",
-      "åªåœ¨é¦–ä¸ªé‡Œç¨‹ç¢‘å¯æŽ§åŽå†æŽ¨è¿›é•¿æœŸåˆåŒ"
+      "每条回复带上垂直行业主案例",
+      "第一轮沟通即声明交付 SLA 与周期",
+      "只在首个里程碑可控后再推进长期合同"
     ]
   },
   {
@@ -1187,26 +1187,26 @@ const fallbackEarningSources = [
     zhTitle: "GitLab Jobs",
     category: "job-board",
     region: "Global",
-    zhRegion: "å…¨çƒ",
+    zhRegion: "全球",
     platform: "GitLab",
     remote: true,
     payout: "Variable",
-    zhPayout: "æŒ‰å²—ä½",
+    zhPayout: "按岗位",
     difficulty: "medium",
     priority: 72,
     tags: ["job-board", "engineering", "remote", "gitlab"],
     link: "https://about.gitlab.com/jobs/",
     summary: "Direct roles from GitLab and often fully distributed hiring workflow.",
-    zhSummary: "ç›´æŽ¥å…¬å¸å†…æŽ¨å…¥å£ï¼Œå·¥ç¨‹å²—ä½ä»¥åˆ†å¸ƒå¼æµç¨‹ä¸ºä¸»ã€‚",
+    zhSummary: "直接公司内推入口，工程岗位以分布式流程为主。",
     actions: [
       "Open role list and capture 3 direct-fit positions",
       "Align cover note with remote collaboration evidence",
       "Prepare interview stories around async workflows"
     ],
     zhActions: [
-      "å…ˆç­› 3 ä¸ªåŒ¹é…åº¦é«˜çš„å²—ä½",
-      "çªå‡ºè¿œç¨‹åä½œç»éªŒ",
-      "å‡†å¤‡ä¸Žå¼‚æ­¥åä½œç›¸å…³é¢è¯•æ•…äº‹"
+      "先筛 3 个匹配度高的岗位",
+      "突出远程协作经验",
+      "准备与异步协作相关面试故事"
     ]
   },
   {
@@ -1215,54 +1215,54 @@ const fallbackEarningSources = [
     zhTitle: "Dice",
     category: "job-board",
     region: "Global",
-    zhRegion: "å…¨çƒ",
+    zhRegion: "全球",
     platform: "Dice",
     remote: false,
     payout: "Variable",
-    zhPayout: "æŒ‰å²—ä½",
+    zhPayout: "按岗位",
     difficulty: "medium",
     priority: 65,
     tags: ["job-board", "technology", "contract", "onsite"],
     link: "https://www.dice.com/",
     summary: "Tech-contract and employer-heavy pipeline, especially strong for stable roles and volume.",
-    zhSummary: "ä»¥ä¼ä¸šæŠ€æœ¯å²—å’ŒåˆåŒå²—ä½ä¸ºä¸»ï¼Œé€‚åˆåšé«˜é¢‘æŠ•é€’ä¸Žå²—ä½ç•™æ„ã€‚",
+    zhSummary: "以企业技术岗和合同岗位为主，适合做高频投递与岗位留意。",
     actions: [
       "Keep one onsite and one remote tech lane",
       "Store requirements into 3 reusable templates",
       "Set weekly cadence for contract-to-hire transitions"
     ],
     zhActions: [
-      "ä¿ç•™ 1 æ¡çŽ°åœºå’Œ 1 æ¡è¿œç¨‹ç§‘æŠ€å²—ä½çº¿è·¯",
-      "æŠŠè¦æ±‚æ•´ç†æˆ 3 å¥—é€šç”¨æ¨¡æ¿",
-      "æ¯å‘¨å¤ç›˜åˆåŒè½¬æ­£ä¸Žè½¬æ­£çŽ‡"
+      "保留 1 条现场和 1 条远程科技岗位线路",
+      "把要求整理成 3 套通用模板",
+      "每周复盘合同转正与转正率"
     ]
   },
   {
     id: "f51-job",
     title: "51Job",
-    zhTitle: "å‰ç¨‹æ— å¿§",
+    zhTitle: "前程无忧",
     category: "job-board",
     region: "China",
-    zhRegion: "ä¸­å›½",
+    zhRegion: "中国",
     platform: "51Job",
     remote: true,
     payout: "Variable",
-    zhPayout: "æŒ‰å²—ä½",
+    zhPayout: "按岗位",
     difficulty: "low",
     priority: 70,
     tags: ["job-board", "regional", "cn", "volume"],
     link: "https://www.51job.com/",
     summary: "High-volume Chinese platform for mid-market and mainstream company hiring.",
-    zhSummary: "ä¸­å›½é«˜é¢‘æŠ•é€’å¹³å°ï¼Œé€‚åˆä¸­é«˜é¢‘ç”³è¯·å’ŒåŒåŸŽç­›é€‰ã€‚",
+    zhSummary: "中国高频投递平台，适合中高频申请和同城筛选。",
     actions: [
       "Run one job-hunt wave every weekday morning",
       "Sort by company tier + hiring speed",
       "Keep a single tracking sheet with last-reply timestamps"
     ],
     zhActions: [
-      "å·¥ä½œæ—¥å‰ç»Ÿä¸€å‘èµ·ä¸€æ¬¡é›†ä¸­æŠ•é€’",
-      "æŒ‰å…¬å¸å±‚çº§ä¸Žæ‹›è˜é€Ÿåº¦æŽ’åº",
-      "ç»´æŠ¤å›žå¤æ—¶é—´è¿½è¸ªè¡¨"
+      "工作日前统一发起一次集中投递",
+      "按公司层级与招聘速度排序",
+      "维护回复时间追踪表"
     ]
   },
   {
@@ -1271,26 +1271,26 @@ const fallbackEarningSources = [
     zhTitle: "SimplyHired",
     category: "job-board",
     region: "Global",
-    zhRegion: "å…¨çƒ",
+    zhRegion: "全球",
     platform: "SimplyHired",
     remote: false,
     payout: "Variable",
-    zhPayout: "æŒ‰å²—ä½",
+    zhPayout: "按岗位",
     difficulty: "low",
     priority: 64,
     tags: ["job-board", "salary", "search", "global"],
     link: "https://www.simplyhired.com/",
     summary: "Search-intense board for broad openings, useful for finding alternatives fast.",
-    zhSummary: "æœç´¢å¯¼å‘æ‹›è˜å¹³å°ï¼Œé€‚åˆå¿«é€Ÿè¡¥å……å€™é€‰æœºä¼šæ± ã€‚",
+    zhSummary: "搜索导向招聘平台，适合快速补充候选机会池。",
     actions: [
       "Set one broad keyword alert and one seniority alert",
       "Track one city and one remote job track",
       "Archive low-match listings after 2 response cycles"
     ],
     zhActions: [
-      "è®¾ç½®ä¸€æ¡å¹¿æ³›å…³é”®è¯å’Œä¸€æ¡çº§åˆ«æé†’",
-      "å»ºç«‹ä¸€æ¡åŸŽå¸‚çº¿å’Œä¸€æ¡è¿œç¨‹çº¿",
-      "è¿žç»­ä¸¤è½®æœªå›žå¤å°±å½’æ¡£æŽ‰ä½ŽåŒ¹é…æ¸…å•"
+      "设置一条广泛关键词和一条级别提醒",
+      "建立一条城市线和一条远程线",
+      "连续两轮未回复就归档掉低匹配清单"
     ]
   }];
 
@@ -1301,100 +1301,100 @@ const currencyOrder = ["USD", "CNY", "EUR", "JPY", "GBP", "CHF", "HKD", "SGD", "
 const requiredCurrencyCodes = currencyOrder.slice();
 const defaultCurrencyAnchors = ["USD", "CNY", "EUR", "JPY", "GBP", "BTC", "XAU"];
 const assetZhNamesBySymbol = {
-  "GOLD": "é»„é‡‘",
-  "SILVER": "ç™½é“¶",
-  "PLAT": "é“‚é‡‘",
-  "PALLAD": "é’¯é‡‘",
-  "BTC": "æ¯”ç‰¹å¸",
-  "ETH": "ä»¥å¤ªåŠ",
-  "NVDA": "è‹±ä¼Ÿè¾¾",
-  "GOOG": "Alphabetï¼ˆè°·æ­Œï¼‰",
-  "GOOGL": "Alphabetï¼ˆè°·æ­Œï¼‰",
-  "AAPL": "è‹¹æžœ",
-  "MSFT": "å¾®è½¯",
-  "AMZN": "äºšé©¬é€Š",
-  "TSM": "å°ç§¯ç”µ",
-  "AVGO": "åšé€š",
-  "2222.SR": "æ²™ç‰¹é˜¿ç¾Ž",
-  "TSLA": "ç‰¹æ–¯æ‹‰",
-  "META": "Metaï¼ˆè„¸ä¹¦ï¼‰",
-  "005930.KS": "ä¸‰æ˜Ÿç”µå­",
-  "BRK-B": "ä¼¯å…‹å¸Œå°” ï¿½ å“ˆæ’’éŸ¦",
-  "WMT": "æ²ƒå°”çŽ›",
-  "LLY": "ç¤¼æ¥",
-  "000660.KS": "SK æµ·åŠ›å£«",
-  "MU": "ç¾Žå…‰ç§‘æŠ€",
-  "JPM": "æ‘©æ ¹å¤§é€š",
+  "GOLD": "黄金",
+  "SILVER": "白银",
+  "PLAT": "铂金",
+  "PALLAD": "钯金",
+  "BTC": "比特币",
+  "ETH": "以太坊",
+  "NVDA": "英伟达",
+  "GOOG": "Alphabet（谷歌）",
+  "GOOGL": "Alphabet（谷歌）",
+  "AAPL": "苹果",
+  "MSFT": "微软",
+  "AMZN": "亚马逊",
+  "TSM": "台积电",
+  "AVGO": "博通",
+  "2222.SR": "沙特阿美",
+  "TSLA": "特斯拉",
+  "META": "Meta（脸书）",
+  "005930.KS": "三星电子",
+  "BRK-B": "伯克希尔·哈撒韦",
+  "WMT": "沃尔玛",
+  "LLY": "礼来",
+  "000660.KS": "SK 海力士",
+  "MU": "美光科技",
+  "JPM": "摩根大通",
   "AMD": "AMD",
-  "XOM": "åŸƒå…‹æ£®ç¾Žå­š",
-  "ASML": "é˜¿æ–¯éº¦",
+  "XOM": "埃克森美孚",
+  "ASML": "阿斯麦",
   "V": "Visa",
-  "INTC": "è‹±ç‰¹å°”",
-  "JNJ": "å¼ºç”Ÿ",
-  "ORCL": "ç”²éª¨æ–‡",
-  "TCEHY": "è…¾è®¯",
-  "CSCO": "æ€ç§‘",
-  "COST": "å¥½å¸‚å¤š",
-  "MA": "ä¸‡äº‹è¾¾å¡",
-  "CAT": "å¡ç‰¹å½¼å‹’",
-  "601939.SS": "ä¸­å›½å»ºè®¾é“¶è¡Œ",
-  "ABBV": "è‰¾ä¼¯ç»´",
-  "LRCX": "æ³›æž—é›†å›¢",
-  "CVX": "é›ªä½›é¾™",
-  "NFLX": "å¥ˆé£ž",
-  "BAC": "ç¾Žå›½é“¶è¡Œ",
-  "UNH": "è”åˆå¥åº·",
-  "KO": "å¯å£å¯ä¹",
-  "RO.SW": "ç½—æ°",
-  "AMAT": "åº”ç”¨ææ–™",
-  "PG": "å®æ´",
-  "601288.SS": "ä¸­å›½å†œä¸šé“¶è¡Œ",
+  "INTC": "英特尔",
+  "JNJ": "强生",
+  "ORCL": "甲骨文",
+  "TCEHY": "腾讯",
+  "CSCO": "思科",
+  "COST": "好市多",
+  "MA": "万事达卡",
+  "CAT": "卡特彼勒",
+  "601939.SS": "中国建设银行",
+  "ABBV": "艾伯维",
+  "LRCX": "泛林集团",
+  "CVX": "雪佛龙",
+  "NFLX": "奈飞",
+  "BAC": "美国银行",
+  "UNH": "联合健康",
+  "KO": "可口可乐",
+  "RO.SW": "罗氏",
+  "AMAT": "应用材料",
+  "PG": "宝洁",
+  "601288.SS": "中国农业银行",
   "PLTR": "Palantir",
-  "ARM": "Arm æŽ§è‚¡",
-  "MS": "æ‘©æ ¹å£«ä¸¹åˆ©",
-  "HSBC": "æ±‡ä¸°æŽ§è‚¡",
-  "GE": "é€šç”¨ç”µæ°”",
-  "1398.HK": "ä¸­å›½å·¥å•†é“¶è¡Œ",
-  "BABA": "é˜¿é‡Œå·´å·´",
-  "HD": "å®¶å¾—å®",
-  "MRK": "é»˜æ²™ä¸œ",
-  "PM": "è²åˆ©æ™®èŽ«é‡Œæ–¯å›½é™…",
-  "GS": "é«˜ç››",
-  "AZN": "é˜¿æ–¯åˆ©åº·",
-  "NVS": "è¯ºåŽ",
-  "TXN": "å¾·å·žä»ªå™¨",
-  "300750.SZ": "å®å¾·æ—¶ä»£",
+  "ARM": "Arm 控股",
+  "MS": "摩根士丹利",
+  "HSBC": "汇丰控股",
+  "GE": "通用电气",
+  "1398.HK": "中国工商银行",
+  "BABA": "阿里巴巴",
+  "HD": "家得宝",
+  "MRK": "默沙东",
+  "PM": "菲利普莫里斯国际",
+  "GS": "高盛",
+  "AZN": "阿斯利康",
+  "NVS": "诺华",
+  "TXN": "德州仪器",
+  "300750.SZ": "宁德时代",
   "GEV": "GE Vernova",
-  "601988.SS": "ä¸­å›½é“¶è¡Œ",
-  "MC.PA": "è·¯å¨é…©è½©",
-  "RY": "åŠ æ‹¿å¤§çš‡å®¶é“¶è¡Œ",
-  "NESN.SW": "é›€å·¢",
-  "0857.HK": "ä¸­å›½çŸ³æ²¹",
-  "QCOM": "é«˜é€š",
-  "KLAC": "ç§‘ç£Š",
-  "TM": "ä¸°ç”°",
-  "9984.T": "è½¯é“¶é›†å›¢",
-  "LIN": "æž—å¾·",
-  "SHEL": "å£³ç‰Œ",
+  "601988.SS": "中国银行",
+  "MC.PA": "路威酩轩",
+  "RY": "加拿大皇家银行",
+  "NESN.SW": "雀巢",
+  "0857.HK": "中国石油",
+  "QCOM": "高通",
+  "KLAC": "科磊",
+  "TM": "丰田",
+  "9984.T": "软银集团",
+  "LIN": "林德",
+  "SHEL": "壳牌",
   "IBM": "IBM",
   "RTX": "RTX",
-  "SIE.DE": "è¥¿é—¨å­",
-  "600519.SS": "è´µå·žèŒ…å°",
-  "0941.HK": "ä¸­å›½ç§»åŠ¨",
-  "WFC": "å¯Œå›½é“¶è¡Œ"
+  "SIE.DE": "西门子",
+  "600519.SS": "贵州茅台",
+  "0941.HK": "中国移动",
+  "WFC": "富国银行"
 };
 const assetZhNamesByName = {
-  "alphabet (google)": "Alphabetï¼ˆè°·æ­Œï¼‰",
-  "saudi aramco": "æ²™ç‰¹é˜¿ç¾Ž",
-  "meta platforms (facebook)": "Metaï¼ˆè„¸ä¹¦ï¼‰",
-  "berkshire hathaway": "ä¼¯å…‹å¸Œå°” ï¿½ å“ˆæ’’éŸ¦",
-  "china construction bank": "ä¸­å›½å»ºè®¾é“¶è¡Œ",
-  "agricultural bank of china": "ä¸­å›½å†œä¸šé“¶è¡Œ",
-  "bank of china": "ä¸­å›½é“¶è¡Œ",
-  "royal bank of canada": "åŠ æ‹¿å¤§çš‡å®¶é“¶è¡Œ",
-  "softbank group corp.": "è½¯é“¶é›†å›¢",
-  "kweichow moutai": "è´µå·žèŒ…å°",
-  "china mobile": "ä¸­å›½ç§»åŠ¨"
+  "alphabet (google)": "Alphabet（谷歌）",
+  "saudi aramco": "沙特阿美",
+  "meta platforms (facebook)": "Meta（脸书）",
+  "berkshire hathaway": "伯克希尔·哈撒韦",
+  "china construction bank": "中国建设银行",
+  "agricultural bank of china": "中国农业银行",
+  "bank of china": "中国银行",
+  "royal bank of canada": "加拿大皇家银行",
+  "softbank group corp.": "软银集团",
+  "kweichow moutai": "贵州茅台",
+  "china mobile": "中国移动"
 };
 const defaultThemeId = "pacific";
 const themeOptions = [
@@ -1439,6 +1439,29 @@ const earningSourceFilters = [
   { key: "remote", labelKey: "earningFilterRemote" },
   { key: "local", labelKey: "earningFilterLocal" }
 ];
+const earningZhTagLabels = {
+  "job-board": "招聘",
+  networking: "人脉",
+  recruiter: "招聘方",
+  entry: "入门",
+  "easy-start": "易上手",
+  freelance: "自由职业",
+  "client-work": "客户项目",
+  portfolio: "作品集",
+  "high-volume": "高频岗位",
+  alerts: "提醒",
+  salary: "薪资",
+  reviews: "评价",
+  remote: "远程",
+  tech: "技术",
+  salaried: "全职",
+  contract: "合同",
+  verified: "已筛选",
+  "part-time": "兼职",
+  startup: "初创",
+  equity: "期权",
+  curated: "精选"
+};
 const cityBoardSlots = {
   shanghai: [72, 42],
   tokyo: [86, 28],
@@ -1496,6 +1519,8 @@ const els = {
   languageToggle: document.getElementById("languageToggle"),
   translationToggle: document.getElementById("translationToggle"),
   themePicker: document.getElementById("themePicker"),
+  modeSwitcher: document.querySelector(".segmented"),
+  earningModeButton: document.querySelector('[data-map-mode="earning"]'),
   modeButtons: document.querySelectorAll("[data-map-mode]")
 };
 
@@ -1504,6 +1529,8 @@ const cachedWeather = loadCachedWeather();
 const cachedMarkets = loadCachedMarkets();
 let reportsLoadedFromCache = cachedEvents.length > 0;
 let viewState = loadViewState();
+let earningFeatureEnabled = false;
+const restoreEarningModeAfterConfig = requestedEarningMode();
 let weather = mergeWeather(cachedWeather);
 let events = cachedEvents.length ? cachedEvents : normalizeEventList(fallbackEvents);
 let selectedEventId = events.some(event => event.id === viewState.selectedEventId) ? viewState.selectedEventId : events[0]?.id || "";
@@ -1631,60 +1658,60 @@ const translations = {
     categoryEconomy: "economy"
   },
   zh: {
-    appTitle: "ä¸–ç•Œäº‹ä»¶æŽ§åˆ¶å°",
-    localTime: "æœ¬åœ°æ™‚é–“",
-    reports: "äº‹ä»¶",
-    eventMap: "äº‹ä»¶åœ°åœ–",
-    mapSubhead: "äº‹ä»¶å’ŒåŸŽå¸‚æ•¸æ“šå…±ç”¨åŒä¸€å¼µåœ°åœ–ï¼Œé¿å…æ“æ“ ã€‚",
-    refresh: "é‡æ–°æ•´ç†",
+    appTitle: "世界事件控制台",
+    localTime: "本地時間",
+    reports: "事件",
+    eventMap: "事件地圖",
+    mapSubhead: "事件和城市數據共用同一張地圖，避免擁擠。",
+    refresh: "重新整理",
     language: "English",
-    colorKey: "é¡è‰²èªªæ˜Ž",
-    security: "å®‰å…¨",
-    diplomacy: "å¤–äº¤",
-    general: "ç¶œåˆ",
-    stats: "æ•¸æ“š",
-    cityStats: "åŸŽå¸‚æ•¸æ“š",
-    cityStatsSubhead: "å¤©æ°£ã€æº«åº¦ã€æ¿•åº¦ã€é¢¨é€Ÿèˆ‡ç•¶åœ°æ™‚é–“ã€‚",
-    reportStream: "æ–°èžåˆ—è¡¨",
-    cityPhotoPanel: "åŸŽå¸‚ç…§ç‰‡",
-    cityPhotoUpdated: minutes => minutes <= 0 ? "åˆšåˆšæ›´æ–°" : `${minutes} åˆ†é’Ÿå‰æ›´æ–°`,
-    cityPhotoRange: "ç…§ç‰‡èŒƒå›´",
-    cityPhotoLoading: "æ­£åœ¨åŠ è½½åŸŽå¸‚ç…§ç‰‡...",
-    cityPhotoFallback: "æš‚æœªæ‰¾åˆ°åŒ¹é…å½“åœ°æ—¶æ®µçš„åŸŽå¸‚ç…§ç‰‡",
-    openSource: "é–‹å•ŸåŽŸæ–‡",
-    temp: "æº«åº¦",
-    hum: "æ¿•åº¦",
-    wind: "é¢¨é€Ÿ",
-    local: "ç•¶åœ°æ™‚é–“",
-    weather: "å¤©æ°£",
-    cityMode: "æ•¸æ“š",
-    noSummary: "æš«ç„¡æ‘˜è¦ã€‚",
-    localFallbackReports: "é›¢ç·šå‚™ç”¨äº‹ä»¶",
-    cachedReports: "å·²è¼‰å…¥äº‹ä»¶",
-    liveRssReports: "å³æ™‚ä¾†æº",
-    liveRssWhenAvailable: "å¯ç”¨æ™‚æ›´æ–°å³æ™‚ä¾†æº",
-    refreshingReports: "æ­£åœ¨æ›´æ–°äº‹ä»¶...",
-    cachedWeather: "å·²å–å¾—å¤©æ°£",
-    localWeather: "æœ¬åœ°å¤©æ°£è³‡æ–™",
-    openMeteoLive: "å³æ™‚å¤©æ°£",
-    clear: "æ™´æœ—",
-    lightCloud: "å°‘é›²",
-    cloudy: "å¤šé›²",
-    fog: "éœ§",
-    rain: "é›¨",
-    snow: "é›ª",
-    storm: "é¢¨æš´",
-    world: "å…¨çƒ",
-    global: "å…¨çƒ",
-    waitingForReports: "ç­‰å¾…æ–°èž",
-    loadingWorldBrief: "æ­£åœ¨è¼‰å…¥å…¨çƒäº‹ä»¶...",
-    collectingReports: "æ­£åœ¨æ”¶é›†äº‹ä»¶ä¸¦æ¨™è¨˜åˆ°åœ°åœ–ä¸Šã€‚",
-    categoryWorld: "åœ‹éš›",
-    categorySecurity: "å®‰å…¨å±€å‹¢",
-    categoryDiplomacy: "å¤–äº¤",
-    categoryPolitics: "æ”¿æ²»",
-    categoryClimate: "æ°£å€™",
-    categoryEconomy: "ç¶“æ¿Ÿ"
+    colorKey: "顏色說明",
+    security: "安全",
+    diplomacy: "外交",
+    general: "綜合",
+    stats: "數據",
+    cityStats: "城市數據",
+    cityStatsSubhead: "天氣、溫度、濕度、風速與當地時間。",
+    reportStream: "新聞列表",
+    cityPhotoPanel: "城市照片",
+    cityPhotoUpdated: minutes => minutes <= 0 ? "刚刚更新" : `${minutes} 分钟前更新`,
+    cityPhotoRange: "照片范围",
+    cityPhotoLoading: "正在加载城市照片...",
+    cityPhotoFallback: "暂未找到匹配当地时段的城市照片",
+    openSource: "開啟原文",
+    temp: "溫度",
+    hum: "濕度",
+    wind: "風速",
+    local: "當地時間",
+    weather: "天氣",
+    cityMode: "數據",
+    noSummary: "暫無摘要。",
+    localFallbackReports: "離線備用事件",
+    cachedReports: "已載入事件",
+    liveRssReports: "即時來源",
+    liveRssWhenAvailable: "可用時更新即時來源",
+    refreshingReports: "正在更新事件...",
+    cachedWeather: "已取得天氣",
+    localWeather: "本地天氣資料",
+    openMeteoLive: "即時天氣",
+    clear: "晴朗",
+    lightCloud: "少雲",
+    cloudy: "多雲",
+    fog: "霧",
+    rain: "雨",
+    snow: "雪",
+    storm: "風暴",
+    world: "全球",
+    global: "全球",
+    waitingForReports: "等待新聞",
+    loadingWorldBrief: "正在載入全球事件...",
+    collectingReports: "正在收集事件並標記到地圖上。",
+    categoryWorld: "國際",
+    categorySecurity: "安全局勢",
+    categoryDiplomacy: "外交",
+    categoryPolitics: "政治",
+    categoryClimate: "氣候",
+    categoryEconomy: "經濟"
   }
 };
 
@@ -1823,117 +1850,117 @@ Object.assign(translations.en, {
 });
 
 Object.assign(translations.zh, {
-  markets: "å¸‚åœº",
-  earning: "èµšé’±",
-  earningMap: "\u8d5d\u9322",
-  earningMapSubhead: "èšåˆé«˜è´¨é‡å¹³å°çš„å²—ä½ä¸Žå˜çŽ°å…¥å£ã€‚",
-  earningSources: "èµšé’±æ¥æº",
-  earningSourcesSubhead: "å…ˆæŒ‰æ¸ é“ç­›é€‰ï¼Œå†æ‰“å¼€ç›®æ ‡å…¥å£å¿«é€Ÿè¡ŒåŠ¨ã€‚",
-  earningStream: "èµšé’±åŠ¨æ€",
-  earningFilterTitle: "ç­›é€‰",
-  earningAllFilters: "å…¨éƒ¨",
-  earningFilterJobBoard: "æ‹›è˜å¹³å°",
-  earningFilterFreelance: "è‡ªç”±èŒä¸š",
-  earningFilterRemote: "è¿œç¨‹å²—ä½",
-  earningFilterLocal: "æœ¬åœ°é¡¹ç›®",
-  earningFilterTitleLabel: "æ¥æº",
-  earningModeTitle: "èµšé’±æœºä¼š",
-  earningCategoryLabel: "ç±»åž‹",
-  earningPlatformLabel: "å¹³å°",
-  earningPayoutLabel: "æ”¶ç›Š",
-  earningDifficultyLabel: "éš¾åº¦",
-  earningRemoteLabel: "è¿œç¨‹",
-  earningRegionLabel: "åŒºåŸŸ",
-  earningSummaryLabel: "è¯´æ˜Ž",
-  earningActionsTitle: "å¿«é€Ÿå¯åŠ¨",
-  earningSourceLabel: "æ¥æº",
-  earningCopyPreviewLabel: "\u62db\u52df\u6587\u6848\u9810\u89bd",
-  earningEmpty: "å½“å‰ç­›é€‰ä¸‹æ²¡æœ‰å¯å±•ç¤ºçš„æœºä¼šã€‚",
-  earningOpenListing: "æ‰“å¼€èŒä½",
-  statsMap: "åŸŽå¸‚æ•°æ®åœ°å›¾",
-  statsMapSubhead: "å¤©æ°”å’Œæ—¶é—´ç›´æŽ¥è´´åœ¨åŸŽå¸‚ä¸Šã€‚",
-  marketMap: "å¸‚åœºåŠ¨å‘",
-  marketMapSubhead: "æ±‡çŽ‡ã€è‚¡æŒ‡ã€å•†å“å’Œå…¬å¸å¸‚å€¼æ”¾åœ¨ä¸€ä¸ªè§†è§’é‡Œã€‚",
-  companyMarketMap: "å…¬å¸å¸‚å€¼",
-  companyMarketSubhead: "æŒ‰ CompaniesMarketCap çš„å…¨çƒä¸Šå¸‚å…¬å¸å¸‚å€¼æŽ’åã€‚",
-  allAssetsMap: "èµ„äº§æŽ’å TOP 50",
-  allAssetsSubhead: "å‰ 50 ä¸ªéž ETF èµ„äº§ï¼šå…¬å¸ã€é‡‘å±žå’ŒåŠ å¯†è´§å¸ã€‚",
-  marketPanelTitle: "å…¨çƒèµ„äº§",
-  marketPanelSubhead: "æ±‡çŽ‡ã€è‚¡æŒ‡ã€å•†å“å’Œå…¬å¸å¸‚å€¼ã€‚",
-  companyPanelSubhead: "å…¨çƒä¸Šå¸‚å…¬å¸ã€å¸‚å€¼ã€è‚¡ä»·å’Œå½“æ—¥æ¶¨è·Œã€‚",
-  marketStream: "å¸‚åœºåˆ—è¡¨",
-  localMarketSnapshot: "å¸‚åœºå¿«ç…§",
-  liveMarketData: "å³æ—¶å¸‚åœºæ•°æ®",
+  markets: "市场",
+  earning: "赚钱",
+  earningMap: "赚钱",
+  earningMapSubhead: "聚合高质量平台的岗位与变现入口。",
+  earningSources: "赚钱来源",
+  earningSourcesSubhead: "先按渠道筛选，再打开目标入口快速行动。",
+  earningStream: "赚钱动态",
+  earningFilterTitle: "筛选",
+  earningAllFilters: "全部",
+  earningFilterJobBoard: "招聘平台",
+  earningFilterFreelance: "自由职业",
+  earningFilterRemote: "远程岗位",
+  earningFilterLocal: "本地项目",
+  earningFilterTitleLabel: "来源",
+  earningModeTitle: "赚钱机会",
+  earningCategoryLabel: "类型",
+  earningPlatformLabel: "平台",
+  earningPayoutLabel: "收益",
+  earningDifficultyLabel: "难度",
+  earningRemoteLabel: "远程",
+  earningRegionLabel: "区域",
+  earningSummaryLabel: "说明",
+  earningActionsTitle: "快速启动",
+  earningSourceLabel: "来源",
+  earningCopyPreviewLabel: "招募文案预览",
+  earningEmpty: "当前筛选下没有可展示的机会。",
+  earningOpenListing: "打开职位",
+  statsMap: "城市数据地图",
+  statsMapSubhead: "天气和时间直接贴在城市上。",
+  marketMap: "市场动向",
+  marketMapSubhead: "汇率、股指、商品和公司市值放在一个视角里。",
+  companyMarketMap: "公司市值",
+  companyMarketSubhead: "按 CompaniesMarketCap 的全球上市公司市值排名。",
+  allAssetsMap: "资产排名 TOP 50",
+  allAssetsSubhead: "前 50 个非 ETF 资产：公司、金属和加密货币。",
+  marketPanelTitle: "全球资产",
+  marketPanelSubhead: "汇率、股指、商品和公司市值。",
+  companyPanelSubhead: "全球上市公司、市值、股价和当日涨跌。",
+  marketStream: "市场列表",
+  localMarketSnapshot: "市场快照",
+  liveMarketData: "即时市场数据",
   companiesMarketCapData: "CompaniesMarketCap",
   companiesMarketCapAssets: "CompaniesMarketCap All Assets",
-  cachedMarketData: "å·²ä¿å­˜çš„å¸‚åœºæ•°æ®",
-  mixedMarketData: "å³æ—¶å¸‚åœºæ•°æ®",
-  refreshingMarkets: "æ­£åœ¨æ›´æ–°å¸‚åœº...",
-  loadingMarkets: "æ­£åœ¨åŠ è½½å¸‚åœºæ•°æ®",
-  marketLoadingSummary: "æ­£åœ¨å…ˆè¯»å–å·²ä¿å­˜çš„å¸‚åœºå¿«ç…§ï¼ŒåŒæ—¶åˆ·æ–°å®žæ—¶æ•°æ®ã€‚",
-  marketUnavailable: "è¡Œæƒ…æºæš‚ä¸å¯ç”¨",
-  marketRefreshLabel: "å¸‚åœºåˆ·æ–°",
-  marketRefreshUnknown: "å°šæœªåŠ è½½",
-  marketRefreshCached: "ç¼“å­˜",
-  marketUnavailableTitle: "å¸‚åœºæ•°æ®æš‚ä¸å¯ç”¨",
-  marketUnavailableSummary: "çŽ°åœ¨æ²¡æœ‰æ‹¿åˆ°å¯é è¡Œæƒ…æºï¼Œæ‰€ä»¥è¿™é‡Œä¸æ˜¾ç¤ºå ä½ä»·æ ¼ã€‚",
-  loadingHistory: "æ­£åœ¨åŠ è½½åŽ†å²æ›²çº¿...",
-  noReliableChart: "æš‚æ— å¯é æ›²çº¿",
-  chartUnavailableForRange: "è¿™ä¸ªæ—¶é—´æ®µæš‚æ— å¯é æ•°æ®",
-  range1d: "1å¤©",
-  range5d: "5å¤©",
-  range1m: "1æœˆ",
-  range1y: "1å¹´",
-  range5y: "5å¹´",
-  rangeAll: "å…¨éƒ¨",
-  marketGroupIndices: "è‚¡æŒ‡",
-  marketGroupFx: "æ±‡çŽ‡",
-  marketGroupCommodities: "å•†å“",
-  marketGroupCompanies: "å…¬å¸å¸‚å€¼",
-  marketGroupMetals: "é‡‘å±ž",
-  marketGroupCrypto: "åŠ å¯†è´§å¸",
-  assetRank: "æŽ’å",
-  assetType: "ç±»åž‹",
-  marketValue: "æ•°å€¼",
-  marketMove: "æ¶¨è·Œ",
-  marketCap: "å¸‚å€¼",
-  marketSymbol: "ä»£ç ",
-  marketRange: "è¿‘æœŸåŒºé—´",
-  marketAskTitle: "è¯¢é—®è¯¦ç»†æƒ…å†µ",
+  cachedMarketData: "已保存的市场数据",
+  mixedMarketData: "即时市场数据",
+  refreshingMarkets: "正在更新市场...",
+  loadingMarkets: "正在加载市场数据",
+  marketLoadingSummary: "正在先读取已保存的市场快照，同时刷新实时数据。",
+  marketUnavailable: "行情源暂不可用",
+  marketRefreshLabel: "市场刷新",
+  marketRefreshUnknown: "尚未加载",
+  marketRefreshCached: "缓存",
+  marketUnavailableTitle: "市场数据暂不可用",
+  marketUnavailableSummary: "现在没有拿到可靠行情源，所以这里不显示占位价格。",
+  loadingHistory: "正在加载历史曲线...",
+  noReliableChart: "暂无可靠曲线",
+  chartUnavailableForRange: "这个时间段暂无可靠数据",
+  range1d: "1天",
+  range5d: "5天",
+  range1m: "1月",
+  range1y: "1年",
+  range5y: "5年",
+  rangeAll: "全部",
+  marketGroupIndices: "股指",
+  marketGroupFx: "汇率",
+  marketGroupCommodities: "商品",
+  marketGroupCompanies: "公司市值",
+  marketGroupMetals: "金属",
+  marketGroupCrypto: "加密货币",
+  assetRank: "排名",
+  assetType: "类型",
+  marketValue: "数值",
+  marketMove: "涨跌",
+  marketCap: "市值",
+  marketSymbol: "代码",
+  marketRange: "近期区间",
+  marketAskTitle: "询问详细情况",
   marketAskPlaceholder: "",
-  marketAskButton: "å‘é€",
-  marketAskLoading: "æ­£åœ¨æ€è€ƒ...",
-  marketAskLoadingFast: "é€Ÿç®—ä¸­...",
-  marketAskLoadingThink: "æŸ¥èµ„æ–™...",
+  marketAskButton: "发送",
+  marketAskLoading: "正在思考...",
+  marketAskLoadingFast: "速算中...",
+  marketAskLoadingThink: "查资料...",
   marketAskFast: "Fast",
   marketAskThink: "Think",
   marketAskEmpty: "",
-  marketAskUnavailable: "é—®ç­”è¿˜æ²¡æœ‰è¿žæŽ¥ã€‚"
+  marketAskUnavailable: "问答还没有连接。"
 });
 
 Object.assign(translations.zh, {
-  allAssetsMap: "èµ„äº§æŽ’å TOP 50",
-  allAssetsSubhead: "å‰ 50 ä¸ªéž ETFï¼šå…¬å¸ã€è´µé‡‘å±žå’ŒåŠ å¯†è´§å¸ã€‚",
-  marketPanelTitle: "è´§å¸æ±‡çŽ‡",
-  marketPanelSubhead: "ä¸»æµè´§å¸æŒ‰å¯åˆ‡æ¢é”šå®šè®¡ä»·ã€‚",
+  allAssetsMap: "资产排名 TOP 50",
+  allAssetsSubhead: "前 50 个非 ETF：公司、贵金属和加密货币。",
+  marketPanelTitle: "货币汇率",
+  marketPanelSubhead: "主流货币按可切换锚定计价。",
   currencyMarketData: "Frankfurter + CompaniesMarketCap",
-  loadingCurrencyData: "æ­£åœ¨åŠ è½½æ±‡çŽ‡",
-  cachedMarketData: "å·²ä¿å­˜çš„å¸‚åœºæ•°æ®",
-  marketRefreshLabel: "å¸‚åœºåˆ·æ–°",
-  marketRefreshUnknown: "å°šæœªåŠ è½½",
-  marketRefreshCached: "ç¼“å­˜",
-  marketRange: "è¿‘æœŸåŒºé—´",
-  includeMetals: "é‡‘å±ž",
-  includeCrypto: "åŠ å¯†",
-  currencyAnchor: "é”šå®š",
-  currencyPair: "è´§å¸å¯¹",
-  currencyRate: "æ±‡çŽ‡",
-  currencySource: "æ¥æº",
-  currencyNoChart: "è¿™ä¸ªè´§å¸å¯¹æš‚æ— å¯é æ›²çº¿",
-  currencyUpdated: "æ›´æ–°",
-  currencyGroupFiat: "æ³•å¸",
-  currencyGroupMetal: "é‡‘å±ž",
-  currencyGroupCrypto: "åŠ å¯†è´§å¸",
+  loadingCurrencyData: "正在加载汇率",
+  cachedMarketData: "已保存的市场数据",
+  marketRefreshLabel: "市场刷新",
+  marketRefreshUnknown: "尚未加载",
+  marketRefreshCached: "缓存",
+  marketRange: "近期区间",
+  includeMetals: "金属",
+  includeCrypto: "加密",
+  currencyAnchor: "锚定",
+  currencyPair: "货币对",
+  currencyRate: "汇率",
+  currencySource: "来源",
+  currencyNoChart: "这个货币对暂无可靠曲线",
+  currencyUpdated: "更新",
+  currencyGroupFiat: "法币",
+  currencyGroupMetal: "金属",
+  currencyGroupCrypto: "加密货币",
   style: "\u98ce\u683c",
   themeTerminal: "\u7ec8\u7aef",
   themePacific: "\u6d77\u6d0b",
@@ -1951,19 +1978,19 @@ Object.assign(translations.zh, {
   speakTranslation: "\u6717\u8bfb\u8bd1\u6587"
 });
 Object.assign(translations.zh, {
-  earningMap: "\u8d5d\u9322",
-  earningMapSubhead: "\u76f4\u63a5\u6574\u7406\u53ef\u76f4\u63a5\u4f7f\u7528\u7684\u62db\u52df\u6a5f\u6703\u8207\u5e73\u53f0\uff0c\u7701\u6389\u5730\u5716\u96dc\u8a5e\u3002",
-  earningSourcesSubhead: "\u5148\u6309\u4f86\u6e90\u985e\u578b\u7be9\u9078\uff0c\u518d\u6253\u958b\u76ee\u6a19\u5e73\u53f0\u5feb\u901f\u884c\u52d5\u3002",
-  earningActionsTitle: "\u5feb\u901f\u555f\u52d5",
-  earningPlaybookTitle: "24\u5c0f\u6642\u5de5\u4f5c\u55ae",
-  earningPlaybookHint: "\u5148\u9078\u4e00\u500b\u4f86\u6e90\uff0c\u572824\u5c0f\u6642\u5167\u5b8c\u6210\u4ee5\u4e0b\u4e09\u6b65\u3002",
-  earningCopyLabel: "\u62db\u52df\u6587\u6848",
-  earningCopyPreviewLabel: "\u62db\u52df\u6587\u6848\u9810\u89bd",
-  earningCopyHint: "\u9019\u6bb5\u6587\u6848\u53ef\u76f4\u63a5\u8cbc\u5230\u7533\u8acb\u3001\u52a0\u7fa4\u6216\u79fb\u52d5\u901a\u8a71\u4e2d\u4f7f\u7528\u3002",
-  earningCopyButton: "\u8907\u88fd\u6587\u672c",
-  earningCopyCopied: "\u5df2\u8907\u88fd",
-  earningCopyFailed: "\u8907\u88fd\u5931\u6557",
-  earningSourceLabel: "\u4f86\u6e90"
+  earningMap: "赚钱",
+  earningMapSubhead: "直接整理可申请的岗位与平台，不再显示地图。",
+  earningSourcesSubhead: "先按来源类型筛选，再打开目标平台快速行动。",
+  earningActionsTitle: "快速启动",
+  earningPlaybookTitle: "24 小时行动单",
+  earningPlaybookHint: "先选一个来源，在 24 小时内完成以下三步。",
+  earningCopyLabel: "招募文案",
+  earningCopyPreviewLabel: "招募文案预览",
+  earningCopyHint: "这段文案可直接用于申请、私信或聊天。",
+  earningCopyButton: "复制文本",
+  earningCopyCopied: "已复制",
+  earningCopyFailed: "复制失败",
+  earningSourceLabel: "来源"
 });
 
 function clamp(value, min, max) {
@@ -2369,20 +2396,30 @@ function earningDisplayActions(item) {
 
 function earningLabelForCategory(category) {
   if (currentLanguage === "zh") {
-    return category === "freelance" ? "è‡ªç”±èŒä¸š" : category === "remote" ? "è¿œç¨‹" : category === "local" ? "æœ¬åœ°é¡¹ç›®" : "æ‹›è˜å¹³å°";
+    return category === "freelance" ? "自由职业" : category === "remote" ? "远程" : category === "local" ? "本地项目" : "招聘平台";
   }
   return category === "freelance" ? "Freelance" : category === "remote" ? "Remote" : category === "local" ? "Local projects" : "Job board";
 }
 
+function earningFilterLabel(key) {
+  const filter = earningSourceFilters.find(item => item.key === key);
+  return filter ? t(filter.labelKey) : String(key || "");
+}
+
+function earningTagLabel(tag) {
+  const normalized = String(tag || "").trim();
+  return currentLanguage === "zh" ? earningZhTagLabels[normalized] || normalized : normalized;
+}
+
 function earningLabelForDifficulty(value) {
   const normalized = normalizeEarningDifficulty(value);
-  if (currentLanguage === "zh") return normalized === "high" ? "é«˜" : normalized === "low" ? "ä½Ž" : "ä¸­";
+  if (currentLanguage === "zh") return normalized === "high" ? "高" : normalized === "low" ? "低" : "中";
   return normalized === "high" ? "High" : normalized === "low" ? "Low" : "Medium";
 }
 
 function earningRemoteLabel(item) {
-  const yes = currentLanguage === "zh" ? "è¿œç¨‹å¯åš" : "Remote";
-  const no = currentLanguage === "zh" ? "ä»¥æœ¬åœ°ä¸ºä¸»" : "Local-first";
+  const yes = currentLanguage === "zh" ? "远程可做" : "Remote";
+  const no = currentLanguage === "zh" ? "以本地为主" : "Local-first";
   return item?.remote ? yes : no;
 }
 
@@ -2425,7 +2462,7 @@ function earningCopyPreview(item, lines = 2) {
 
 function fallbackEarningAction(item, index) {
   return currentLanguage === "zh"
-    ? `${index}ã€æ•´ç†å¹¶æ›´æ–° 1 æ¡ä¸Žè¯¥æ¸ é“åŒ¹é…çš„å…³é”®è¯`
+    ? `${index}、整理并更新 1 条与该渠道匹配的关键词`
     : `${index}. Refresh one keyword pack for this channel`;
 }
 
@@ -2445,15 +2482,15 @@ function earningCopyText(item) {
   const rawActions = earningDisplayActions(item);
   const actions = rawActions.length
     ? rawActions.slice(0, 3).map((action, index) => `- ${index + 1}. ${action}`)
-    : ["- " + fallbackEarningAction(currentLanguage === "zh" ? "å…ˆä»Ž 1 æ¡å²—ä½é“¾è·¯å¼€å§‹" : "Start with one strong posting flow", 1)];
+    : ["- " + fallbackEarningAction(currentLanguage === "zh" ? "先从 1 条岗位链路开始" : "Start with one strong posting flow", 1)];
   const actionLines = currentLanguage === "zh"
     ? [
-      "ä½ ä¹Ÿå¯ä»¥ç›´æŽ¥ç”¨é€™æ®µè¨Šæ¯æŠ•éž/ç§è¨Šï¼š",
+      "你也可以直接用这段信息投递/私信：",
       "",
-      `æˆ‘æ­£åœ¨æ‰¾${categoryLabel}æ©Ÿæœƒï¼Œåå¥½${remoteLabel}ï¼Œç›®æ¨™åŸŽå¸‚/å€åŸŸï¼š${region}ã€‚`,
-      `æˆ‘åœ¨${platform}çš„é—œæ³¨é‡é»žæ˜¯é«˜æ•ˆçŽ‡æŠ•éžèˆ‡ç©©å®šå›žæ‡‰ã€‚é æœŸæ¢ä»¶ï¼š${payout}ã€‚`,
+      `我正在找${categoryLabel}机会，偏好${remoteLabel}，目标城市/区域：${region}。`,
+      `我在${platform}的关注重点是高效率投递与稳定回应。预期条件：${payout}。`,
       "",
-      "ä»Šæ—¥è¡Œå‹•ï¼š",
+      "今日行动：",
       ...actions
     ].join("\n")
     : [
@@ -2503,7 +2540,7 @@ function visibleEarningOpportunities() {
 }
 
 function earningSourcesSummaryLabel() {
-  const active = Object.entries(earningFilters).filter(([, enabled]) => enabled).map(([key]) => t(`earningFilter${key.charAt(0).toUpperCase() + key.slice(1)}`));
+  const active = Object.entries(earningFilters).filter(([, enabled]) => enabled).map(([key]) => earningFilterLabel(key));
   if (!active.length) return "";
   return `${t("earningFilterTitleLabel")}: ${active.join(", ")}`;
 }
@@ -2852,27 +2889,61 @@ function currencyFlatRangeDays(range = selectedCurrencyRange) {
   return 365 * 5;
 }
 
-function flatCurrencyPairHistory(anchor, quote, range = selectedCurrencyRange) {
-  const rate = currencyPairRate(anchor, quote);
-  if (!Number.isFinite(rate) || rate <= 0) return [];
-  const end = latestCurrencyTimestamp(anchor, quote);
-  const start = end - currencyFlatRangeDays(range) * 24 * 60 * 60 * 1000;
-  return [
-    {
-      label: range.toUpperCase(),
-      date: localDateKey(start),
-      time: new Date(start).toISOString(),
-      value: rate,
-      flat: true
-    },
-    {
-      label: "Now",
-      date: localDateKey(end),
-      time: new Date(end).toISOString(),
-      value: rate,
-      flat: true
+function medianNumericValue(values) {
+  const sorted = values.filter(Number.isFinite).sort((left, right) => left - right);
+  if (!sorted.length) return null;
+  const center = Math.floor(sorted.length / 2);
+  return sorted.length % 2 ? sorted[center] : (sorted[center - 1] + sorted[center]) / 2;
+}
+
+function currencyPairSpikeThreshold(anchor, quote) {
+  const groups = new Set([anchor?.group, quote?.group].filter(Boolean));
+  if (groups.has("crypto")) return 0.02;
+  if (groups.has("metal")) return 0.008;
+  return 0.0008;
+}
+
+function filterCurrencyPairQuoteSpikes(history, anchor, quote) {
+  const points = (history || []).filter(point => Number.isFinite(Number(point?.value)) && Number(point.value) > 0);
+  if (points.length < 9 || points.some(point => point.flat)) return points;
+
+  const baseThreshold = currencyPairSpikeThreshold(anchor, quote);
+  const radius = 4;
+  return points.filter((point, index) => {
+    if (index < 2 || index > points.length - 3) return true;
+    const value = Number(point.value);
+    const start = Math.max(0, index - radius);
+    const end = Math.min(points.length - 1, index + radius);
+    const neighbors = [];
+    for (let neighborIndex = start; neighborIndex <= end; neighborIndex += 1) {
+      if (neighborIndex === index) continue;
+      const neighborValue = Number(points[neighborIndex]?.value);
+      if (Number.isFinite(neighborValue) && neighborValue > 0) neighbors.push(neighborValue);
     }
-  ];
+    if (neighbors.length < 5) return true;
+
+    const median = medianNumericValue(neighbors);
+    if (!Number.isFinite(median) || median <= 0) return true;
+    const neighborDeviations = neighbors.map(neighborValue => Math.abs(neighborValue - median) / median);
+    const localNoise = medianNumericValue(neighborDeviations) || 0;
+    const threshold = Math.max(baseThreshold, localNoise * 5);
+    const valueDeviation = Math.abs(value - median) / median;
+
+    const previous = Number(points[index - 1]?.value);
+    const next = Number(points[index + 1]?.value);
+    const hasImmediateRevert = Number.isFinite(previous)
+      && Number.isFinite(next)
+      && previous > 0
+      && next > 0
+      && Math.abs(previous - next) / median <= baseThreshold
+      && Math.abs(value - previous) / median > baseThreshold
+      && Math.abs(value - next) / median > baseThreshold;
+    if (!hasImmediateRevert && valueDeviation <= threshold) return true;
+
+    const supportedNeighbors = neighborDeviations.filter(deviation => deviation <= threshold).length;
+    const lacksLocalSupport = supportedNeighbors >= Math.ceil(neighbors.length * 0.62);
+    return !(hasImmediateRevert || lacksLocalSupport);
+  });
 }
 
 function currencyPairHistory(anchor, quote, range = selectedCurrencyRange) {
@@ -2883,7 +2954,7 @@ function currencyPairHistory(anchor, quote, range = selectedCurrencyRange) {
   if (quote.code === "USD") quoteSeries = constantCurrencySeries(quote, anchorSeries);
   const anchorMap = new Map(anchorSeries.map(point => [currencyPointKey(point), point]));
   const quoteMap = new Map(quoteSeries.map(point => [currencyPointKey(point), point]));
-  return Array.from(new Set([...anchorMap.keys(), ...quoteMap.keys()]))
+  const history = Array.from(new Set([...anchorMap.keys(), ...quoteMap.keys()]))
     .filter(key => anchorMap.has(key) && quoteMap.has(key))
     .sort((left, right) => pointTime(anchorMap.get(left) || quoteMap.get(left)) - pointTime(anchorMap.get(right) || quoteMap.get(right)))
     .map(date => {
@@ -2900,6 +2971,7 @@ function currencyPairHistory(anchor, quote, range = selectedCurrencyRange) {
       };
     })
     .filter(Boolean);
+  return filterCurrencyPairQuoteSpikes(history, anchor, quote);
 }
 
 function inferredPreviousUsdValue(currency) {
@@ -3188,53 +3260,114 @@ function marketShortHistoryCoversRange(points, range = selectedMarketRange) {
   return marketHistorySpanDays(filtered) >= marketRangeMinimumSpanDays(range);
 }
 
-function currentMarketChartValue(asset) {
-  if (!asset) return null;
-  const marketCap = Number(asset.marketCap);
-  if (asset.group === "companies" && Number.isFinite(marketCap) && marketCap > 0) {
-    return { value: marketCap, valueKind: "marketCap" };
-  }
-  const value = Number(asset.value);
-  if (Number.isFinite(value) && value > 0) {
-    return { value, valueKind: asset.group === "companies" ? "marketCap" : "price" };
-  }
-  return null;
+function marketChartSpikeThreshold(asset) {
+  if (asset?.group === "crypto") return 0.025;
+  if (asset?.group === "metals") return 0.01;
+  return 0.003;
 }
 
-function flatMarketHistory(asset, range = selectedMarketRange) {
-  const days = marketRangeDays(range);
-  const current = currentMarketChartValue(asset);
-  if (!days || !current) return [];
-  const end = Date.now();
-  const start = end - days * 24 * 60 * 60 * 1000;
-  return [
-    {
-      label: range.toUpperCase(),
-      time: new Date(start).toISOString(),
-      date: localDateKey(start),
-      value: current.value,
-      valueKind: current.valueKind,
-      flat: true
-    },
-    {
-      label: "Now",
-      time: new Date(end).toISOString(),
-      date: localDateKey(end),
-      value: current.value,
-      valueKind: current.valueKind,
-      flat: true
+function filterMarketQuoteSpikes(history, asset) {
+  const points = (history || []).filter(point => Number.isFinite(Number(point?.value)) && Number(point.value) > 0);
+  if (points.length < 30) return points;
+
+  const baseThreshold = marketChartSpikeThreshold(asset);
+  const radius = 8;
+  return points.filter((point, index) => {
+    if (index < 2 || index > points.length - 3) return true;
+    const value = Number(point.value);
+    const neighbors = [];
+    const start = Math.max(0, index - radius);
+    const end = Math.min(points.length - 1, index + radius);
+    for (let neighborIndex = start; neighborIndex <= end; neighborIndex += 1) {
+      if (neighborIndex === index) continue;
+      const neighborValue = Number(points[neighborIndex]?.value);
+      if (Number.isFinite(neighborValue) && neighborValue > 0) neighbors.push(neighborValue);
     }
-  ];
+    if (neighbors.length < 8) return true;
+
+    const median = medianNumericValue(neighbors);
+    if (!Number.isFinite(median) || median <= 0) return true;
+    const deviations = neighbors.map(neighborValue => Math.abs(neighborValue - median) / median);
+    const localNoise = medianNumericValue(deviations) || 0;
+    const threshold = Math.max(baseThreshold, localNoise * 4);
+    const valueDeviation = Math.abs(value - median) / median;
+    if (valueDeviation <= threshold) return true;
+
+    const previous = Number(points[index - 1]?.value);
+    const next = Number(points[index + 1]?.value);
+    const hasImmediateRevert = Number.isFinite(previous)
+      && Number.isFinite(next)
+      && previous > 0
+      && next > 0
+      && Math.abs(previous - next) / median <= baseThreshold
+      && Math.abs(value - previous) / median > baseThreshold
+      && Math.abs(value - next) / median > baseThreshold;
+    const supportedNeighbors = deviations.filter(deviation => deviation <= threshold).length;
+    const lacksLocalSupport = supportedNeighbors >= Math.ceil(neighbors.length * 0.62);
+    return !(hasImmediateRevert || lacksLocalSupport);
+  });
+}
+
+function marketChartHistory(asset, range = selectedMarketRange) {
+  const history = actualRangedMarketHistory(asset, range);
+  if (history.length < 2) return history;
+  return filterMarketQuoteSpikes(history, asset);
+}
+
+function cloneMarketPointAtTime(point, time, carryFlat = true) {
+  return {
+    ...point,
+    date: localDateKey(time),
+    time: new Date(time).toISOString(),
+    carryFlat
+  };
+}
+
+function sparseCarryMarketHistory(asset, range = selectedMarketRange) {
+  const days = marketRangeDays(range);
+  if (!days || asset?.group !== "companies") return [];
+  const fullHistory = marketHistory(asset)
+    .filter(point => pointTime(point) && Number.isFinite(Number(point.value)) && Number(point.value) > 0)
+    .sort((left, right) => pointTime(left) - pointTime(right));
+  if (!fullHistory.length || fullHistory.length >= 12) return [];
+
+  const historyTimes = fullHistory.map(pointTime).filter(Number.isFinite);
+  const latestHistoryTime = Math.max(...historyTimes);
+  const marketTime = Date.parse(marketServedAt || marketUpdatedAt || "");
+  const endTime = Math.max(
+    latestHistoryTime,
+    Number.isFinite(marketTime) ? marketTime : Date.now()
+  );
+  const startTime = endTime - days * 24 * 60 * 60 * 1000;
+  const inRange = fullHistory.filter(point => {
+    const time = pointTime(point);
+    return time >= startTime && time <= endTime;
+  });
+  const previous = fullHistory
+    .slice()
+    .reverse()
+    .find(point => pointTime(point) <= startTime);
+  const firstSource = previous || inRange[0] || fullHistory[0];
+  const lastSource = inRange[inRange.length - 1]
+    || fullHistory.slice().reverse().find(point => pointTime(point) <= endTime)
+    || firstSource;
+
+  const carried = [cloneMarketPointAtTime(firstSource, startTime, true)];
+  inRange.forEach(point => carried.push({ ...point, carryFlat: false }));
+  carried.push(cloneMarketPointAtTime(lastSource, endTime, true));
+  return carried
+    .filter((point, index, items) => {
+      if (index === 0) return true;
+      const previousPoint = items[index - 1];
+      return pointTime(point) !== pointTime(previousPoint)
+        || Number(point.value) !== Number(previousPoint.value)
+        || point.carryFlat !== previousPoint.carryFlat;
+    })
+    .sort((left, right) => pointTime(left) - pointTime(right));
 }
 
 function marketHistoryLoadFailedForRange(asset, range = selectedMarketRange) {
   return asset?.historyLoadFailed === true && (!asset.historyLoadFailedRange || asset.historyLoadFailedRange === range);
-}
-
-function shouldUseFlatMarketFallback(asset, range = selectedMarketRange) {
-  return !!marketRangeDays(range)
-    && !!currentMarketChartValue(asset)
-    && (marketHistoryLoadFailedForRange(asset, range) || !canFetchMarketHistory(asset));
 }
 
 function actualRangedMarketHistory(asset, range = selectedMarketRange) {
@@ -3297,7 +3430,7 @@ function actualRangedMarketHistory(asset, range = selectedMarketRange) {
   if (range === "1d") return [];
   if (range === "5d" || range === "1m") {
     const filtered = pointsWithinDays(fullHistory, range === "5d" ? 5 : 31);
-    return filtered.length >= 2 && marketHistorySpanDays(filtered) >= marketRangeMinimumSpanDays(range) ? filtered : [];
+    return filtered.length >= 2 ? filtered : [];
   }
 
   const dated = fullHistory.filter(point => pointTime(point));
@@ -3311,17 +3444,21 @@ function actualRangedMarketHistory(asset, range = selectedMarketRange) {
 }
 
 function rangedMarketHistory(asset, range = selectedMarketRange, options = {}) {
-  const actual = actualRangedMarketHistory(asset, range);
-  if (actual.length >= 2) return actual;
-  if (options.allowFlatFallback === false) return [];
-  return shouldUseFlatMarketFallback(asset, range) ? flatMarketHistory(asset, range) : [];
+  const history = marketChartHistory(asset, range);
+  const sparseCarry = sparseCarryMarketHistory(asset, range);
+  if (history.length >= 2) {
+    return sparseCarry.length >= history.length ? sparseCarry : history;
+  }
+  if (sparseCarry.length >= 2) return sparseCarry;
+  return [];
 }
 
 function hasMarketHistoryForRange(asset, range = selectedMarketRange) {
   if (range === "1d" || range === "5d" || range === "1m") {
     const exactHistory = rangeMarketHistory(asset, range).filter(point => pointTime(point));
     if (marketShortHistoryCoversRange(exactHistory, range)) return true;
-    return marketShortHistoryCoversRange(shortMarketHistory(asset).filter(point => pointTime(point)), range);
+    if (marketShortHistoryCoversRange(shortMarketHistory(asset).filter(point => pointTime(point)), range)) return true;
+    return actualRangedMarketHistory(asset, range).length >= 2;
   }
   return actualRangedMarketHistory(asset, range).length >= 2;
 }
@@ -3347,61 +3484,61 @@ function translateCategory(category) {
 function translateLocationName(value) {
   if (!value) return t("world");
   const normalized = String(value).toLowerCase();
-  if (normalized === "unplaced" || normalized === "unmapped") return currentLanguage === "zh" ? "æœªå®šä½" : "Unplaced";
+  if (normalized === "unplaced" || normalized === "unmapped") return currentLanguage === "zh" ? "未定位" : "Unplaced";
   if (normalized === "world") return t("world");
   if (normalized === "global") return t("global");
   if (currentLanguage === "zh") {
     const names = {
-      beijing: "åŒ—äº¬",
-      china: "ä¸­åœ‹",
-      tehran: "å¾·é»‘è˜­",
-      iran: "ä¼Šæœ—",
-      taipei: "å°åŒ—",
-      taiwan: "å°ç£",
-      moscow: "èŽ«æ–¯ç§‘",
-      russia: "ä¿„ç¾…æ–¯",
-      kyiv: "åŸºè¼”",
-      kiev: "åŸºè¼”",
-      ukraine: "çƒå…‹è˜­",
-      gaza: "åŠ è–©",
-      "palestinian territories": "å·´å‹’æ–¯å¦é ˜åœŸ",
-      jerusalem: "è€¶è·¯æ’’å†·",
-      israel: "ä»¥è‰²åˆ—",
-      lebanon: "é»Žå·´å«©",
-      "abu dhabi": "é˜¿å¸ƒé”æ¯”",
-      uae: "é˜¿è¯é…‹",
-      "united arab emirates": "é˜¿è¯é…‹",
-      riga: "é‡ŒåŠ ",
-      latvia: "æ‹‰è„«ç¶­äºž",
-      havana: "å“ˆç“¦é‚£",
-      cuba: "å¤å·´",
-      caracas: "å¡æ‹‰å¡æ–¯",
-      venezuela: "å§”å…§ç‘žæ‹‰",
-      washington: "è¯ç››é “",
-      "united states": "ç¾Žåœ‹",
-      "new york": "ç´ç´„",
-      london: "å€«æ•¦",
-      "united kingdom": "è‹±åœ‹",
-      brussels: "å¸ƒé­¯å¡žçˆ¾",
-      belgium: "æ¯”åˆ©æ™‚",
-      doha: "æœå“ˆ",
-      qatar: "å¡é”",
-      tokyo: "æ±äº¬",
-      japan: "æ—¥æœ¬",
-      seoul: "é¦–çˆ¾",
-      "south korea": "å—éŸ“",
-      "new delhi": "æ–°å¾·é‡Œ",
-      india: "å°åº¦",
-      islamabad: "ä¼Šæ–¯è˜­å ¡",
-      pakistan: "å·´åŸºæ–¯å¦",
-      bangkok: "æ›¼è°·",
-      thailand: "æ³°åœ‹",
-      jakarta: "é›…åŠ é”",
-      indonesia: "å°å°¼",
-      sydney: "æ‚‰å°¼",
-      australia: "æ¾³å¤§åˆ©äºž",
-      "sao paulo": "è–ä¿ç¾…",
-      brazil: "å·´è¥¿"
+      beijing: "北京",
+      china: "中國",
+      tehran: "德黑蘭",
+      iran: "伊朗",
+      taipei: "台北",
+      taiwan: "台灣",
+      moscow: "莫斯科",
+      russia: "俄羅斯",
+      kyiv: "基輔",
+      kiev: "基輔",
+      ukraine: "烏克蘭",
+      gaza: "加薩",
+      "palestinian territories": "巴勒斯坦領土",
+      jerusalem: "耶路撒冷",
+      israel: "以色列",
+      lebanon: "黎巴嫩",
+      "abu dhabi": "阿布達比",
+      uae: "阿聯酋",
+      "united arab emirates": "阿聯酋",
+      riga: "里加",
+      latvia: "拉脫維亞",
+      havana: "哈瓦那",
+      cuba: "古巴",
+      caracas: "卡拉卡斯",
+      venezuela: "委內瑞拉",
+      washington: "華盛頓",
+      "united states": "美國",
+      "new york": "紐約",
+      london: "倫敦",
+      "united kingdom": "英國",
+      brussels: "布魯塞爾",
+      belgium: "比利時",
+      doha: "杜哈",
+      qatar: "卡達",
+      tokyo: "東京",
+      japan: "日本",
+      seoul: "首爾",
+      "south korea": "南韓",
+      "new delhi": "新德里",
+      india: "印度",
+      islamabad: "伊斯蘭堡",
+      pakistan: "巴基斯坦",
+      bangkok: "曼谷",
+      thailand: "泰國",
+      jakarta: "雅加達",
+      indonesia: "印尼",
+      sydney: "悉尼",
+      australia: "澳大利亞",
+      "sao paulo": "聖保羅",
+      brazil: "巴西"
     };
     if (names[normalized]) return names[normalized];
   }
@@ -3411,8 +3548,8 @@ function translateLocationName(value) {
 function normalizedReportKey(text) {
   return String(text || "")
     .toLowerCase()
-    .replace(/[â€˜â€™]/g, "'")
-    .replace(/[â€œâ€]/g, "\"")
+    .replace(/[‘’]/g, "'")
+    .replace(/[“”]/g, "\"")
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
 }
@@ -3578,12 +3715,12 @@ function eventDedupeEntityTokens(event) {
     .map(normalizeDedupeWord)
     .filter(word => entityWords.has(word));
   const aliases = [
-    { pattern: /ä¹ è¿‘å¹³|ç¿’è¿‘å¹³/u, token: "xi" },
-    { pattern: /æ™®äº¬|æ™®ä¸/u, token: "putin" },
-    { pattern: /å·æ™®|ç‰¹æœ—æ™®/u, token: "trump" },
-    { pattern: /ä¸­å›½|ä¸­åœ‹|è®¿åŽ|è¨ªè¯/u, token: "china" },
-    { pattern: /åŒ—äº¬/u, token: "beijing" },
-    { pattern: /ä¿„ä¸­|ä¸­ä¿„/u, token: "russia" }
+    { pattern: /习近平|習近平/u, token: "xi" },
+    { pattern: /普京|普丁/u, token: "putin" },
+    { pattern: /川普|特朗普/u, token: "trump" },
+    { pattern: /中国|中國|访华|訪華/u, token: "china" },
+    { pattern: /北京/u, token: "beijing" },
+    { pattern: /俄中|中俄/u, token: "russia" }
   ];
   aliases.forEach(({ pattern, token }) => {
     if (pattern.test(rawText)) tokens.push(token);
@@ -3671,178 +3808,178 @@ function rewriteReportText(text) {
   if (!key) return "";
 
   if (key.includes("us senate") && key.includes("curb") && key.includes("war") && key.includes("iran")) {
-    return "ç¾Žåœ‹åƒè­°é™¢æŽ¨é€²æ±ºè­°ï¼Œé™åˆ¶å·æ™®å°ä¼Šæœ—å‹•æ­¦çš„æ¬ŠåŠ›";
+    return "美國參議院推進決議，限制川普對伊朗動武的權力";
   }
   if (key.includes("trump") && key.includes("rescue") && key.includes("venezuela")) {
-    return "å§”å…§ç‘žæ‹‰å‰ç¸½çµ±é¦¬æœç¾…é­ç¾Žæ–¹å¸¶èµ°å¾Œï¼Œç¯€ç›®è¿½å•å·æ™®æ˜¯å¦çœŸçš„ã€Œæ‹¯æ•‘ã€äº†å§”å…§ç‘žæ‹‰";
+    return "委內瑞拉前總統馬杜羅遭美方帶走後，節目追問川普是否真的「拯救」了委內瑞拉";
   }
   if (key.includes("venezuela") && key.includes("maduro")) {
-    return "å§”å…§ç‘žæ‹‰å±€å‹¢èˆ‡å‰ç¸½çµ±é¦¬æœç¾…é­ç¾Žæ–¹å¸¶èµ°äº‹ä»¶ä»å—é—œæ³¨";
+    return "委內瑞拉局勢與前總統馬杜羅遭美方帶走事件仍受關注";
   }
   if (key.includes("putin") && key.includes("arrives") && key.includes("beijing")) {
-    return "æ™®äº¬æŠµé”åŒ—äº¬å±•é–‹è¨ªå•ï¼Œç·ŠæŽ¥åœ¨å·æ™®è¨ªè¯ä¹‹å¾Œ";
+    return "普京抵達北京展開訪問，緊接在川普訪華之後";
   }
   if (key.includes("iran war") && key.includes("tehran warns") && key.includes("surprises")) {
-    return "å¾·é»‘è˜­è­¦å‘Šè‹¥è¡çªæ¢å¾©ï¼Œä¼Šæœ—å°‡æŽ¡å–æ›´å¤šååˆ¶è¡Œå‹•";
+    return "德黑蘭警告若衝突恢復，伊朗將採取更多反制行動";
   }
   if (key.includes("israeli strikes") && key.includes("lebanon") && key.includes("kill")) {
-    return "ä»¥è‰²åˆ—ç©ºè¥²é»Žå·´å«©é€ æˆè‡³å°‘ 19 äººæ­»äº¡ï¼Œèˆ‡çœŸä¸»é»¨è¡çªä»åœ¨å»¶ç‡’";
+    return "以色列空襲黎巴嫩造成至少 19 人死亡，與真主黨衝突仍在延燒";
   }
   if (key.includes("putin meets xi")) {
-    return "æ™®äº¬èˆ‡ç¿’è¿‘å¹³æœƒé¢";
+    return "普京與習近平會面";
   }
   if (key.includes("xi jinping") && key.includes("putin") && key.includes("meet") && key.includes("beijing")) {
-    return "ç¿’è¿‘å¹³èˆ‡æ™®äº¬åœ¨åŒ—äº¬æœƒé¢";
+    return "習近平與普京在北京會面";
   }
   if (key.includes("taiwan travelogue") && key.includes("booker prize")) {
-    return "ã€Šå°ç£æ¼«éŠéŒ„ã€‹ç²å¾— 2026 å¹´åœ‹éš›å¸ƒå…‹çŽ";
+    return "《台灣漫遊錄》獲得 2026 年國際布克獎";
   }
   if (key.includes("15 800") && key.includes("russia") && key.includes("ukraine")) {
-    return "è¯åˆåœ‹ç¨±ä¿„çƒå…¨é¢æˆ°çˆ­å·²é€ æˆè¶…éŽ 15,800 äººæ­»äº¡";
+    return "聯合國稱俄烏全面戰爭已造成超過 15,800 人死亡";
   }
   if (key.includes("ukraine") && key.includes("advantage")) {
-    return "çƒå…‹è˜­æŠŠæˆ°ç«æŽ¨å‘ä¿„ç¾…æ–¯å¢ƒå…§ï¼Œå¤–ç•Œé—œæ³¨å…¶æ˜¯å¦å–å¾—éšŽæ®µå„ªå‹¢";
+    return "烏克蘭把戰火推向俄羅斯境內，外界關注其是否取得階段優勢";
   }
   if (key.includes("jd vance") && key.includes("locked and loaded") && key.includes("iran")) {
-    return "JD èŒƒæ–¯ç¨±ç¾Žè»å·²æº–å‚™é‡å•Ÿè¡Œå‹•ï¼Œä¼Šæœ—å‰‡è­¦å‘Šå¯èƒ½é–‹é—¢æ–°æˆ°ç·š";
+    return "JD 范斯稱美軍已準備重啟行動，伊朗則警告可能開闢新戰線";
   }
   if (key.includes("middle east allies") && key.includes("iran war")) {
-    return "å·æ™®è½‰å‘ä¸­æ±ç›Ÿå‹å°‹æ±‚å”åŠ©ï¼Œä½†çµæŸä¼Šæœ—æˆ°çˆ­çš„å”è­°ä»é›£ç”¢";
+    return "川普轉向中東盟友尋求協助，但結束伊朗戰爭的協議仍難產";
   }
   if (key.includes("big hit") && key.includes("tehran") && key.includes("deal")) {
-    return "å·æ™®å¨è„…è‹¥å¾·é»‘è˜­ä¸ç›¡å¿«é”æˆå”è­°ï¼Œç¾Žæ–¹å¯èƒ½ç™¼å‹•é‡å¤§æ‰“æ“Š";
+    return "川普威脅若德黑蘭不盡快達成協議，美方可能發動重大打擊";
   }
   if (key.includes("putin arrives in china") && key.includes("xi jinping")) {
-    return "æ™®äº¬æŠµé”ä¸­åœ‹ï¼Œæº–å‚™èˆ‡ç¿’è¿‘å¹³æœƒè«‡";
+    return "普京抵達中國，準備與習近平會談";
   }
   if (key.includes("sanctions") && key.includes("gaza flotilla")) {
-    return "ç¾Žåœ‹åˆ¶è£åŠ è–©èˆ¹éšŠçµ„ç¹”è€…ï¼Œé­æ‰¹å£“åˆ¶å·´å‹’æ–¯å¦è²æ´è¡Œå‹•";
+    return "美國制裁加薩船隊組織者，遭批壓制巴勒斯坦聲援行動";
   }
   if (key.includes("us warns russia") && key.includes("latvia")) {
-    return "èŽ«æ–¯ç§‘å¨è„…æ‹‰è„«ç¶­äºžå¾Œï¼Œç¾Žåœ‹å‘ä¿„ç¾…æ–¯ç™¼å‡ºè­¦å‘Š";
+    return "莫斯科威脅拉脫維亞後，美國向俄羅斯發出警告";
   }
   if (key.includes("uae reactor") && key.includes("nuclear plant safety")) {
-    return "é˜¿è¯é…‹æ ¸åæ‡‰å †é™„è¿‘é­è¥²ï¼Œå¼•ç™¼æˆ°æ™‚æ ¸é›»å®‰å…¨æ“”æ†‚";
+    return "阿聯酋核反應堆附近遭襲，引發戰時核電安全擔憂";
   }
   if (key.includes("expel") && key.includes("palestinian") && key.includes("east jerusalem")) {
-    return "æ´»å‹•äººå£«ç¨±ä»¥è‰²åˆ—æ­£è©¦åœ–é©…é€æ±è€¶è·¯æ’’å†·ä¸€æ•´å€‹å·´å‹’æ–¯å¦ç¤¾å€";
+    return "活動人士稱以色列正試圖驅逐東耶路撒冷一整個巴勒斯坦社區";
   }
   if (key.includes("palestinian man") && key.includes("survival")) {
-    return "ä¸€ååŠ è–©å·´å‹’æ–¯å¦è€äººå›žé¡§è‡ªå·±åœ¨æµé›¢å¤±æ‰€èˆ‡æˆ°çˆ­ä¸­çš„æ±‚ç”Ÿç¶“æ­·";
+    return "一名加薩巴勒斯坦老人回顧自己在流離失所與戰爭中的求生經歷";
   }
   if (key.includes("putin visits china") || (key.includes("putin") && key.includes("china") && key.includes("russia ties"))) {
-    return "æ™®äº¬è¨ªå•ä¸­åœ‹ï¼Œé‡ç”³ä¿„ä¸­é—œä¿‚ä¸¦è¨Žè«–é›™é‚Šåˆä½œ";
+    return "普京訪問中國，重申俄中關係並討論雙邊合作";
   }
   if (key.includes("russia china ties") && key.includes("stabilising")) {
-    return "æ™®äº¬è¨ªè¯å‰ç¨±ä¿„ä¸­é—œä¿‚æ˜¯ç©©å®šä¸–ç•Œçš„é‡è¦åŠ›é‡";
+    return "普京訪華前稱俄中關係是穩定世界的重要力量";
   }
   if (key.includes("china shock") && key.includes("eu") && key.includes("imports")) {
-    return "æ­ç›Ÿç”¢æ¥­å°ä¸­åœ‹é€²å£ä¾è³´å‡é«˜ï¼Œå¼•ç™¼æ–°ä¸€è¼ªã€Œä¸­åœ‹è¡æ“Šã€æ“”æ†‚";
+    return "歐盟產業對中國進口依賴升高，引發新一輪「中國衝擊」擔憂";
   }
   if (key.includes("reliance on imports") && key.includes("china")) {
-    return "ä¸­åœ‹é›¶çµ„ä»¶é€²å£å¢žåŠ ï¼Œå¼•ç™¼æ­æ´²ç”¢æ¥­è¢«æ“ å£“èˆ‡å°±æ¥­æµå¤±çš„è­¦å‘Š";
+    return "中國零組件進口增加，引發歐洲產業被擠壓與就業流失的警告";
   }
   if (key.includes("repeated ultimatums") && key.includes("iran")) {
-    return "è©•è«–ç¨±å·æ™®å°ä¼Šæœ—åè¦†ä¸‹æœ€å¾Œé€šç‰’ï¼Œæš´éœ²ç¾Žæ–¹ç±Œç¢¼ä¸è¶³";
+    return "評論稱川普對伊朗反覆下最後通牒，暴露美方籌碼不足";
   }
   if (key.includes("barakah nuclear plant") && key.includes("drone")) {
-    return "ç„¡äººæ©Ÿè¥²æ“Šå¾Œï¼Œé˜¿è¯é…‹å·´æ‹‰å¡æ ¸é›»å» æ¢å¾©ä¾›é›»";
+    return "無人機襲擊後，阿聯酋巴拉卡核電廠恢復供電";
   }
   if (key.includes("projecting defiance") && key.includes("iran")) {
-    return "åŠå³¶é›»è¦–å°ç¨±ä¼Šæœ—é ˜å°Žå±¤å±•ç¾å¼·ç¡¬å§¿æ…‹ï¼Œæ‹’çµ•ç¾Žæ–¹å£“åŠ›";
+    return "半島電視台稱伊朗領導層展現強硬姿態，拒絕美方壓力";
   }
   if (key.includes("taiwan arms") && key.includes("negotiating chip")) {
-    return "å·æ™®æŠŠå°å°è»å”®ç¨±ç‚ºèˆ‡åŒ—äº¬è«‡åˆ¤ç±Œç¢¼ï¼Œå¼•ç™¼å°ç£ä¸å®‰ä¸¦è¢«ä¸­åœ‹åª’é«”åˆ©ç”¨";
+    return "川普把對台軍售稱為與北京談判籌碼，引發台灣不安並被中國媒體利用";
   }
   if (key.includes("pakistan army chief") && key.includes("tehran") && key.includes("us israeli war")) {
-    return "å·´åŸºæ–¯å¦é™¸è»åƒè¬€é•·è¨ªå•å¾·é»‘è˜­ï¼ŒæŽ¨å‹•çµæŸç¾Žä»¥å°ä¼Šæœ—æˆ°çˆ­";
+    return "巴基斯坦陸軍參謀長訪問德黑蘭，推動結束美以對伊朗戰爭";
   }
   if (key.includes("trump") && key.includes("us negotiators") && key.includes("iran") && key.includes("ceasefire proposal")) {
-    return "å·æ™®å°‡æœƒè¦‹ç¾Žæ–¹è«‡åˆ¤ä»£è¡¨ï¼Œæ±ºå®šæ˜¯å¦æŽ¥å—ä¼Šæœ—åœç«æ–¹æ¡ˆ";
+    return "川普將會見美方談判代表，決定是否接受伊朗停火方案";
   }
   if (key.includes("overnight israeli strikes") && key.includes("gaza") && key.includes("heavy destruction")) {
-    return "ä»¥è‰²åˆ—å¤œé–“ç©ºè¥²åŠ è–©ï¼Œé€ æˆå¤§è¦æ¨¡ç ´å£ž";
+    return "以色列夜間空襲加薩，造成大規模破壞";
   }
   if (key.includes("secretary of state") && key.includes("india visit") && key.includes("modi") && key.includes("white house")) {
-    return "ç¾Žåœ‹åœ‹å‹™å¿è¨ªå•å°åº¦ï¼Œé‚€è«‹èŽ«è¿ªå‰å¾€ç™½å®®";
+    return "美國國務卿訪問印度，邀請莫迪前往白宮";
   }
   if (key.includes("rubio") && key.includes("modi") && key.includes("india visit") && key.includes("energy")) {
-    return "ç›§æ¯”å¥§è¨ªå•å°åº¦æœƒè¦‹èŽ«è¿ªï¼Œèƒ½æºè­°é¡Œæˆç‚ºæœƒè«‡é‡é»ž";
+    return "盧比奧訪問印度會見莫迪，能源議題成為會談重點";
   }
   if (key.includes("double tap strike") && key.includes("medics") && key.includes("toddler") && key.includes("lebanon")) {
-    return "å½±ç‰‡é¡¯ç¤ºä»¥è‰²åˆ—äºŒæ¬¡æ‰“æ“Šåœ¨é»Žå·´å«©é€ æˆé†«è­·èˆ‡å¹¼ç«¥æ­»äº¡";
+    return "影片顯示以色列二次打擊在黎巴嫩造成醫護與幼童死亡";
   }
   if (key.includes("california") && key.includes("state of emergency") && key.includes("toxic chemical leak")) {
-    return "åŠ å·žå› æœ‰æ¯’åŒ–å­¸å“æ´©æ¼å®£å¸ƒé€²å…¥ç·Šæ€¥ç‹€æ…‹";
+    return "加州因有毒化學品洩漏宣布進入緊急狀態";
   }
   if (key.includes("cristian mungiu") && key.includes("fjord") && key.includes("cannes")) {
-    return "ç¾…é¦¬å°¼äºžå°Žæ¼”å…‹é‡Œæ–¯è’‚å®‰ ï¿½ è’™ä¹…çš„ã€ŠFjordã€‹ç²å¾—åŽåŸŽæœ€é«˜çŽ";
+    return "羅馬尼亞導演克里斯蒂安·蒙久的《Fjord》獲得坎城最高獎";
   }
   if (key.includes("coal mine explosion") && key.includes("china") && key.includes("82")) {
-    return "ä¸­åœ‹ç…¤ç¤¦çˆ†ç‚¸é€ æˆè‡³å°‘ 82 äººæ­»äº¡";
+    return "中國煤礦爆炸造成至少 82 人死亡";
   }
   if (key.includes("jacinta allan") && key.includes("apprenticeships") && key.includes("labor conference")) {
-    return "æ¾³æ´²ç¶­å·žå·žé•·è‰¾å€«åœ¨å·¥é»¨æœƒè­°ä¸ŠæŽ¨å‡ºæ”¿åºœè³‡åŠ©å­¸å¾’è¨ˆç•«";
+    return "澳洲維州州長艾倫在工黨會議上推出政府資助學徒計畫";
   }
   if (key.includes("ufo sighting reports") && key.includes("orbs")) {
-    return "ç¾Žåœ‹æ”¿åºœå…¬é–‹ UFO ç›®æ“Šå ±å‘Šï¼Œç¨±æ›¾å‡ºç¾å¤§é‡çƒç‹€ç‰©é«”";
+    return "美國政府公開 UFO 目擊報告，稱曾出現大量球狀物體";
   }
   if (key.includes("trump") && key.includes("taiwan") && key.includes("china")) {
-    return "å·æ™®æ¶‰å°èªªæ³•å¼•ç™¼é—œæ³¨ï¼Œä¸­åœ‹åª’é«”å€Ÿé¡Œç™¼æ®";
+    return "川普涉台說法引發關注，中國媒體借題發揮";
   }
   if (key.includes("middle east crisis") && key.includes("iran") && key.includes("nuclear")) {
-    return "ä¸­æ±å±æ©Ÿå‡æº«ï¼Œå·æ™®ç¨±æœ‰æ©Ÿæœƒé”æˆå”è­°é˜»æ­¢ä¼Šæœ—å–å¾—æ ¸æ­¦";
+    return "中東危機升溫，川普稱有機會達成協議阻止伊朗取得核武";
   }
   if ((key.includes("called off") || key.includes("call off")) && key.includes("iran") && (key.includes("strike") || key.includes("attack"))) {
-    return "å·æ™®ç¨±æ‡‰æµ·ç£ç›Ÿå‹è¦æ±‚å–æ¶ˆå°ä¼Šæœ—æ”»æ“Š";
+    return "川普稱應海灣盟友要求取消對伊朗攻擊";
   }
   if (key.includes("iran war") && key.includes("gulf")) {
-    return "ä¼Šæœ—æˆ°çˆ­å±€å‹¢æ›´æ–°ï¼šå·æ™®ç¨±æ‡‰æµ·ç£ç›Ÿå‹è¦æ±‚æŽ¨é²æ”»æ“Š";
+    return "伊朗戰爭局勢更新：川普稱應海灣盟友要求推遲攻擊";
   }
   if (key.includes("called off") && key.includes("iran attack")) {
-    return "å·æ™®ç¨±æ‡‰æµ·ç£åœ‹å®¶è¦æ±‚å–æ¶ˆæ–°ä¸€è¼ªå°ä¼Šæœ—æ”»æ“Š";
+    return "川普稱應海灣國家要求取消新一輪對伊朗攻擊";
   }
   if (key.includes("planned attack") && key.includes("iran") && key.includes("proposal")) {
-    return "å¾·é»‘è˜­æå‡ºæ–°æ–¹æ¡ˆå¾Œï¼Œå·æ™®ç¨±å°ä¼Šæœ—æ”»æ“Šè¨ˆç•«å·²æŽ¨é²";
+    return "德黑蘭提出新方案後，川普稱對伊朗攻擊計畫已推遲";
   }
   if (key.includes("scheduled attack") && key.includes("serious negotiations")) {
-    return "å·æ™®ç¨±å› èªçœŸè«‡åˆ¤æ­£åœ¨é€²è¡Œï¼ŒæŽ¨é²å°ä¼Šæœ—çš„é å®šæ”»æ“Š";
+    return "川普稱因認真談判正在進行，推遲對伊朗的預定攻擊";
   }
   if (key.includes("death toll") && key.includes("lebanon")) {
-    return "ä»¥è‰²åˆ—ç©ºè¥²é»Žå·´å«©é€ æˆçš„æ­»äº¡äººæ•¸è¶…éŽ 3,000 äºº";
+    return "以色列空襲黎巴嫩造成的死亡人數超過 3,000 人";
   }
   if (key.includes("cuba") && key.includes("bloodbath")) {
-    return "å¤å·´è­¦å‘Šç¾Žåœ‹ï¼Œè‹¥æŽ¡å–è»äº‹è¡Œå‹•æé€ æˆç½é›£æ€§å¾Œæžœ";
+    return "古巴警告美國，若採取軍事行動恐造成災難性後果";
   }
   if (key.includes("xi") && key.includes("putin") && key.includes("china")) {
-    return "ç¿’è¿‘å¹³æŽ¥å¾…å·æ™®å¾Œï¼Œæº–å‚™åœ¨ä¸­åœ‹è¿ŽæŽ¥æ™®ä¸";
+    return "習近平接待川普後，準備在中國迎接普丁";
   }
   if (key.includes("fuel shortages") || key.includes("ryanair")) {
-    return "ç‘žå®‰èˆªç©ºç¨±ç‡ƒæ²¹ä¾›æ‡‰æš«ç„¡é‡å¤§é¢¨éšªï¼Œä½†è­¦å‘Šç¥¨åƒ¹å¯èƒ½ä¸Šæ¼²";
+    return "瑞安航空稱燃油供應暫無重大風險，但警告票價可能上漲";
   }
   if (key.includes("clock is ticking") && key.includes("iran")) {
-    return "å’Œå¹³é€²å±•åœæ»¯ä¹‹éš›ï¼Œå·æ™®è­¦å‘Šä¼Šæœ—æ™‚é–“ä¸å¤š";
+    return "和平進展停滯之際，川普警告伊朗時間不多";
   }
   if (key.includes("ukraine") && key.includes("drone") && key.includes("russia")) {
-    return "çƒå…‹è˜­å°ä¿„ç¾…æ–¯ç™¼å‹•å¤§è¦æ¨¡ç„¡äººæ©Ÿæ”»æ“Š";
+    return "烏克蘭對俄羅斯發動大規模無人機攻擊";
   }
   if (key.includes("north korea") && key.includes("nuclear")) {
-    return "åŒ—éŸ“èªç‚ºæ ¸æ­¦é¿å…äº†ä¼Šæœ—å¼å‘½é‹";
+    return "北韓認為核武避免了伊朗式命運";
   }
   if (key.includes("u s") && key.includes("israel") && key.includes("iran")) {
-    return "ç¾Žåœ‹èˆ‡ä»¥è‰²åˆ—æº–å‚™å¯èƒ½é‡æ–°èˆ‡ä¼Šæœ—çˆ†ç™¼å…¨é¢æˆ°çˆ­";
+    return "美國與以色列準備可能重新與伊朗爆發全面戰爭";
   }
   if (key.includes("uae") && key.includes("nuclear plant")) {
-    return "é˜¿è¯é…‹é€šå ±æ ¸é›»å» é™„è¿‘é­æ”»æ“Šï¼Œåœ°å€é¢¨éšªå‡é«˜";
+    return "阿聯酋通報核電廠附近遭攻擊，地區風險升高";
   }
   if (key.includes("taiwan") && key.includes("sovereignty")) {
-    return "å°ç£ç¸½çµ±è¡¨ç¤ºä¸æœƒæŒ‘é‡è¡çªï¼Œä¹Ÿä¸æœƒæ”¾æ£„ä¸»æ¬Š";
+    return "台灣總統表示不會挑釁衝突，也不會放棄主權";
   }
   if (key.includes("political executions") && key.includes("iran")) {
-    return "æˆ°çˆ­é–‹å§‹å¾Œï¼Œä¼Šæœ—æ”¿æ²»è™•æ±ºäººæ•¸æ¿€å¢ž";
+    return "戰爭開始後，伊朗政治處決人數激增";
   }
   if (key.includes("kill zone") && key.includes("ukraine")) {
-    return "çƒå…‹è˜­å‰ç·šæ­¦å™¨è®ŠåŒ–æ­£åœ¨æ”¹è®Šæˆ°çˆ­å½¢æ…‹";
+    return "烏克蘭前線武器變化正在改變戰爭形態";
   }
 
   return "";
@@ -3850,134 +3987,134 @@ function rewriteReportText(text) {
 
 function buildReportBrief(key, originalText = "") {
   const people = [];
-  if (key.includes("trump")) people.push("å·æ™®");
-  if (key.includes("jd vance")) people.push("JD èŒƒæ–¯");
-  if (key.includes("xi")) people.push("ç¿’è¿‘å¹³");
-  if (key.includes("putin")) people.push("æ™®äº¬");
-  if (key.includes("zelensky")) people.push("æ¾¤é€£æ–¯åŸº");
-  if (key.includes("kim jong un") || key.includes("north korea")) people.push("é‡‘æ­£æ©");
+  if (key.includes("trump")) people.push("川普");
+  if (key.includes("jd vance")) people.push("JD 范斯");
+  if (key.includes("xi")) people.push("習近平");
+  if (key.includes("putin")) people.push("普京");
+  if (key.includes("zelensky")) people.push("澤連斯基");
+  if (key.includes("kim jong un") || key.includes("north korea")) people.push("金正恩");
 
   const places = [];
-  if (key.includes("iran") || key.includes("tehran")) places.push("ä¼Šæœ—");
-  if (key.includes("taiwan") || key.includes("taipei")) places.push("å°ç£");
-  if (key.includes("china") || key.includes("beijing")) places.push("ä¸­åœ‹");
-  if (key.includes("u s") || key.includes("us ") || key.includes("united states") || key.includes("washington")) places.push("ç¾Žåœ‹");
-  if (key.includes("russia") || key.includes("moscow")) places.push("ä¿„ç¾…æ–¯");
-  if (key.includes("ukraine") || key.includes("kyiv")) places.push("çƒå…‹è˜­");
-  if (key.includes("israel")) places.push("ä»¥è‰²åˆ—");
-  if (key.includes("lebanon")) places.push("é»Žå·´å«©");
-  if (key.includes("gaza") || key.includes("palestinian")) places.push("å·´å‹’æ–¯å¦");
-  if (key.includes("jerusalem")) places.push("è€¶è·¯æ’’å†·");
-  if (key.includes("latvia")) places.push("æ‹‰è„«ç¶­äºž");
-  if (key.includes("uae") || key.includes("abu dhabi")) places.push("é˜¿è¯é…‹");
-  if (key.includes("cuba")) places.push("å¤å·´");
-  if (key.includes("eu ") || key.includes("europe")) places.push("æ­æ´²");
+  if (key.includes("iran") || key.includes("tehran")) places.push("伊朗");
+  if (key.includes("taiwan") || key.includes("taipei")) places.push("台灣");
+  if (key.includes("china") || key.includes("beijing")) places.push("中國");
+  if (key.includes("u s") || key.includes("us ") || key.includes("united states") || key.includes("washington")) places.push("美國");
+  if (key.includes("russia") || key.includes("moscow")) places.push("俄羅斯");
+  if (key.includes("ukraine") || key.includes("kyiv")) places.push("烏克蘭");
+  if (key.includes("israel")) places.push("以色列");
+  if (key.includes("lebanon")) places.push("黎巴嫩");
+  if (key.includes("gaza") || key.includes("palestinian")) places.push("巴勒斯坦");
+  if (key.includes("jerusalem")) places.push("耶路撒冷");
+  if (key.includes("latvia")) places.push("拉脫維亞");
+  if (key.includes("uae") || key.includes("abu dhabi")) places.push("阿聯酋");
+  if (key.includes("cuba")) places.push("古巴");
+  if (key.includes("eu ") || key.includes("europe")) places.push("歐洲");
 
   let issue = "";
-  if (key.includes("nuclear")) issue = "æ ¸è­°é¡Œ";
-  else if (key.includes("sanctions")) issue = "åˆ¶è£";
-  else if (key.includes("resolution") || key.includes("senate")) issue = "åœ‹æœƒæ±ºè­°";
-  else if (key.includes("strike") || key.includes("attack") || key.includes("drone")) issue = "è»äº‹è¡Œå‹•";
-  else if (key.includes("war")) issue = "æˆ°äº‹";
-  else if (key.includes("talks") || key.includes("negotiations") || key.includes("deal")) issue = "è«‡åˆ¤";
-  else if (key.includes("sovereignty") || key.includes("independent")) issue = "ä¸»æ¬Šè­°é¡Œ";
-  else if (key.includes("imports") || key.includes("industry") || key.includes("debt")) issue = "ç¶“æ¿Ÿé¢¨éšª";
-  else if (key.includes("fuel") || key.includes("airline")) issue = "èƒ½æºèˆ‡èˆªé‹æˆæœ¬";
-  else if (key.includes("booker prize") || key.includes("travelogue")) issue = "æ–‡å­¸çŽé …";
-  else if (key.includes("survival") || key.includes("expel")) issue = "äººé“è™•å¢ƒ";
+  if (key.includes("nuclear")) issue = "核議題";
+  else if (key.includes("sanctions")) issue = "制裁";
+  else if (key.includes("resolution") || key.includes("senate")) issue = "國會決議";
+  else if (key.includes("strike") || key.includes("attack") || key.includes("drone")) issue = "軍事行動";
+  else if (key.includes("war")) issue = "戰事";
+  else if (key.includes("talks") || key.includes("negotiations") || key.includes("deal")) issue = "談判";
+  else if (key.includes("sovereignty") || key.includes("independent")) issue = "主權議題";
+  else if (key.includes("imports") || key.includes("industry") || key.includes("debt")) issue = "經濟風險";
+  else if (key.includes("fuel") || key.includes("airline")) issue = "能源與航運成本";
+  else if (key.includes("booker prize") || key.includes("travelogue")) issue = "文學獎項";
+  else if (key.includes("survival") || key.includes("expel")) issue = "人道處境";
 
   let action = "";
-  if (key.includes("warn") || key.includes("warning")) action = "ç™¼å‡ºè­¦å‘Š";
-  else if (key.includes("says") || key.includes("said") || key.includes("claims")) action = "ä½œå‡ºè¡¨æ…‹";
-  else if (key.includes("postponed") || key.includes("delays") || key.includes("pauses") || key.includes("called off")) action = "æš«ç·©è¡Œå‹•";
-  else if (key.includes("launches") || key.includes("conducts")) action = "å±•é–‹è¡Œå‹•";
-  else if (key.includes("advances")) action = "å‘å‰æŽ¨é€²";
-  else if (key.includes("imposes")) action = "æ­£å¼å¯¦æ–½";
-  else if (key.includes("kill") || key.includes("killed")) action = "é€ æˆæ­»å‚·";
-  else if (key.includes("wins")) action = "ç²å¾—è‚¯å®š";
-  else if (key.includes("meets") || key.includes("arrives")) action = "å±•é–‹é«˜å±¤äº’å‹•";
-  else if (key.includes("prepare") || key.includes("ready")) action = "åŠ ç·Šæº–å‚™";
-  else if (key.includes("visits") || key.includes("welcome")) action = "å®‰æŽ’é«˜å±¤äº’å‹•";
-  else if (key.includes("fears") || key.includes("concerns")) action = "å¼•ç™¼æ“”æ†‚";
+  if (key.includes("warn") || key.includes("warning")) action = "發出警告";
+  else if (key.includes("says") || key.includes("said") || key.includes("claims")) action = "作出表態";
+  else if (key.includes("postponed") || key.includes("delays") || key.includes("pauses") || key.includes("called off")) action = "暫緩行動";
+  else if (key.includes("launches") || key.includes("conducts")) action = "展開行動";
+  else if (key.includes("advances")) action = "向前推進";
+  else if (key.includes("imposes")) action = "正式實施";
+  else if (key.includes("kill") || key.includes("killed")) action = "造成死傷";
+  else if (key.includes("wins")) action = "獲得肯定";
+  else if (key.includes("meets") || key.includes("arrives")) action = "展開高層互動";
+  else if (key.includes("prepare") || key.includes("ready")) action = "加緊準備";
+  else if (key.includes("visits") || key.includes("welcome")) action = "安排高層互動";
+  else if (key.includes("fears") || key.includes("concerns")) action = "引發擔憂";
   else action = genericReportAction(key);
   if (!action) return cleanFallbackHeadline(originalText || key);
 
-  const actor = people.length ? people.join("ã€") : "";
-  const area = places.length ? places.slice(0, 3).join("ã€") : "";
+  const actor = people.length ? people.join("、") : "";
+  const area = places.length ? places.slice(0, 3).join("、") : "";
 
-  if (actor && area && issue) return `${actor}åœç¹ž${area}${issue}${action}`;
+  if (actor && area && issue) return `${actor}圍繞${area}${issue}${action}`;
   if (area && issue) return `${area}${issue}${action}`;
-  if (actor && issue) return `${actor}å°±${issue}${action}`;
+  if (actor && issue) return `${actor}就${issue}${action}`;
   if (area) return `${area}${action}`;
   if (issue) return `${issue}${action}`;
   return compactKeywordBrief(key, originalText);
 }
 
 function genericReportAction(key) {
-  if (key.includes("support") || key.includes("supports") || key.includes("backs") || key.includes("hails")) return "ç²å¾—å…¬é–‹æ”¯æŒ";
-  if (key.includes("pressure") || key.includes("crisis") || key.includes("tensions")) return "å£“åŠ›å‡é«˜";
-  if (key.includes("risk") || key.includes("threat")) return "é¢¨éšªå‡é«˜";
-  if (key.includes("talk") || key.includes("negotiation") || key.includes("deal")) return "è«‡åˆ¤æŽ¨é€²";
+  if (key.includes("support") || key.includes("supports") || key.includes("backs") || key.includes("hails")) return "獲得公開支持";
+  if (key.includes("pressure") || key.includes("crisis") || key.includes("tensions")) return "壓力升高";
+  if (key.includes("risk") || key.includes("threat")) return "風險升高";
+  if (key.includes("talk") || key.includes("negotiation") || key.includes("deal")) return "談判推進";
   return "";
 }
 
 function compactKeywordBrief(key, originalText = "") {
   const dictionary = {
-    diplomacy: "å¤–äº¤",
-    diplomatic: "å¤–äº¤",
-    summit: "å³°æœƒ",
-    pressure: "å£“åŠ›",
-    crisis: "å±æ©Ÿ",
-    conflict: "è¡çª",
-    ceasefire: "åœç«",
-    allies: "ç›Ÿå‹",
-    president: "ç¸½çµ±",
-    government: "æ”¿åºœ",
-    economy: "ç¶“æ¿Ÿ",
-    cooperation: "åˆä½œ",
-    relations: "é—œä¿‚",
-    rescue: "æ‹¯æ•‘",
-    podcast: "ç¯€ç›®",
-    venezuela: "å§”å…§ç‘žæ‹‰",
-    maduro: "é¦¬æœç¾…",
-    rights: "äººæ¬Š",
-    activists: "æ´»å‹•äººå£«",
-    safety: "å®‰å…¨",
-    wartime: "æˆ°æ™‚",
-    military: "è»äº‹",
-    campaign: "è»äº‹è¡Œå‹•",
-    power: "æ¬ŠåŠ›",
-    international: "åœ‹éš›",
-    regional: "å€åŸŸ",
-    issues: "è­°é¡Œ",
-    senate: "åƒè­°é™¢",
-    resolution: "æ±ºè­°",
-    curb: "é™åˆ¶",
-    wage: "ç™¼å‹•",
-    war: "æˆ°çˆ­",
-    iran: "ä¼Šæœ—",
-    russia: "ä¿„ç¾…æ–¯",
-    china: "ä¸­åœ‹",
-    taiwan: "å°ç£",
-    ukraine: "çƒå…‹è˜­",
-    gaza: "åŠ è–©",
-    israel: "ä»¥è‰²åˆ—",
-    lebanon: "é»Žå·´å«©",
-    sanctions: "åˆ¶è£",
-    nuclear: "æ ¸è­°é¡Œ",
-    strike: "æ”»æ“Š",
-    attack: "æ”»æ“Š",
-    drone: "ç„¡äººæ©Ÿ",
-    talks: "æœƒè«‡",
-    deal: "å”è­°",
-    killed: "æ­»äº¡",
-    warns: "è­¦å‘Š",
-    visits: "è¨ªå•",
-    arrives: "æŠµé”",
-    meets: "æœƒé¢",
-    prize: "çŽé …",
-    industry: "ç”¢æ¥­",
-    imports: "é€²å£"
+    diplomacy: "外交",
+    diplomatic: "外交",
+    summit: "峰會",
+    pressure: "壓力",
+    crisis: "危機",
+    conflict: "衝突",
+    ceasefire: "停火",
+    allies: "盟友",
+    president: "總統",
+    government: "政府",
+    economy: "經濟",
+    cooperation: "合作",
+    relations: "關係",
+    rescue: "拯救",
+    podcast: "節目",
+    venezuela: "委內瑞拉",
+    maduro: "馬杜羅",
+    rights: "人權",
+    activists: "活動人士",
+    safety: "安全",
+    wartime: "戰時",
+    military: "軍事",
+    campaign: "軍事行動",
+    power: "權力",
+    international: "國際",
+    regional: "區域",
+    issues: "議題",
+    senate: "參議院",
+    resolution: "決議",
+    curb: "限制",
+    wage: "發動",
+    war: "戰爭",
+    iran: "伊朗",
+    russia: "俄羅斯",
+    china: "中國",
+    taiwan: "台灣",
+    ukraine: "烏克蘭",
+    gaza: "加薩",
+    israel: "以色列",
+    lebanon: "黎巴嫩",
+    sanctions: "制裁",
+    nuclear: "核議題",
+    strike: "攻擊",
+    attack: "攻擊",
+    drone: "無人機",
+    talks: "會談",
+    deal: "協議",
+    killed: "死亡",
+    warns: "警告",
+    visits: "訪問",
+    arrives: "抵達",
+    meets: "會面",
+    prize: "獎項",
+    industry: "產業",
+    imports: "進口"
   };
   const stopWords = new Set([
     "a", "an", "the", "to", "of", "on", "in", "for", "and", "or", "as", "it", "is", "are",
@@ -4003,57 +4140,57 @@ function translateReportText(text) {
 
   const normalized = text.replace(/\s+/g, " ").trim();
   const exact = {
-    "â€˜Multipolar worldâ€™: What Xi and Putin announced after Beijing summit": "åŒ—äº¬å³°æœƒå¾Œï¼Œç¿’è¿‘å¹³èˆ‡æ™®äº¬å®£å¸ƒæŽ¨å‹•ã€Œå¤šæ¥µä¸–ç•Œã€",
-    "'Multipolar world': What Xi and Putin announced after Beijing summit": "åŒ—äº¬å³°æœƒå¾Œï¼Œç¿’è¿‘å¹³èˆ‡æ™®äº¬å®£å¸ƒæŽ¨å‹•ã€Œå¤šæ¥µä¸–ç•Œã€",
-    "Lithuanian leaders rushed to bunkers as drone violates countryâ€™s airspace": "ç„¡äººæ©Ÿä¾µçŠ¯ç«‹é™¶å®›é ˜ç©ºï¼Œç«‹é™¶å®›é ˜å°Žäººç·Šæ€¥é€²å…¥æŽ©é«”",
-    "Lithuanian leaders rushed to bunkers as drone violates country's airspace": "ç„¡äººæ©Ÿä¾µçŠ¯ç«‹é™¶å®›é ˜ç©ºï¼Œç«‹é™¶å®›é ˜å°Žäººç·Šæ€¥é€²å…¥æŽ©é«”",
-    "Did Trump really rescue Venezuela? â€“ podcast": "ç¯€ç›®è¿½å•å·æ™®æ˜¯å¦çœŸçš„æ”¹è®Šäº†å§”å…§ç‘žæ‹‰å±€å‹¢",
-    "Did Trump really rescue Venezuela? - podcast": "ç¯€ç›®è¿½å•å·æ™®æ˜¯å¦çœŸçš„æ”¹è®Šäº†å§”å…§ç‘žæ‹‰å±€å‹¢",
-    "Death toll from Israeli strikes on Lebanon passes 3,000, officials say": "ä»¥è‰²åˆ—ç©ºè¥²é»Žå·´å«©é€ æˆçš„æ­»äº¡äººæ•¸è¶…éŽ 3,000 äººï¼Œå®˜å“¡è¡¨ç¤º",
-    "Trumpâ€™s shifting remarks on Taiwan are perfect for China to exploit": "å·æ™®å°å°ç£èªªæ³•åè¦†ï¼Œæ­£å¥½çµ¦ä¸­åœ‹æ“ä½œç©ºé–“",
-    "Trump's shifting remarks on Taiwan are perfect for China to exploit": "å·æ™®å°å°ç£èªªæ³•åè¦†ï¼Œæ­£å¥½çµ¦ä¸­åœ‹æ“ä½œç©ºé–“",
-    "Middle East crisis live: Trump claims â€˜very good chanceâ€™ of deal to prevent Iran obtaining nuclear weapon": "ä¸­æ±å±æ©Ÿç›´æ’­ï¼šå·æ™®ç¨±å¾ˆæœ‰æ©Ÿæœƒé”æˆå”è­°ï¼Œé˜»æ­¢ä¼Šæœ—å–å¾—æ ¸æ­¦",
-    "Middle East crisis live: Trump claims 'very good chance' of deal to prevent Iran obtaining nuclear weapon": "ä¸­æ±å±æ©Ÿç›´æ’­ï¼šå·æ™®ç¨±å¾ˆæœ‰æ©Ÿæœƒé”æˆå”è­°ï¼Œé˜»æ­¢ä¼Šæœ—å–å¾—æ ¸æ­¦",
-    "Iran war live: Trump says Iran attack postponed at request of Gulf allies": "ä¼Šæœ—æˆ°çˆ­ç›´æ’­ï¼šå·æ™®ç¨±æ‡‰æµ·ç£ç›Ÿå‹è¦æ±‚æŽ¨é²æ”»æ“Šä¼Šæœ—",
-    "Trump claims planned attack on Iran postponed after Tehran makes new proposal to end war": "å·æ™®ç¨±å¾·é»‘è˜­æå‡ºåœæˆ°æ–°æ–¹æ¡ˆå¾Œï¼Œå°ä¼Šæœ—æ”»æ“Šè¨ˆç•«å·²æŽ¨é²",
-    "Xi prepares to welcome Putin to China four days after hosting Trump": "ç¿’è¿‘å¹³æŽ¥å¾…å·æ™®å››å¤©å¾Œï¼Œæº–å‚™åœ¨ä¸­åœ‹è¿ŽæŽ¥æ™®ä¸",
-    "At least 87 Gaza aid flotilla activists abducted by Israel on hunger strike": "è‡³å°‘87ååŠ è–©æ´åŠ©èˆ¹éšŠæ´»å‹•äººå£«é­ä»¥è‰²åˆ—æ‰£æŠ¼å¾Œçµ•é£Ÿ",
-    "Kenya transport strike paused after deadly protests": "è‚¯äºžäº¤é€šç½·å·¥åœ¨è‡´å‘½æŠ—è­°å¾Œæš«åœ",
-    "Ryanair has â€˜near-zero concernsâ€™ on fuel shortages but warns of future price rises": "ç‘žå®‰èˆªç©ºç¨±å¹¾ä¹Žä¸æ“”å¿ƒç‡ƒæ²¹çŸ­ç¼ºï¼Œä½†è­¦å‘Šæœªä¾†ç¥¨åƒ¹å¯èƒ½ä¸Šæ¼²",
-    "Ryanair has 'near-zero concerns' on fuel shortages but warns of future price rises": "ç‘žå®‰èˆªç©ºç¨±å¹¾ä¹Žä¸æ“”å¿ƒç‡ƒæ²¹çŸ­ç¼ºï¼Œä½†è­¦å‘Šæœªä¾†ç¥¨åƒ¹å¯èƒ½ä¸Šæ¼²",
-    "Trump warns 'clock is ticking' for Iran as peace progress stalls": "å’Œå¹³é€²å±•åœæ»¯ä¹‹éš›ï¼Œå·æ™®è­¦å‘Šä¼Šæœ—ã€Œæ™‚é–“ä¸å¤šäº†ã€",
-    "Ukraine launches large-scale drone strikes on Russia": "çƒå…‹è˜­å°ä¿„ç¾…æ–¯ç™¼å‹•å¤§è¦æ¨¡ç„¡äººæ©Ÿæ”»æ“Š",
-    "North Korea is relieved its nuclear weapons have prevented a fate like Iran's": "åŒ—éŸ“èªç‚ºæ ¸æ­¦é¿å…äº†ä¼Šæœ—å¼å‘½é‹ï¼Œå› è€Œæ„Ÿåˆ°æ”¾å¿ƒ",
-    "U.S. and Israel prepare for potential return to full-scale war with Iran": "ç¾Žåœ‹èˆ‡ä»¥è‰²åˆ—æº–å‚™å¯èƒ½é‡æ–°èˆ‡ä¼Šæœ—çˆ†ç™¼å…¨é¢æˆ°çˆ­",
-    "UAE blames Iran or proxies for strike near nuclear plant, as Trump tells Tehran â€˜clock is tickingâ€™": "é˜¿è¯é…‹æŒ‡è²¬ä¼Šæœ—æˆ–å…¶ä»£ç†äººæ”»æ“Šæ ¸é›»å» é™„è¿‘ï¼Œå·æ™®å‰‡è­¦å‘Šå¾·é»‘è˜­æ™‚é–“ä¸å¤š",
-    "UAE blames Iran or proxies for strike near nuclear plant, as Trump tells Tehran 'clock is ticking'": "é˜¿è¯é…‹æŒ‡è²¬ä¼Šæœ—æˆ–å…¶ä»£ç†äººæ”»æ“Šæ ¸é›»å» é™„è¿‘ï¼Œå·æ™®å‰‡è­¦å‘Šå¾·é»‘è˜­æ™‚é–“ä¸å¤š",
-    "UAE reports strike near Abu Dhabi nuclear power plant": "é˜¿è¯é…‹é€šå ±é˜¿å¸ƒé”æ¯”æ ¸é›»å» é™„è¿‘é­åˆ°æ”»æ“Š",
-    "Ukraine conducts large-scale drone strikes on Russia, killing 4 and wounding 12 others": "çƒå…‹è˜­å°ä¿„ç¾…æ–¯ç™¼å‹•å¤§è¦æ¨¡ç„¡äººæ©Ÿæ”»æ“Šï¼Œé€ æˆ 4 æ­» 12 å‚·",
-    "Large-scale Ukrainian drone attack kills three in Moscow region, says Russia": "ä¿„ç¾…æ–¯ç¨±ï¼Œçƒå…‹è˜­å¤§è¦æ¨¡ç„¡äººæ©Ÿæ”»æ“Šé€ æˆèŽ«æ–¯ç§‘åœ°å€ 3 äººæ­»äº¡",
-    "'This may be the last time you hear my voice': Political executions surge in Iran since start of war": "ã€Œé€™å¯èƒ½æ˜¯ä½ æœ€å¾Œä¸€æ¬¡è½åˆ°æˆ‘çš„è²éŸ³ã€ï¼šæˆ°çˆ­é–‹å§‹å¾Œä¼Šæœ—æ”¿æ²»è™•æ±ºæ¿€å¢ž",
-    "Inside the 'kill-zone' on Ukraine's front line, where new weapons have transformed war": "èµ°é€²çƒå…‹è˜­å‰ç·šã€Œæ®ºå‚·å€ã€ï¼šæ–°æ­¦å™¨æ­£åœ¨æ”¹è®Šæˆ°çˆ­",
-    "Cuba warns US of â€˜bloodbathâ€™ if military action follows drone claims": "å¤å·´è­¦å‘Šç¾Žåœ‹ï¼šè‹¥å› ç„¡äººæ©ŸæŒ‡æŽ§æŽ¡å–è»äº‹è¡Œå‹•ï¼Œå°‡é€ æˆã€Œè¡€æ´—ã€",
-    "Cuba warns US of 'bloodbath' if military action follows drone claims": "å¤å·´è­¦å‘Šç¾Žåœ‹ï¼šè‹¥å› ç„¡äººæ©ŸæŒ‡æŽ§æŽ¡å–è»äº‹è¡Œå‹•ï¼Œå°‡é€ æˆã€Œè¡€æ´—ã€",
-    "Middle East crisis live: Trump claims â€˜very good chanceâ€™ of deal to prevent Iran strike": "ä¸­æ±å±æ©Ÿç›´æ’­ï¼šå·æ™®ç¨±æœ‰ã€Œå¾ˆå¤§æ©Ÿæœƒã€é”æˆå”è­°ä»¥é¿å…æ”»æ“Šä¼Šæœ—",
-    "Trump says he called off new Iran attack at request of Gulf states": "å·æ™®ç¨±æ‡‰æµ·ç£åœ‹å®¶è¦æ±‚å–æ¶ˆæ–°ä¸€è¼ªå°ä¼Šæœ—æ”»æ“Š",
-    "Trump told Taiwan not to 'go independent' - but does it want to?": "å·æ™®è¦æ±‚å°ç£ä¸è¦èµ°å‘ç¨ç«‹ï¼Œå°ç£å…§éƒ¨æ„å‘å†å—æª¢è¦–",
-    "Trump pauses possible Iran strike after Gulf intervention": "æµ·ç£åœ‹å®¶ä»‹å…¥å¾Œï¼Œå·æ™®æš«ç·©å¯èƒ½çš„ä¼Šæœ—æ‰“æ“Š",
-    "Trump claims planned attack on Iran postponed after Tehran makes new proposal": "å·æ™®ç¨±ä¼Šæœ—æå‡ºæ–°æ–¹æ¡ˆå¾Œï¼ŒåŽŸå®šæ”»æ“Šè¨ˆç•«å·²è¢«æŽ¨é²",
-    "Trump delays â€˜scheduled attackâ€™ on Iran, crediting â€˜serious negotiationsâ€™": "å·æ™®å› ã€ŒèªçœŸè«‡åˆ¤ã€æŽ¨é²å°ä¼Šæœ—çš„ã€Œé å®šæ”»æ“Šã€",
-    "Trump delays 'scheduled attack' on Iran, crediting 'serious negotiations'": "å·æ™®å› ã€ŒèªçœŸè«‡åˆ¤ã€æŽ¨é²å°ä¼Šæœ—çš„ã€Œé å®šæ”»æ“Šã€",
-    "Could the Iran war trigger the next debt shock?": "ä¼Šæœ—æˆ°çˆ­å¯èƒ½å¼•ç™¼ä¸‹ä¸€æ³¢å‚µå‹™è¡æ“Š",
-    "Drone strikes UAE nuclear plant highlighting risk of renewed war": "ç„¡äººæ©Ÿæ”»æ“Šé˜¿è¯é…‹æ ¸é›»å» ï¼Œå‡¸é¡¯æˆ°ç«é‡ç‡ƒé¢¨éšª",
-    "Taiwan will not provoke conflict nor give up sovereignty, says president": "å°ç£ä¸æœƒæŒ‘é‡è¡çªï¼Œä¹Ÿä¸æœƒæ”¾æ£„ä¸»æ¬Šï¼Œç¸½çµ±è¡¨ç¤º",
-    "Taiwan insists it is independent after Trump warning": "å·æ™®è­¦å‘Šå¾Œï¼Œå°ç£å …ç¨±è‡ªèº«ç¨ç«‹"
+    "‘Multipolar world’: What Xi and Putin announced after Beijing summit": "北京峰會後，習近平與普京宣布推動「多極世界」",
+    "'Multipolar world': What Xi and Putin announced after Beijing summit": "北京峰會後，習近平與普京宣布推動「多極世界」",
+    "Lithuanian leaders rushed to bunkers as drone violates country’s airspace": "無人機侵犯立陶宛領空，立陶宛領導人緊急進入掩體",
+    "Lithuanian leaders rushed to bunkers as drone violates country's airspace": "無人機侵犯立陶宛領空，立陶宛領導人緊急進入掩體",
+    "Did Trump really rescue Venezuela? – podcast": "節目追問川普是否真的改變了委內瑞拉局勢",
+    "Did Trump really rescue Venezuela? - podcast": "節目追問川普是否真的改變了委內瑞拉局勢",
+    "Death toll from Israeli strikes on Lebanon passes 3,000, officials say": "以色列空襲黎巴嫩造成的死亡人數超過 3,000 人，官員表示",
+    "Trump’s shifting remarks on Taiwan are perfect for China to exploit": "川普對台灣說法反覆，正好給中國操作空間",
+    "Trump's shifting remarks on Taiwan are perfect for China to exploit": "川普對台灣說法反覆，正好給中國操作空間",
+    "Middle East crisis live: Trump claims ‘very good chance’ of deal to prevent Iran obtaining nuclear weapon": "中東危機直播：川普稱很有機會達成協議，阻止伊朗取得核武",
+    "Middle East crisis live: Trump claims 'very good chance' of deal to prevent Iran obtaining nuclear weapon": "中東危機直播：川普稱很有機會達成協議，阻止伊朗取得核武",
+    "Iran war live: Trump says Iran attack postponed at request of Gulf allies": "伊朗戰爭直播：川普稱應海灣盟友要求推遲攻擊伊朗",
+    "Trump claims planned attack on Iran postponed after Tehran makes new proposal to end war": "川普稱德黑蘭提出停戰新方案後，對伊朗攻擊計畫已推遲",
+    "Xi prepares to welcome Putin to China four days after hosting Trump": "習近平接待川普四天後，準備在中國迎接普丁",
+    "At least 87 Gaza aid flotilla activists abducted by Israel on hunger strike": "至少87名加薩援助船隊活動人士遭以色列扣押後絕食",
+    "Kenya transport strike paused after deadly protests": "肯亞交通罷工在致命抗議後暫停",
+    "Ryanair has ‘near-zero concerns’ on fuel shortages but warns of future price rises": "瑞安航空稱幾乎不擔心燃油短缺，但警告未來票價可能上漲",
+    "Ryanair has 'near-zero concerns' on fuel shortages but warns of future price rises": "瑞安航空稱幾乎不擔心燃油短缺，但警告未來票價可能上漲",
+    "Trump warns 'clock is ticking' for Iran as peace progress stalls": "和平進展停滯之際，川普警告伊朗「時間不多了」",
+    "Ukraine launches large-scale drone strikes on Russia": "烏克蘭對俄羅斯發動大規模無人機攻擊",
+    "North Korea is relieved its nuclear weapons have prevented a fate like Iran's": "北韓認為核武避免了伊朗式命運，因而感到放心",
+    "U.S. and Israel prepare for potential return to full-scale war with Iran": "美國與以色列準備可能重新與伊朗爆發全面戰爭",
+    "UAE blames Iran or proxies for strike near nuclear plant, as Trump tells Tehran ‘clock is ticking’": "阿聯酋指責伊朗或其代理人攻擊核電廠附近，川普則警告德黑蘭時間不多",
+    "UAE blames Iran or proxies for strike near nuclear plant, as Trump tells Tehran 'clock is ticking'": "阿聯酋指責伊朗或其代理人攻擊核電廠附近，川普則警告德黑蘭時間不多",
+    "UAE reports strike near Abu Dhabi nuclear power plant": "阿聯酋通報阿布達比核電廠附近遭到攻擊",
+    "Ukraine conducts large-scale drone strikes on Russia, killing 4 and wounding 12 others": "烏克蘭對俄羅斯發動大規模無人機攻擊，造成 4 死 12 傷",
+    "Large-scale Ukrainian drone attack kills three in Moscow region, says Russia": "俄羅斯稱，烏克蘭大規模無人機攻擊造成莫斯科地區 3 人死亡",
+    "'This may be the last time you hear my voice': Political executions surge in Iran since start of war": "「這可能是你最後一次聽到我的聲音」：戰爭開始後伊朗政治處決激增",
+    "Inside the 'kill-zone' on Ukraine's front line, where new weapons have transformed war": "走進烏克蘭前線「殺傷區」：新武器正在改變戰爭",
+    "Cuba warns US of ‘bloodbath’ if military action follows drone claims": "古巴警告美國：若因無人機指控採取軍事行動，將造成「血洗」",
+    "Cuba warns US of 'bloodbath' if military action follows drone claims": "古巴警告美國：若因無人機指控採取軍事行動，將造成「血洗」",
+    "Middle East crisis live: Trump claims ‘very good chance’ of deal to prevent Iran strike": "中東危機直播：川普稱有「很大機會」達成協議以避免攻擊伊朗",
+    "Trump says he called off new Iran attack at request of Gulf states": "川普稱應海灣國家要求取消新一輪對伊朗攻擊",
+    "Trump told Taiwan not to 'go independent' - but does it want to?": "川普要求台灣不要走向獨立，台灣內部意向再受檢視",
+    "Trump pauses possible Iran strike after Gulf intervention": "海灣國家介入後，川普暫緩可能的伊朗打擊",
+    "Trump claims planned attack on Iran postponed after Tehran makes new proposal": "川普稱伊朗提出新方案後，原定攻擊計畫已被推遲",
+    "Trump delays ‘scheduled attack’ on Iran, crediting ‘serious negotiations’": "川普因「認真談判」推遲對伊朗的「預定攻擊」",
+    "Trump delays 'scheduled attack' on Iran, crediting 'serious negotiations'": "川普因「認真談判」推遲對伊朗的「預定攻擊」",
+    "Could the Iran war trigger the next debt shock?": "伊朗戰爭可能引發下一波債務衝擊",
+    "Drone strikes UAE nuclear plant highlighting risk of renewed war": "無人機攻擊阿聯酋核電廠，凸顯戰火重燃風險",
+    "Taiwan will not provoke conflict nor give up sovereignty, says president": "台灣不會挑釁衝突，也不會放棄主權，總統表示",
+    "Taiwan insists it is independent after Trump warning": "川普警告後，台灣堅稱自身獨立"
   };
   if (exact[normalized]) return statementTitle(exact[normalized]);
 
   const summaryExact = {
-    "It marks a grim milestone in the conflict between Israel and the Lebanese armed group Hezbollah since March, despite a nominal ceasefire.": "é€™æ¨™èªŒè‘—è‡ªä¸‰æœˆä»¥ä¾†ä»¥è‰²åˆ—èˆ‡é»Žå·´å«©æ­¦è£çµ„ç¹”çœŸä¸»é»¨è¡çªä¸­çš„åš´å³»é‡Œç¨‹ç¢‘ï¼Œå„˜ç®¡åç¾©ä¸Šå·²æœ‰åœç«ã€‚",
-    "US President Donald Trump has announced that he is delaying a planned attack on Iran.": "ç¾Žåœ‹ç¸½çµ±å”ç´å¾· ï¿½ å·æ™®å®£å¸ƒï¼Œä»–æ­£åœ¨æŽ¨é²ä¸€é …é‡å°ä¼Šæœ—çš„æ”»æ“Šè¨ˆç•«ã€‚",
-    "The US president says he is holding off on a US attack planned for Tuesday as \"serious negotiations are now taking place\".": "ç¾Žåœ‹ç¸½çµ±è¡¨ç¤ºï¼Œç”±æ–¼ã€ŒèªçœŸè«‡åˆ¤æ­£åœ¨é€²è¡Œã€ï¼Œä»–æš«ç·©åŽŸå®šé€±äºŒé€²è¡Œçš„ç¾Žæ–¹æ”»æ“Šã€‚",
-    "Government bonds are under pressure and households could soon feel the impact.": "æ”¿åºœå‚µåˆ¸æ‰¿å£“ï¼Œå®¶åº­å¯èƒ½å¾ˆå¿«æ„Ÿå—åˆ°å½±éŸ¿ã€‚",
-    "Lai Ching-te made his first direct response to Trump and Xi's meeting where they discussed Taiwan independence.": "è³´æ¸…å¾·é¦–æ¬¡ç›´æŽ¥å›žæ‡‰å·æ™®èˆ‡ç¿’è¿‘å¹³æœƒæ™¤ä¸­æœ‰é—œå°ç£ç¨ç«‹çš„è¨Žè«–ã€‚"
+    "It marks a grim milestone in the conflict between Israel and the Lebanese armed group Hezbollah since March, despite a nominal ceasefire.": "這標誌著自三月以來以色列與黎巴嫩武裝組織真主黨衝突中的嚴峻里程碑，儘管名義上已有停火。",
+    "US President Donald Trump has announced that he is delaying a planned attack on Iran.": "美國總統唐納德·川普宣布，他正在推遲一項針對伊朗的攻擊計畫。",
+    "The US president says he is holding off on a US attack planned for Tuesday as \"serious negotiations are now taking place\".": "美國總統表示，由於「認真談判正在進行」，他暫緩原定週二進行的美方攻擊。",
+    "Government bonds are under pressure and households could soon feel the impact.": "政府債券承壓，家庭可能很快感受到影響。",
+    "Lai Ching-te made his first direct response to Trump and Xi's meeting where they discussed Taiwan independence.": "賴清德首次直接回應川普與習近平會晤中有關台灣獨立的討論。"
   };
   if (summaryExact[normalized]) return statementTitle(summaryExact[normalized]);
 
@@ -4062,9 +4199,9 @@ function translateReportText(text) {
 
 function statementTitle(text) {
   return String(text || "")
-    .replace(/å—Žï¼Ÿ$/u, "")
-    .replace(/å—Ž$/u, "")
-    .replace(/ï¼Ÿ$/u, "")
+    .replace(/嗎？$/u, "")
+    .replace(/嗎$/u, "")
+    .replace(/？$/u, "")
     .replace(/\?$/u, "")
     .trim();
 }
@@ -4073,7 +4210,7 @@ function directReportSourceText(event) {
   let text = String(event?.statement || event?.title || "").replace(/\s+/g, " ").trim();
   text = text.replace(/^(analysis|comment|commentary|explainer|opinion)\s*:\s*/i, "");
   text = text.replace(/^[^:]{1,56}\blive\s*:\s*/i, "");
-  if (!/^[â€˜â€™â€œâ€"']/u.test(text)) {
+  if (!/^[‘’“”"']/u.test(text)) {
     text = text.replace(/^([^:]{4,90}):\s*(why|how|what|when|where|could|should|can|is|does|do)\b.*$/i, "$1");
   }
   return statementTitle(text);
@@ -4091,24 +4228,24 @@ function isGenericReportTitle(text) {
   const normalized = String(text || "").replace(/\s+/g, "");
   if (!normalized) return true;
   return [
-    "å±€å‹¢",
-    "å±€åŠ¿",
-    "å±€å‹¢æŒçºŒç™¼é…µ",
-    "å±€åŠ¿æŒç»­å‘é…µ",
-    "å±€å‹¢å‡ºç¾æ–°å‹•å‘",
-    "å±€åŠ¿å‡ºçŽ°æ–°åŠ¨å‘",
-    "å±€å‹¢å‡ºç¾æ–°é€²å±•",
-    "å±€åŠ¿å‡ºçŽ°æ–°è¿›å±•",
-    "å±€å‹¢å£“åŠ›å‡é«˜",
-    "å±€åŠ¿åŽ‹åŠ›å‡é«˜",
-    "ç›¸é—œå ±å°Ž",
-    "ç›¸å…³æŠ¥é“",
-    "æˆç‚ºç„¦é»ž",
-    "æˆä¸ºç„¦ç‚¹",
-    "å‡ºç¾æ–°é€²å±•",
-    "å‡ºçŽ°æ–°è¿›å±•",
-    "æˆç‚ºç„¦é»ž",
-    "æˆä¸ºç„¦ç‚¹"
+    "局勢",
+    "局势",
+    "局勢持續發酵",
+    "局势持续发酵",
+    "局勢出現新動向",
+    "局势出现新动向",
+    "局勢出現新進展",
+    "局势出现新进展",
+    "局勢壓力升高",
+    "局势压力升高",
+    "相關報導",
+    "相关报道",
+    "成為焦點",
+    "成为焦点",
+    "出現新進展",
+    "出现新进展",
+    "成為焦點",
+    "成为焦点"
   ].some(phrase => normalized.includes(phrase));
 }
 
@@ -4128,7 +4265,7 @@ function feedMetaText(event) {
 function normalizedDisplayTitleKey(text) {
   return String(text || "")
     .toLowerCase()
-    .replace(/[â€œâ€â€˜â€™"'`]/g, "")
+    .replace(/[“”‘’"'`]/g, "")
     .replace(/[^\p{L}\p{N}]+/gu, " ")
     .trim();
 }
@@ -4445,20 +4582,57 @@ function saveViewState() {
   });
 }
 
+function requestedEarningMode() {
+  try {
+    const requested = new URLSearchParams(window.location.search).get("mode");
+    if (requested) return requested === "earning";
+  } catch {
+    // Fall through to the last saved view.
+  }
+  return viewState.mapMode === "earning";
+}
+
 function initialMapMode() {
   try {
     const requested = new URLSearchParams(window.location.search).get("mode");
     if (requested === "stats") return "stats";
     if (requested === "markets") return "markets";
     if (requested === "events") return "events";
-    if (requested === "earning") return "earning";
+    if (requested === "earning") return earningFeatureEnabled ? "earning" : "events";
   } catch {
     // Fall through to the last saved view.
   }
   if (viewState.mapMode === "stats") return "stats";
   if (viewState.mapMode === "markets") return "markets";
-  if (viewState.mapMode === "earning") return "earning";
+  if (viewState.mapMode === "earning" && earningFeatureEnabled) return "earning";
   return "events";
+}
+
+function applyEarningFeatureAvailability(enabled) {
+  earningFeatureEnabled = enabled === true;
+  if (els.earningModeButton) {
+    els.earningModeButton.hidden = !earningFeatureEnabled;
+  }
+  els.modeSwitcher?.classList.toggle("earning-disabled", !earningFeatureEnabled);
+
+  if (!earningFeatureEnabled && mapMode === "earning") {
+    setMapMode("events");
+    return;
+  }
+  if (earningFeatureEnabled && restoreEarningModeAfterConfig) {
+    setMapMode("earning");
+  }
+}
+
+async function loadRuntimeFeatures() {
+  try {
+    const response = await fetch("/api/config", { cache: "no-store" });
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    const payload = await response.json();
+    applyEarningFeatureAvailability(payload?.features?.earning === true);
+  } catch {
+    applyEarningFeatureAvailability(false);
+  }
 }
 
 function projectionFrame(width, height) {
@@ -4597,7 +4771,7 @@ function isMarketMode(mode = mapMode) {
 }
 
 function isEarningMode(mode = mapMode) {
-  return mode === "earning";
+  return earningFeatureEnabled && mode === "earning";
 }
 
 function cityModeLabel() {
@@ -4618,23 +4792,23 @@ function significantWeatherText(city, item) {
   const wind = Number(item?.wind);
   const place = cityName(city);
   const parts = [];
-  if ([95, 96, 99].includes(code)) parts.push(currentLanguage === "zh" ? "æœ‰é›·æš´" : "has storms");
-  else if ([71, 73, 75, 85, 86].includes(code)) parts.push(currentLanguage === "zh" ? "æœ‰é™é›ª" : "has snow");
-  else if ([65, 81, 82].includes(code)) parts.push(currentLanguage === "zh" ? "æœ‰è¾ƒå¼ºé™é›¨" : "has heavy rain");
-  else if ([45, 48].includes(code)) parts.push(currentLanguage === "zh" ? "æœ‰é›¾" : "has fog");
-  if (Number.isFinite(wind) && wind >= 40) parts.push(currentLanguage === "zh" ? `é£Žé€Ÿçº¦ ${Math.round(wind)} km/h` : `wind around ${Math.round(wind)} km/h`);
-  if (Number.isFinite(temp) && temp >= 38) parts.push(currentLanguage === "zh" ? `é«˜æ¸©çº¦ ${Math.round(temp)} C` : `heat around ${Math.round(temp)} C`);
-  if (Number.isFinite(temp) && temp <= -5) parts.push(currentLanguage === "zh" ? `ä½Žæ¸©çº¦ ${Math.round(temp)} C` : `cold around ${Math.round(temp)} C`);
+  if ([95, 96, 99].includes(code)) parts.push(currentLanguage === "zh" ? "有雷暴" : "has storms");
+  else if ([71, 73, 75, 85, 86].includes(code)) parts.push(currentLanguage === "zh" ? "有降雪" : "has snow");
+  else if ([65, 81, 82].includes(code)) parts.push(currentLanguage === "zh" ? "有较强降雨" : "has heavy rain");
+  else if ([45, 48].includes(code)) parts.push(currentLanguage === "zh" ? "有雾" : "has fog");
+  if (Number.isFinite(wind) && wind >= 40) parts.push(currentLanguage === "zh" ? `风速约 ${Math.round(wind)} km/h` : `wind around ${Math.round(wind)} km/h`);
+  if (Number.isFinite(temp) && temp >= 38) parts.push(currentLanguage === "zh" ? `高温约 ${Math.round(temp)} C` : `heat around ${Math.round(temp)} C`);
+  if (Number.isFinite(temp) && temp <= -5) parts.push(currentLanguage === "zh" ? `低温约 ${Math.round(temp)} C` : `cold around ${Math.round(temp)} C`);
   if (!parts.length) return "";
   return currentLanguage === "zh"
-    ? `${place}${parts.join("ï¼Œ")}ã€‚`
+    ? `${place}${parts.join("，")}。`
     : `${place} ${parts.join(" and ")}.`;
 }
 
 function cityModeSummary(city, item) {
   return significantWeatherText(city, item);
   if (currentLanguage === "zh") {
-    return `ç•¶åœ°æ™‚é–“ ${formatTime(city.zone)}ã€‚å¤©æ°£ ${weatherText(item.code)}ã€‚æº«åº¦ ${Math.round(item.temperature)} Cã€‚æ¿•åº¦ ${Math.round(item.humidity)}%ã€‚é¢¨é€Ÿ ${Math.round(item.wind)} km/hã€‚`;
+    return `當地時間 ${formatTime(city.zone)}。天氣 ${weatherText(item.code)}。溫度 ${Math.round(item.temperature)} C。濕度 ${Math.round(item.humidity)}%。風速 ${Math.round(item.wind)} km/h。`;
   }
   return `Local time ${formatTime(city.zone)}. Weather ${weatherText(item.code)}. Temperature ${Math.round(item.temperature)} C. Humidity ${Math.round(item.humidity)}%. Wind ${Math.round(item.wind)} km/h.`;
 }
@@ -4698,7 +4872,7 @@ function cityPhotoBucketAgeMinutes(bucket = cityPhotoBucket()) {
 }
 
 function cityPhotoRangeLabel(minutes) {
-  if (currentLanguage === "zh") return minutes >= 60 ? "1å°æ—¶" : `${minutes}åˆ†`;
+  if (currentLanguage === "zh") return minutes >= 60 ? "1小时" : `${minutes}分`;
   return minutes >= 60 ? "1h" : `${minutes}m`;
 }
 
@@ -4813,9 +4987,9 @@ function commonsImageSearchUrl(query) {
 
 function cityPhotoDaypartTitleScore(title, daypart) {
   const normalized = String(title || "").toLowerCase();
-  const night = /\b(night|nighttime|nocturne|after dark|city lights?|illuminated)\b|å¤œ|å¤œæ™¯|nachts|nuit|notte/.test(normalized);
-  const evening = /\b(evening|dusk|sunset|twilight|blue hour)\b|é»„æ˜|å‚æ™š|å¤•/.test(normalized);
-  const morning = /\b(morning|sunrise|dawn|daybreak|early morning)\b|æ¸…æ™¨|æ—©æ™¨|æ—¥å‡º/.test(normalized);
+  const night = /\b(night|nighttime|nocturne|after dark|city lights?|illuminated)\b|夜|夜景|nachts|nuit|notte/.test(normalized);
+  const evening = /\b(evening|dusk|sunset|twilight|blue hour)\b|黄昏|傍晚|夕/.test(normalized);
+  const morning = /\b(morning|sunrise|dawn|daybreak|early morning)\b|清晨|早晨|日出/.test(normalized);
   if (daypart === "night") return night || evening ? (night ? 4 : 2) : -1;
   if (daypart === "evening") return evening || night ? (evening ? 4 : 1) : -1;
   if (daypart === "morning") return morning ? 4 : (night || evening ? -1 : 1);
@@ -4978,7 +5152,7 @@ function hasMapLocation(item) {
 }
 
 function unplacedLabel() {
-  return currentLanguage === "zh" ? "æœªå®šä½" : "Unplaced";
+  return currentLanguage === "zh" ? "未定位" : "Unplaced";
 }
 
 function formatPlaceName(item) {
@@ -5651,7 +5825,10 @@ function chartTimeBounds(history) {
   return max > min ? { min, max } : null;
 }
 
-function chartPointX(history, index, padLeft, chartWidth, timeBounds = chartTimeBounds(history)) {
+function chartPointX(history, index, padLeft, chartWidth, timeBounds = chartTimeBounds(history), compressTime = false) {
+  if (compressTime) {
+    return padLeft + (index / Math.max(1, history.length - 1)) * chartWidth;
+  }
   const point = history[index];
   const time = pointTimestamp(point);
   if (timeBounds && Number.isFinite(time)) {
@@ -5661,9 +5838,10 @@ function chartPointX(history, index, padLeft, chartWidth, timeBounds = chartTime
   return padLeft + (index / Math.max(1, history.length - 1)) * chartWidth;
 }
 
-function chartTickIndicesForHistory(history, count = 3) {
+function chartTickIndicesForHistory(history, count = 3, compressTime = false) {
   const points = Array.isArray(history) ? history : [];
   if (points.length <= 1) return chartTickIndices(points.length, count);
+  if (compressTime) return chartTickIndices(points.length, count);
   const timeBounds = chartTimeBounds(points);
   if (!timeBounds) return chartTickIndices(points.length, count);
   const ticks = new Set([0, points.length - 1]);
@@ -5695,6 +5873,116 @@ function chartPercentile(sortedValues, ratio) {
   return sortedValues[lower] * (1 - mix) + sortedValues[upper] * mix;
 }
 
+function marketChartDisplayBudget(range, chartWidth) {
+  if (range === "1m") return clamp(Math.floor(chartWidth / 2.6), 120, 220);
+  if (range === "5d") return clamp(Math.floor(chartWidth / 2.1), 140, 260);
+  if (range === "1d") return clamp(Math.floor(chartWidth / 1.6), 160, 340);
+  return clamp(Math.floor(chartWidth / 1.5), 180, 360);
+}
+
+function chartBucketRepresentative(bucket) {
+  if (!bucket.length) return null;
+  if (bucket.length === 1) return bucket[0];
+  const values = bucket.map(point => Number(point.value)).filter(Number.isFinite);
+  const value = medianNumericValue(values);
+  const firstTime = pointTimestamp(bucket[0]);
+  const lastTime = pointTimestamp(bucket[bucket.length - 1]);
+  const middleTime = Number.isFinite(firstTime) && Number.isFinite(lastTime)
+    ? firstTime + ((lastTime - firstTime) / 2)
+    : pointTimestamp(bucket[Math.floor(bucket.length / 2)]);
+  let source = bucket[Math.floor(bucket.length / 2)];
+  if (Number.isFinite(value)) {
+    source = bucket.reduce((best, point) => {
+      const bestScore = Math.abs(Number(best.value) - value);
+      const pointScore = Math.abs(Number(point.value) - value);
+      return pointScore < bestScore ? point : best;
+    }, source);
+  }
+  if (!Number.isFinite(value) || !Number.isFinite(middleTime)) return source;
+  return {
+    ...source,
+    value,
+    time: new Date(middleTime).toISOString(),
+    date: localDateKey(middleTime)
+  };
+}
+
+function evenlySampleChartHistory(history, maxPoints) {
+  const points = Array.isArray(history) ? history : [];
+  if (points.length <= maxPoints) return points;
+  const sampled = [];
+  const used = new Set();
+  const step = (points.length - 1) / Math.max(1, maxPoints - 1);
+  for (let index = 0; index < maxPoints; index += 1) {
+    const sourceIndex = Math.round(index * step);
+    if (used.has(sourceIndex)) continue;
+    used.add(sourceIndex);
+    sampled.push(points[sourceIndex]);
+  }
+  if (sampled.length && sampled[sampled.length - 1] !== points[points.length - 1]) {
+    sampled[sampled.length - 1] = points[points.length - 1];
+  }
+  return sampled;
+}
+
+function activeTimeSampleChartHistory(history, maxPoints) {
+  const points = Array.isArray(history) ? history : [];
+  if (points.length <= maxPoints) return points;
+  const first = points[0];
+  const last = points[points.length - 1];
+  const inner = points.slice(1, -1);
+  const bucketCount = Math.max(2, maxPoints - 2);
+  const sampled = [first];
+  for (let bucketIndex = 0; bucketIndex < bucketCount; bucketIndex += 1) {
+    const start = Math.floor((bucketIndex / bucketCount) * inner.length);
+    const end = Math.floor(((bucketIndex + 1) / bucketCount) * inner.length);
+    const bucket = inner.slice(start, Math.max(start + 1, end));
+    const representative = chartBucketRepresentative(bucket);
+    if (representative) sampled.push(representative);
+  }
+  sampled.push(last);
+  return sampled;
+}
+
+function displayMarketChartHistory(history, range, chartWidth, options = {}) {
+  const points = Array.isArray(history) ? history : [];
+  const maxPoints = marketChartDisplayBudget(range, chartWidth);
+  if (points.length <= maxPoints) return points;
+  if (options.compressTime) return activeTimeSampleChartHistory(points, maxPoints);
+
+  const dated = points
+    .filter(point => Number.isFinite(pointTimestamp(point)))
+    .sort((left, right) => pointTimestamp(left) - pointTimestamp(right));
+  if (dated.length < Math.max(20, Math.floor(points.length * 0.8))) {
+    return evenlySampleChartHistory(points, maxPoints);
+  }
+
+  const first = dated[0];
+  const last = dated[dated.length - 1];
+  const startTime = pointTimestamp(first);
+  const endTime = pointTimestamp(last);
+  if (!Number.isFinite(startTime) || !Number.isFinite(endTime) || endTime <= startTime) {
+    return evenlySampleChartHistory(points, maxPoints);
+  }
+
+  const bucketCount = Math.max(2, maxPoints - 2);
+  const buckets = Array.from({ length: bucketCount }, () => []);
+  dated.slice(1, -1).forEach(point => {
+    const time = pointTimestamp(point);
+    const ratio = (time - startTime) / (endTime - startTime);
+    const bucketIndex = clamp(Math.floor(ratio * bucketCount), 0, bucketCount - 1);
+    buckets[bucketIndex].push(point);
+  });
+
+  const sampled = [first];
+  buckets.forEach(bucket => {
+    const representative = chartBucketRepresentative(bucket);
+    if (representative) sampled.push(representative);
+  });
+  sampled.push(last);
+  return sampled;
+}
+
 function nearestChartPointIndex(points, x) {
   let closestIndex = 0;
   let closestDistance = Infinity;
@@ -5708,6 +5996,22 @@ function nearestChartPointIndex(points, x) {
   return closestIndex;
 }
 
+function chartPathData(points, step = false) {
+  if (!points.length) return "";
+  const first = points[0];
+  const commands = [`M ${first[0].toFixed(1)} ${first[1].toFixed(1)}`];
+  for (let index = 1; index < points.length; index += 1) {
+    const previous = points[index - 1];
+    const current = points[index];
+    if (step) {
+      commands.push(`L ${current[0].toFixed(1)} ${previous[1].toFixed(1)}`);
+      if (Math.abs(current[1] - previous[1]) < 0.05) continue;
+    }
+    commands.push(`L ${current[0].toFixed(1)} ${current[1].toFixed(1)}`);
+  }
+  return commands.join(" ");
+}
+
 function createMarketChart(asset) {
   const ns = "http://www.w3.org/2000/svg";
   const width = 640;
@@ -5716,8 +6020,8 @@ function createMarketChart(asset) {
   const padRight = 18;
   const padTop = 18;
   const padBottom = 28;
-  const history = rangedMarketHistory(asset);
-  if (history.length < 2) {
+  const rawHistory = rangedMarketHistory(asset);
+  if (rawHistory.length < 2) {
     const empty = document.createElement("div");
     empty.className = "market-chart-empty";
     empty.textContent = (asset?.historyLoading || (canFetchMarketHistory(asset) && !marketHistoryLoadFailedForRange(asset, selectedMarketRange)))
@@ -5725,20 +6029,34 @@ function createMarketChart(asset) {
       : t("chartUnavailableForRange");
     return empty;
   }
-  const values = history.map(point => point.value);
-  const rawMin = Math.min(...values);
-  const rawMax = Math.max(...values);
-  const flatChart = values.every(value => Math.abs(value - values[0]) <= Math.max(1, Math.abs(values[0] || 1)) * 0.000001);
-  const flatPad = Math.abs(values[0] || 1) * 0.01;
-  const min = flatChart ? values[0] - flatPad : rawMin;
-  const max = flatChart ? values[0] + flatPad : rawMax;
-  const range = Math.max(max - min, Math.abs(max || 1) * 0.01);
   const chartWidth = width - padLeft - padRight;
   const chartHeight = height - padTop - padBottom;
+  const sparseChart = rawHistory.length < 12;
+  const compressTime = asset?.group === "companies" && ["1d", "5d", "1m"].includes(selectedMarketRange);
+  const history = displayMarketChartHistory(rawHistory, selectedMarketRange, chartWidth, { compressTime });
+  const values = history.map(point => point.value);
+  const sortedValues = values.slice().sort((left, right) => left - right);
+  const rawMin = sortedValues[0];
+  const rawMax = sortedValues[sortedValues.length - 1];
+  const flatChart = values.every(value => Math.abs(value - values[0]) <= Math.max(1, Math.abs(values[0] || 1)) * 0.000001);
+  const lowerPercentile = values.length >= 30 ? chartPercentile(sortedValues, 0.02) : rawMin;
+  const upperPercentile = values.length >= 30 ? chartPercentile(sortedValues, 0.98) : rawMax;
+  const endpointMin = Math.min(values[0], values[values.length - 1]);
+  const endpointMax = Math.max(values[0], values[values.length - 1]);
+  const visibleMin = flatChart ? values[0] : Math.min(lowerPercentile, endpointMin);
+  const visibleMax = flatChart ? values[0] : Math.max(upperPercentile, endpointMax);
+  const visibleRange = Math.max(visibleMax - visibleMin, Math.abs(visibleMax || 1) * 0.01);
+  const padding = flatChart
+    ? Math.max(Math.abs(values[0] || 1) * 0.01, Number.EPSILON)
+    : visibleRange * 0.08;
+  const min = visibleMin - padding;
+  const max = visibleMax + padding;
+  const range = Math.max(max - min, Math.abs(max || 1) * 0.01);
+  const timeBounds = compressTime ? null : chartTimeBounds(history);
   const points = history.map((point, index) => {
     const value = point.value;
-    const x = padLeft + (index / Math.max(1, history.length - 1)) * chartWidth;
-    const y = padTop + (1 - ((value - min) / range)) * chartHeight;
+    const x = chartPointX(history, index, padLeft, chartWidth, timeBounds, compressTime);
+    const y = clamp(padTop + (1 - ((value - min) / range)) * chartHeight, padTop, padTop + chartHeight);
     return [x, y];
   });
 
@@ -5768,8 +6086,8 @@ function createMarketChart(asset) {
     svg.appendChild(yLabel);
   }
 
-  const pathData = points.map(([x, y], index) => `${index ? "L" : "M"} ${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
-  if (!flatChart) {
+  const pathData = chartPathData(points);
+  if (!flatChart && !sparseChart) {
     const area = document.createElementNS(ns, "path");
     area.setAttribute("d", `${pathData} L ${(width - padRight).toFixed(1)} ${(height - padBottom).toFixed(1)} L ${padLeft} ${(height - padBottom).toFixed(1)} Z`);
     area.setAttribute("fill", marketChangeClass(asset) === "negative" ? themeRgba("red", 0.10) : themeRgba("green", 0.10));
@@ -5783,10 +6101,14 @@ function createMarketChart(asset) {
   path.setAttribute("stroke-width", "3");
   path.setAttribute("stroke-linecap", "round");
   path.setAttribute("stroke-linejoin", "round");
+  if (sparseChart && !flatChart) {
+    path.setAttribute("stroke-width", "2.4");
+    path.setAttribute("stroke-dasharray", "7 6");
+  }
   svg.appendChild(path);
 
   const last = points[points.length - 1];
-  if (last && !flatChart) {
+  if (last && !flatChart && !sparseChart) {
     const dot = document.createElementNS(ns, "circle");
     dot.setAttribute("cx", last[0]);
     dot.setAttribute("cy", last[1]);
@@ -5794,8 +6116,19 @@ function createMarketChart(asset) {
     dot.setAttribute("fill", marketChangeClass(asset) === "negative" ? "var(--red)" : "var(--green)");
     svg.appendChild(dot);
   }
+  if (sparseChart) {
+    points.forEach(([x, y], index) => {
+      if (history[index]?.carryFlat) return;
+      const dot = document.createElementNS(ns, "circle");
+      dot.setAttribute("cx", x);
+      dot.setAttribute("cy", y);
+      dot.setAttribute("r", "4");
+      dot.setAttribute("fill", marketChangeClass(asset) === "negative" ? "var(--red)" : "var(--green)");
+      svg.appendChild(dot);
+    });
+  }
 
-  chartTickIndices(history.length, 3).forEach(index => {
+  chartTickIndicesForHistory(history, 3, compressTime).forEach(index => {
     const label = document.createElementNS(ns, "text");
     label.setAttribute("x", points[index][0]);
     label.setAttribute("y", height - 7);
@@ -5852,8 +6185,7 @@ function createMarketChart(asset) {
   overlay.addEventListener("mousemove", event => {
     const rect = svg.getBoundingClientRect();
     const localX = ((event.clientX - rect.left) / rect.width) * width;
-    const ratio = clamp((localX - padLeft) / chartWidth, 0, 1);
-    const index = clamp(Math.round(ratio * (history.length - 1)), 0, history.length - 1);
+    const index = nearestChartPointIndex(points, localX);
     const [x, y] = points[index];
     const point = history[index];
     hoverGroup.style.display = "";
@@ -5886,21 +6218,22 @@ function createCurrencyChart(anchor, quote) {
   const cleanHistory = items => (items || [])
     .map(point => ({ ...point, value: Number(point?.value) }))
     .filter(point => Number.isFinite(point.value) && point.value > 0);
-  let history = cleanHistory(currencyPairHistory(anchor, quote));
-  let flatFallback = false;
-  if (history.length < 2) {
-    history = cleanHistory(flatCurrencyPairHistory(anchor, quote));
-    flatFallback = history.length >= 2;
-  }
-  if (history.length < 2) {
-    return document.createDocumentFragment();
+  const rawHistory = cleanHistory(currencyPairHistory(anchor, quote));
+  if (rawHistory.length < 2) {
+    const empty = document.createElement("div");
+    empty.className = "market-chart-empty";
+    empty.textContent = t("currencyNoChart");
+    return empty;
   }
 
-  const values = history.map(point => point.value);
   const chartWidth = width - padLeft - padRight;
   const chartHeight = height - padTop - padBottom;
+  const hasCrypto = anchor?.group === "crypto" || quote?.group === "crypto";
+  const compressTime = !hasCrypto && ["1d", "5d", "1m"].includes(selectedCurrencyRange);
+  const history = displayMarketChartHistory(rawHistory, selectedCurrencyRange, chartWidth, { compressTime });
+  const values = history.map(point => point.value);
   const sortedValues = values.slice().sort((left, right) => left - right);
-  const flatChart = flatFallback || values.every(value => Math.abs(value - values[0]) <= Math.max(1, Math.abs(values[0] || 1)) * 0.000001);
+  const flatChart = values.every(value => Math.abs(value - values[0]) <= Math.max(1, Math.abs(values[0] || 1)) * 0.000001);
   const rawMin = sortedValues[0];
   const rawMax = sortedValues[sortedValues.length - 1];
   const lowerPercentile = values.length >= 12 ? chartPercentile(sortedValues, 0.05) : rawMin;
@@ -5916,9 +6249,9 @@ function createCurrencyChart(anchor, quote) {
   const min = visibleMin - padding;
   const max = visibleMax + padding;
   const range = Math.max(max - min, Math.abs(max || 1) * 0.01);
-  const timeBounds = chartTimeBounds(history);
+  const timeBounds = compressTime ? null : chartTimeBounds(history);
   const points = history.map((point, index) => {
-    const x = chartPointX(history, index, padLeft, chartWidth, timeBounds);
+    const x = chartPointX(history, index, padLeft, chartWidth, timeBounds, compressTime);
     const y = clamp(padTop + (1 - ((point.value - min) / range)) * chartHeight, padTop, padTop + chartHeight);
     return [x, y];
   });
@@ -5954,7 +6287,7 @@ function createCurrencyChart(anchor, quote) {
   const pathData = points.map(([x, y], index) => `${index ? "L" : "M"} ${x.toFixed(1)} ${y.toFixed(1)}`).join(" ");
   const area = document.createElementNS(ns, "path");
   area.setAttribute("d", `${pathData} L ${(width - padRight).toFixed(1)} ${(height - padBottom).toFixed(1)} L ${padLeft} ${(height - padBottom).toFixed(1)} Z`);
-  area.setAttribute("fill", themeRgba(chartTone, flatFallback ? 0.04 : 0.10));
+  area.setAttribute("fill", themeRgba(chartTone, flatChart ? 0.04 : 0.10));
   svg.appendChild(area);
 
   const path = document.createElementNS(ns, "path");
@@ -5966,7 +6299,7 @@ function createCurrencyChart(anchor, quote) {
   path.setAttribute("stroke-linejoin", "round");
   svg.appendChild(path);
 
-  chartTickIndicesForHistory(history, 3).forEach(index => {
+  chartTickIndicesForHistory(history, 3, compressTime).forEach(index => {
     const label = document.createElementNS(ns, "text");
     label.setAttribute("x", points[index][0]);
     label.setAttribute("y", height - 6);
@@ -6459,7 +6792,6 @@ function renderMarketBoard() {
   leaders.addEventListener("scroll", () => {
     marketLeadersScrollTop = leaders.scrollTop;
     scheduleMarketLeadersSnap(leaders);
-    scheduleMarketHistoryPreload(leaders);
   }, { passive: true });
   navigationAssets
     .forEach((asset, index) => {
@@ -6553,7 +6885,6 @@ function renderMarketBoard() {
   requestAnimationFrame(() => {
     updateMarketLeadersEndPadding(leaders);
     restoreKeyboardFocus();
-    scheduleMarketHistoryPreload(leaders);
   });
 }
 
@@ -6598,7 +6929,7 @@ function renderMarketInspect(asset) {
       [t("marketValue"), formatAssetPrice(asset)],
       [t("marketMove"), formatMarketChange(asset)]
     ];
-    if (asset.country) metrics.push([currentLanguage === "zh" ? "å›½å®¶/åœ°åŒº" : "Country", asset.country]);
+    if (asset.country) metrics.push([currentLanguage === "zh" ? "国家/地区" : "Country", asset.country]);
   }
 
   metrics.forEach(([label, value, valueClass]) => {
@@ -6643,7 +6974,7 @@ function selectedCurrencyAskContext() {
   };
 }
 
-const marketAskSemiconductorPattern = /(nvda|nvidia|è‹±ä¼Ÿè¾¾|amd|avgo|broadcom|åšé€š|tsm|tsmc|å°ç§¯ç”µ|asml|mu|micron|ç¾Žå…‰|qcom|qualcomm|é«˜é€š|intc|intel|è‹±ç‰¹å°”|arm|samsung|ä¸‰æ˜Ÿ|sk hynix|hynix|æµ·åŠ›å£«|mediatek|è”å‘ç§‘|marvell|mrvl|amat|applied materials|åº”ç”¨ææ–™|lrcx|lam research|æ³›æž—|klac|kla|txn|adi|on semiconductor|stm|infineon|tokyo electron|åŠå¯¼ä½“|èŠ¯ç‰‡|chip|semiconductor)/i;
+const marketAskSemiconductorPattern = /(nvda|nvidia|英伟达|amd|avgo|broadcom|博通|tsm|tsmc|台积电|asml|mu|micron|美光|qcom|qualcomm|高通|intc|intel|英特尔|arm|samsung|三星|sk hynix|hynix|海力士|mediatek|联发科|marvell|mrvl|amat|applied materials|应用材料|lrcx|lam research|泛林|klac|kla|txn|adi|on semiconductor|stm|infineon|tokyo electron|半导体|芯片|chip|semiconductor)/i;
 
 function compactAskAsset(asset) {
   const displayRank = marketDisplayRank(asset);
@@ -7944,6 +8275,9 @@ function restoreFeedScroll(scrollTop) {
 }
 
 function setMapMode(mode) {
+  if (mode === "earning" && !earningFeatureEnabled) {
+    mode = "events";
+  }
   mapMode = mode === "earning" ? "earning" : mapMode;
   if (isMarketMode(mode)) {
     selectMarket(selectedMarketId, { focusList: true });
@@ -7976,13 +8310,13 @@ function renderNoRecentEvents() {
   selectedEventId = "";
   selectedPlaceKey = "";
   els.reportSeverity.className = "severity";
-  els.reportLocation.textContent = currentLanguage === "zh" ? "è¿‘æœŸé‡å¤§äº‹ä»¶" : "Recent major events";
-  els.reportMeta.textContent = currentLanguage === "zh" ? "æ²¡æœ‰ç¬¦åˆæ¡ä»¶çš„äº‹ä»¶" : "No qualifying events";
+  els.reportLocation.textContent = currentLanguage === "zh" ? "近期重大事件" : "Recent major events";
+  els.reportMeta.textContent = currentLanguage === "zh" ? "没有符合条件的事件" : "No qualifying events";
   els.reportSeverity.textContent = "--";
-  els.reportTitle.textContent = currentLanguage === "zh" ? "åœ°å›¾æš‚ä¸æ˜¾ç¤ºäº‹ä»¶" : "No events on the map";
+  els.reportTitle.textContent = currentLanguage === "zh" ? "地图暂不显示事件" : "No events on the map";
   els.reportSummary.hidden = false;
   els.reportSummary.textContent = currentLanguage === "zh"
-    ? "åªæœ‰èƒ½ç›´è¯´å‘ç”Ÿäº†ä»€ä¹ˆã€ä¸”è¶³å¤Ÿè¿‘æœŸæˆ–è¶³å¤Ÿé‡è¦çš„äº‹ä»¶æ‰ä¼šå‡ºçŽ°åœ¨åœ°å›¾ä¸Šã€‚"
+    ? "只有能直说发生了什么、且足够近期或足够重要的事件才会出现在地图上。"
     : "Only recent, important reports that directly say what happened appear on the map.";
   hideReportImage();
   els.reportLink.textContent = t("openSource");
@@ -8102,7 +8436,7 @@ function selectMarket(id, options = {}) {
   const detailUrl = "";
   if (detailUrl) {
     els.reportLink.href = detailUrl;
-    els.reportLink.textContent = currentLanguage === "zh" ? "æ‰“å¼€ CompaniesMarketCap" : "Open CompaniesMarketCap";
+    els.reportLink.textContent = currentLanguage === "zh" ? "打开 CompaniesMarketCap" : "Open CompaniesMarketCap";
     els.reportLink.style.visibility = "visible";
   } else {
     els.reportLink.style.visibility = "hidden";
@@ -8237,7 +8571,7 @@ function renderEarningFilters() {
   } else if (filters.length === Object.values(earningFilters).filter(Boolean).length) {
     note.textContent = `${visibleCount} ${t("earningModeTitle")}`;
   } else {
-    const selected = Object.entries(earningFilters).filter(([, enabled]) => enabled).map(([key]) => t(`earningFilter${key.charAt(0).toUpperCase() + key.slice(1)}`));
+    const selected = Object.entries(earningFilters).filter(([, enabled]) => enabled).map(([key]) => earningFilterLabel(key));
     note.textContent = `${selected.length}/${filters.length} ${t("earningFilterTitleLabel")}: ${selected.join(", ")}`;
   }
   els.earningFilters.appendChild(note);
@@ -8294,7 +8628,7 @@ function renderEarningGrid() {
       tags.forEach(tag => {
         const chip = document.createElement("span");
         chip.className = "earning-tag";
-        chip.textContent = tag;
+        chip.textContent = earningTagLabel(tag);
         tagsRow.appendChild(chip);
       });
       card.appendChild(tagsRow);
@@ -8836,6 +9170,7 @@ window.addEventListener("resize", () => {
 });
 
 renderInitialConsole();
+loadRuntimeFeatures();
 fetchWeather();
 fetchWorldMap();
 fetchEvents({ announce: false });

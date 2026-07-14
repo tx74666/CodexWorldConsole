@@ -4,6 +4,7 @@ __pycache__/
 *.py[cod]
 server*.log
 server-*.log
+.world-console.local.json
 
 # Browser/test profiles and screenshots
 chrome-*/

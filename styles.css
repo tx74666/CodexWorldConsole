@@ -366,6 +366,10 @@ h3 {
   background: var(--control-bg);
 }
 
+.segmented.earning-disabled {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .mode-button {
   min-width: 0;
   border: 0;
@@ -2933,8 +2937,8 @@ body[data-theme="dawn"] .market-ask-button:focus-visible {
 
 @media (max-width: 720px) {
   .console-shell {
-    width: calc(100% - 20px);
-    min-width: 512px;
+    width: calc(100% - 16px);
+    min-width: 0;
     padding-top: 14px;
   }
 
@@ -2945,12 +2949,40 @@ body[data-theme="dawn"] .market-ask-button:focus-visible {
   }
 
   .map-panel {
-    min-height: 430px;
+    min-height: 0;
+    padding: 12px;
   }
 
   .segmented,
   .map-toolbar {
     width: 100%;
+  }
+
+  .map-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    padding-block: 6px;
+    background: var(--panel);
+  }
+
+  .segmented {
+    min-height: 40px;
+  }
+
+  .mode-button {
+    padding-inline: 4px;
+    font-size: 12px;
+  }
+
+  .map-stage {
+    min-width: 0;
+  }
+
+  .map-menu-panel {
+    right: auto;
+    left: 0;
+    max-width: calc(100vw - 32px);
   }
 
   .weather-inspect-grid {

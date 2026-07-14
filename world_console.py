@@ -21,6 +21,7 @@ import xml.etree.ElementTree as ET
 
 
 APP_DIR = Path(__file__).resolve().parent
+LOCAL_CONFIG = APP_DIR / ".world-console.local.json"
 DEFAULT_PORT = 8797
 WORLD_CACHE = APP_DIR / "cache" / "world.geojson"
 EVENT_TRANSLATION_CACHE = APP_DIR / "cache" / "translations.json"
@@ -45,9 +46,9 @@ WORLD_GEOJSON_URLS = [
 MARKET_CACHE_SECONDS = 1800
 MARKET_DISPLAY_COUNT = 50
 MARKET_FETCH_LIMIT = 120
-MARKET_HISTORY_PREP_LIMIT = 8
-MARKET_INITIAL_HISTORY_ASSET_COUNT = 8
-MARKET_CACHE_SCHEMA_VERSION = 10
+MARKET_HISTORY_PREP_LIMIT = 0
+MARKET_INITIAL_HISTORY_ASSET_COUNT = 0
+MARKET_CACHE_SCHEMA_VERSION = 11
 MARKET_FULL_HISTORY_POINTS = 20_000
 MARKET_DENSE_HISTORY_POINTS = 20_000
 MARKET_RECENT_DENSE_DAYS = 430
@@ -372,6 +373,7 @@ YAHOO_SYMBOL_OVERRIDES = {
     "GOLD": "GC=F",
     "SILVER": "SI=F",
     "BTC": "BTC-USD",
+    "SPCX": "",
 }
 YAHOO_CURRENCY_SYMBOLS = {
     "CNY": "USDCNY=X",
@@ -693,11 +695,29 @@ FALLBACK_EVENTS = [
 ]
 
 
+def runtime_features():
+    earning_enabled = False
+    environment_value = os.environ.get("WORLD_CONSOLE_EARNING")
+    if environment_value is not None:
+        earning_enabled = environment_value.strip().lower() in {"1", "true", "yes", "on"}
+    else:
+        try:
+            payload = json.loads(LOCAL_CONFIG.read_text(encoding="utf-8"))
+            features = payload.get("features", payload) if isinstance(payload, dict) else {}
+            earning_enabled = features.get("earning") is True
+        except (OSError, json.JSONDecodeError):
+            pass
+    return {"earning": earning_enabled}
+
+
 class ConsoleHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(APP_DIR), **kwargs)
 
     def do_GET(self):
+        if self.path.startswith("/api/config"):
+            self.send_json({"features": runtime_features()})
+            return
         if self.path.startswith("/api/events"):
             self.send_json({"events": load_events(), "updated": datetime.now(timezone.utc).isoformat()})
             return
@@ -2285,7 +2305,8 @@ def market_cache_payload(allow_stale=False):
             return None
         if payload.get("source") != "companiesmarketcap-assets":
             return None
-        if payload.get("schemaVersion") != MARKET_CACHE_SCHEMA_VERSION and not allow_stale:
+        schema_mismatch = payload.get("schemaVersion") != MARKET_CACHE_SCHEMA_VERSION
+        if schema_mismatch and not allow_stale:
             return None
         if len(assets) < MARKET_DISPLAY_COUNT:
             return None
@@ -2303,25 +2324,6 @@ def market_cache_payload(allow_stale=False):
             return None
         if payload.get("source") == "companiesmarketcap-assets" and not any(
             item.get("historyUrl") for item in payload.get("assets", []) if isinstance(item, dict)
-        ):
-            return None
-        if payload.get("source") == "companiesmarketcap-assets" and not any(
-            item.get("history") for item in payload.get("assets", []) if isinstance(item, dict)
-        ):
-            return None
-        if payload.get("source") == "companiesmarketcap-assets" and not any(
-            history_has_dated_points(item.get("history"))
-            for item in payload.get("assets", []) if isinstance(item, dict) and item.get("group") == "companies"
-        ):
-            return None
-        if payload.get("source") == "companiesmarketcap-assets" and not any(
-            history_has_dated_points(item.get("denseHistory"))
-            for item in payload.get("assets", []) if isinstance(item, dict)
-        ):
-            return None
-        if payload.get("source") == "companiesmarketcap-assets" and not any(
-            history_has_dated_points(item.get("shortHistory"))
-            for item in payload.get("assets", []) if isinstance(item, dict)
         ):
             return None
         currencies = payload.get("currencies")
@@ -2349,8 +2351,9 @@ def market_cache_payload(allow_stale=False):
         age = datetime.now(timezone.utc) - updated
         if allow_stale or age <= timedelta(seconds=MARKET_CACHE_SECONDS):
             payload = compact_market_payload(payload)
+            payload["schemaVersion"] = MARKET_CACHE_SCHEMA_VERSION
             try:
-                if MARKET_CACHE.stat().st_size > MARKET_CACHE_REWRITE_BYTES:
+                if schema_mismatch or MARKET_CACHE.stat().st_size > MARKET_CACHE_REWRITE_BYTES:
                     save_market_cache(payload)
             except OSError:
                 pass
@@ -2389,6 +2392,16 @@ def save_market_history_cache(cache):
         MARKET_HISTORY_CACHE.write_text(json.dumps(cache, ensure_ascii=False, indent=2), encoding="utf-8")
     except OSError:
         pass
+
+
+def market_history_payload_is_fresh(payload):
+    if not isinstance(payload, dict):
+        return False
+    try:
+        updated = datetime.fromisoformat(str(payload.get("updated", "")).replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    return datetime.now(timezone.utc) - updated <= timedelta(seconds=MARKET_CACHE_SECONDS)
 
 
 def finite_number(*values):
@@ -2826,8 +2839,13 @@ def history_payload_has_range(payload, range_name):
 def enrich_history_with_dense_prices(payload, asset, range_name=""):
     if not isinstance(payload, dict) or not isinstance(asset, dict):
         return payload
+    range_name = normalized_market_range(range_name)
     symbol = str(asset.get("symbol") or "").strip()
     if not symbol:
+        return payload
+    if not yahoo_symbol_for_asset(asset):
+        for key in ("denseHistory", "shortHistory", "denseHistorySource", "shortHistorySource"):
+            payload.pop(key, None)
         return payload
     enriched = {
         "symbol": symbol,
@@ -2877,12 +2895,18 @@ def load_market_history(url, asset=None, range_name=""):
     cached = cache.get(path)
     stale_history = []
     if isinstance(cached, dict):
+        if asset and not yahoo_symbol_for_asset(asset):
+            cached = dict(cached)
+            for key in ("denseHistory", "shortHistory", "denseHistorySource", "shortHistorySource"):
+                cached.pop(key, None)
         if history_payload_has_range(cached, range_name):
             return cached
         if isinstance(cached.get("history"), list):
             stale_history = cached.get("history") or []
 
-    if range_name in {"1d", "5d", "1m", "1y", "5y"} and asset:
+    has_yahoo_history = bool(asset and yahoo_symbol_for_asset(asset))
+    has_fresh_cmc_history = bool(stale_history and market_history_payload_is_fresh(cached))
+    if range_name in {"1d", "5d", "1m", "1y", "5y"} and asset and (has_yahoo_history or has_fresh_cmc_history):
         payload = dict(cached) if isinstance(cached, dict) else {
             "source": "CompaniesMarketCap",
             "updated": datetime.now(timezone.utc).isoformat(),
@@ -2987,6 +3011,8 @@ def yahoo_short_price_history(symbol, detailed=False, range_name=""):
             if key:
                 merged[key] = point
         if range_name == "1d" and history_has_dense_intraday_points(merged.values()):
+            break
+        if range_name in {"5d", "1m"} and history_payload_has_range({"shortHistory": merged.values()}, range_name):
             break
     return sorted(
         merged.values(),
