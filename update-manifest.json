@@ -1,0 +1,14 @@
+{
+  "version": "0.1.6",
+  "tag": "v0.1.6",
+  "releaseUrl": "https://github.com/tx74666/CodexWorldConsole/releases/tag/v0.1.6",
+  "publishedAt": "2026-07-14T10:57:45Z",
+  "assets": [
+    {
+      "name": "Codex-World-Console-Windows-v0.1.6.zip",
+      "url": "https://github.com/tx74666/CodexWorldConsole/releases/download/v0.1.6/Codex-World-Console-Windows-v0.1.6.zip",
+      "size": 26845252,
+      "sha256": "37706d02af2e9ce03ace472a04d257698e68862dd2904b57801b3d678c647e1c"
+    }
+  ]
+}

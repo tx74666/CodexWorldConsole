@@ -29,11 +29,21 @@ jobs:
           if (-not $version -or $version -eq "${{ github.sha }}") { $version = "manual-${{ github.run_number }}" }
           ./scripts/build-windows.ps1 -Version $version
 
+      - name: Create Windows checksum
+        shell: pwsh
+        run: |
+          Get-ChildItem release -Filter *.zip | ForEach-Object {
+            $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $_.FullName).Hash.ToLowerInvariant()
+            "$hash  $($_.Name)" | Set-Content -LiteralPath "$($_.FullName).sha256" -Encoding utf8
+          }
+
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
           name: codex-world-console-windows
-          path: release/*.zip
+          path: |
+            release/*.zip
+            release/*.sha256
 
   android:
     name: Android APK
@@ -101,6 +111,26 @@ jobs:
         with:
           path: release-artifacts
           merge-multiple: true
+
+      - name: Create update manifest
+        shell: pwsh
+        run: |
+          $zip = Get-ChildItem release-artifacts -Filter *.zip | Select-Object -First 1
+          $version = "${{ github.ref_name }}".TrimStart("v")
+          $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $zip.FullName).Hash.ToLowerInvariant()
+          $manifest = [ordered]@{
+            version = $version
+            tag = "${{ github.ref_name }}"
+            releaseUrl = "https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
+            publishedAt = (Get-Date).ToUniversalTime().ToString("o")
+            assets = @([ordered]@{
+              name = $zip.Name
+              url = "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/$($zip.Name)"
+              size = $zip.Length
+              sha256 = $hash
+            })
+          }
+          $manifest | ConvertTo-Json -Depth 5 | Set-Content release-artifacts/update-manifest.json -Encoding utf8
 
       - name: Publish release assets
         uses: softprops/action-gh-release@v2
