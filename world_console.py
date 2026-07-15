@@ -2332,13 +2332,12 @@ def market_cache_payload(allow_stale=False):
         if not has_required_currency_quotes(currencies):
             return None
         if not any(
-            history_has_dated_points(item.get("denseHistory"))
-            for item in currencies.get("quotes", []) if isinstance(item, dict) and item.get("code") != "USD"
-        ):
-            return None
-        if not any(
-            history_has_dated_points(item.get("shortHistory"))
-            for item in currencies.get("quotes", []) if isinstance(item, dict) and item.get("code") != "USD"
+            any(
+                history_has_dated_points(item.get(key))
+                for key in ("history", "denseHistory", "shortHistory")
+            )
+            for item in currencies.get("quotes", [])
+            if isinstance(item, dict) and item.get("code") != "USD"
         ):
             return None
         allowed_currency_codes = {"USD", *FIAT_CURRENCY_CODES, *CURRENCY_ANCHOR_CODES}

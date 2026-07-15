@@ -6032,7 +6032,8 @@ function createMarketChart(asset) {
   const chartWidth = width - padLeft - padRight;
   const chartHeight = height - padTop - padBottom;
   const sparseChart = rawHistory.length < 12;
-  const compressTime = asset?.group === "companies" && ["1d", "5d", "1m"].includes(selectedMarketRange);
+  const compressTime = ["companies", "metals", "crypto"].includes(asset?.group)
+    && ["1d", "5d", "1m"].includes(selectedMarketRange);
   const history = displayMarketChartHistory(rawHistory, selectedMarketRange, chartWidth, { compressTime });
   const values = history.map(point => point.value);
   const sortedValues = values.slice().sort((left, right) => left - right);
