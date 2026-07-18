@@ -1,7 +1,12 @@
-name: Build downloads
+name: Release Windows x64 Setup
 
 on:
   workflow_dispatch:
+    inputs:
+      version:
+        description: Release version, for example v0.2.0
+        required: true
+        default: v0.2.0
   push:
     tags:
       - "v*"
@@ -10,138 +15,81 @@ permissions:
   contents: write
 
 jobs:
-  windows:
-    name: Windows desktop package
+  release:
     runs-on: windows-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Resolve version
+        shell: pwsh
+        run: |
+          $tag = "${{ github.event.inputs.version }}"
+          if ([string]::IsNullOrWhiteSpace($tag)) { $tag = "${{ github.ref_name }}" }
+          if (-not $tag.StartsWith("v")) { $tag = "v$tag" }
+          $version = $tag.Substring(1)
+          if ($version -notmatch '^\d+\.\d+\.\d+$') { throw "Invalid release version: $version" }
+          "RELEASE_TAG=$tag" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "RELEASE_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Set up Python x64
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          architecture: x64
 
-      - name: Build desktop zip
+      - name: Install build dependencies
+        shell: pwsh
+        run: python -m pip install --disable-pip-version-check pyinstaller
+
+      - name: Install Inno Setup 7 x64
         shell: pwsh
         run: |
-          $version = "${{ github.ref_name }}"
-          if (-not $version -or $version -eq "${{ github.sha }}") { $version = "manual-${{ github.run_number }}" }
-          ./scripts/build-windows.ps1 -Version $version
+          $download = Join-Path $env:RUNNER_TEMP "innosetup-7.0.2-x64.exe"
+          $installDir = Join-Path $env:RUNNER_TEMP "Inno Setup 7"
+          Invoke-WebRequest "https://github.com/jrsoftware/issrc/releases/download/is-7_0_2/innosetup-7.0.2-x64.exe" -OutFile $download
+          $process = Start-Process -FilePath $download -ArgumentList "/CURRENTUSER", "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-", "/DIR=`"$installDir`"" -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Inno Setup installation failed: $($process.ExitCode)" }
+          $compiler = Join-Path $installDir "ISCC.exe"
+          if (-not (Test-Path -LiteralPath $compiler)) { throw "ISCC.exe was not installed" }
+          "INNO_SETUP_COMPILER=$compiler" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-      - name: Create Windows checksum
+      - name: Build Windows x64 Setup
+        shell: pwsh
+        run: ./scripts/build-windows.ps1 -Version $env:RELEASE_VERSION -OutputDir release
+
+      - name: Verify single download
         shell: pwsh
         run: |
-          Get-ChildItem release -Filter *.zip | ForEach-Object {
-            $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $_.FullName).Hash.ToLowerInvariant()
-            "$hash  $($_.Name)" | Set-Content -LiteralPath "$($_.FullName).sha256" -Encoding utf8
+          $files = @(Get-ChildItem release -File)
+          if ($files.Count -ne 1 -or $files[0].Name -ne "Codex-World-Setup-x64.exe") {
+            throw "Release must contain exactly one Windows x64 Setup file."
           }
 
-      - name: Upload Windows artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: codex-world-console-windows
-          path: |
-            release/*.zip
-            release/*.sha256
-
-  android:
-    name: Android APK
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Install Android packages
-        run: |
-          sdkmanager "platforms;android-35" "build-tools;35.0.0"
-
-      - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: "8.10.2"
-
-      - name: Prepare WebView assets
-        run: |
-          rm -rf android/app/src/main/assets/www
-          mkdir -p android/app/src/main/assets/www
-          cp index.html app.js styles.css android/app/src/main/assets/www/
-          cp Earth-taskbar-natural-20260521.ico android/app/src/main/assets/www/ || true
-          if [ -d wallpapers ]; then cp -R wallpapers android/app/src/main/assets/www/wallpapers; fi
-
-      - name: Build Android APK
-        working-directory: android
-        run: |
-          if [ -n "${{ vars.WORLD_CONSOLE_URL }}" ]; then
-            gradle :app:assembleDebug -PworldConsoleUrl="${{ vars.WORLD_CONSOLE_URL }}"
-          else
-            gradle :app:assembleDebug
-          fi
-
-      - name: Rename APK
-        run: |
-          mkdir -p release
-          version="${{ github.ref_name }}"
-          if [ -z "$version" ] || [ "$version" = "${{ github.sha }}" ]; then version="manual-${{ github.run_number }}"; fi
-          cp android/app/build/outputs/apk/debug/app-debug.apk "release/Codex-World-Console-Android-$version.apk"
-
-      - name: Upload Android artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: codex-world-console-android
-          path: release/*.apk
-
-  github-release:
-    name: Publish GitHub release
-    needs: [windows, android]
-    if: startsWith(github.ref, 'refs/tags/v')
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: release-artifacts
-          merge-multiple: true
-
-      - name: Create update manifest
-        shell: pwsh
-        run: |
-          $zip = Get-ChildItem release-artifacts -Filter *.zip | Select-Object -First 1
-          $version = "${{ github.ref_name }}".TrimStart("v")
-          $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $zip.FullName).Hash.ToLowerInvariant()
-          $manifest = [ordered]@{
-            version = $version
-            tag = "${{ github.ref_name }}"
-            releaseUrl = "https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
-            publishedAt = (Get-Date).ToUniversalTime().ToString("o")
-            assets = @([ordered]@{
-              name = $zip.Name
-              url = "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/$($zip.Name)"
-              size = $zip.Length
-              sha256 = $hash
-            })
-          }
-          $manifest | ConvertTo-Json -Depth 5 | Set-Content release-artifacts/update-manifest.json -Encoding utf8
-
-      - name: Publish release assets
+      - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: release-artifacts/*
+          tag_name: ${{ env.RELEASE_TAG }}
+          target_commitish: ${{ github.sha }}
+          name: Codex World ${{ env.RELEASE_TAG }}
+          make_latest: true
+          files: release/Codex-World-Setup-x64.exe
           body: |
-            ## Downloads
+            ## Windows x64
 
-            Choose one file:
+            Download only **Codex-World-Setup-x64.exe**.
 
-            - Windows: download `Codex-World-Console-Windows-*.zip`, unzip it, then run `Codex World.exe`.
-            - Android: download `Codex-World-Console-Android-*.apk`, install it, then open Codex World.
+            1. Double-click the downloaded Setup file.
+            2. Choose **简体中文** or **English**.
+            3. On the destination page, choose the drive and install folder.
+            4. Finish Setup, then launch **Codex World** from the desktop or Start menu.
 
-            The Android APK is a WebView preview build with bundled console files. For a hosted Android build, set `WORLD_CONSOLE_URL` before building.
+            ## Windows 64 位
+
+            只需下载 **Codex-World-Setup-x64.exe**。
+
+            1. 双击下载好的安装程序。
+            2. 选择 **简体中文** 或 **English**。
+            3. 在安装位置页面选择磁盘和目录。
+            4. 完成安装后，从桌面或开始菜单启动 **Codex World**。

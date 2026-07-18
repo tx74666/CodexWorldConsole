@@ -1,0 +1,8 @@
+{
+  "name": "Codex World",
+  "version": "0.2.0",
+  "repository": "tx74666/CodexWorldConsole",
+  "channel": "stable",
+  "installMode": "source",
+  "edition": "windows-x64"
+}

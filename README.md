@@ -1,77 +1,59 @@
 # Codex World
 
-Codex World is a local world-event and markets console.
+Codex World is a local world-event and markets console for Windows.
 
-## Downloads
+## Download / 下载
 
-Choose your device, download one file, then open it.
+There is one public package: [Codex-World-Setup-x64.exe](https://github.com/tx74666/CodexWorldConsole/releases/latest/download/Codex-World-Setup-x64.exe).
 
-| Device | Download | Open |
-| --- | --- | --- |
-| Windows | [Desktop ZIP](https://github.com/tx74666/CodexWorldConsole/releases/download/v0.1.7/Codex-World-Console-Windows-v0.1.7.zip) | Unzip it, then run `Codex World.exe`. |
-| Android | [APK](https://github.com/tx74666/CodexWorldConsole/releases/download/v0.1.7/Codex-World-Console-Android-v0.1.7.apk) | Install the APK, then open Codex World. |
+公开下载只有一个：[Codex-World-Setup-x64.exe](https://github.com/tx74666/CodexWorldConsole/releases/latest/download/Codex-World-Setup-x64.exe)。
 
-All downloads are also on the [latest release page](https://github.com/tx74666/CodexWorldConsole/releases/latest).
+Latest release: [github.com/tx74666/CodexWorldConsole/releases/latest](https://github.com/tx74666/CodexWorldConsole/releases/latest)
 
-Need the source code instead? Use GitHub's green **Code** button, then **Download ZIP**.
+## Install / 安装
 
-## First Run
+1. Double-click `Codex-World-Setup-x64.exe`.
+2. Choose **简体中文** or **English**.
+3. Choose the install drive and folder on the destination page.
+4. Finish Setup and launch Codex World from the desktop or Start menu.
 
-Windows starts a local server automatically and opens the console window.
+1. 双击 `Codex-World-Setup-x64.exe`。
+2. 选择 **简体中文** 或 **English**。
+3. 在安装位置页面选择磁盘和目录。
+4. 完成安装，从桌面或开始菜单启动 Codex World。
 
-The Android APK is a WebView preview build with bundled console files. For a hosted Android build, set `WORLD_CONSOLE_URL` before building.
+The installer contains the x64 application runtime. Users do not need to install Python.
 
-## Run Locally
+## Local Data
 
-Requirements:
+Installed copies keep caches and local settings per Windows account under:
 
-- Windows 10/11
-- Python 3.11 or newer
+```text
+%LOCALAPPDATA%\CodexWorld
+```
+
+Local data is not included in GitHub releases.
+
+## Requirements
+
+- Windows 10 or Windows 11, 64-bit
 - Microsoft Edge or Google Chrome
 
-Run:
+## Run From Source
 
 ```powershell
 python world_console.py
 ```
 
-Or double-click:
+The default local URL is `http://127.0.0.1:8797/index.html`.
 
-```text
-Start-WorldConsole.vbs
-```
+## Build Locally
 
-The default local URL is:
-
-```text
-http://127.0.0.1:8797/index.html
-```
-
-## Publish Downloads On GitHub
-
-1. Push this folder to a GitHub repository.
-2. Create a version tag, for example:
+Install Python 3.12 x64, PyInstaller, and Inno Setup 7, then run:
 
 ```powershell
-git tag v0.1.0
-git push origin v0.1.0
+python -m pip install pyinstaller
+.\scripts\build-windows.ps1 -Version 0.2.0 -OutputDir release
 ```
 
-3. GitHub Actions will build:
-
-- Windows desktop zip
-- Android APK
-
-4. The tag build publishes both files to GitHub Releases automatically.
-
-Manual builds are also available from **Actions -> Build downloads -> Run workflow**. Manual builds upload artifacts but only tag builds create a public Release.
-
-## Static Preview Check
-
-The `Pages` workflow validates that the static UI files used by the Android WebView preview are present. Release downloads work without enabling GitHub Pages. The full dynamic app still needs the local Python backend used by the desktop build.
-
-## Notes
-
-- The app itself uses only the Python standard library.
-- Desktop release packaging uses PyInstaller in GitHub Actions.
-- Android APKs are installable but not Play Store release-signed. Add a signing keystore workflow later if you want production Android releases.
+The result is `release\Codex-World-Setup-x64.exe`.

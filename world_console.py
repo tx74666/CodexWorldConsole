@@ -21,13 +21,33 @@ import xml.etree.ElementTree as ET
 
 
 APP_DIR = Path(__file__).resolve().parent
-LOCAL_CONFIG = APP_DIR / ".world-console.local.json"
+
+
+def read_app_manifest():
+    try:
+        payload = json.loads((APP_DIR / "app-manifest.json").read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        payload = {}
+    return payload if isinstance(payload, dict) else {}
+
+
+APP_MANIFEST = read_app_manifest()
+APP_VERSION = str(APP_MANIFEST.get("version") or "0.0.0-dev").strip()
+APP_INSTALL_MODE = str(APP_MANIFEST.get("installMode") or "source").strip().lower()
+if APP_INSTALL_MODE == "installed":
+    local_app_data = os.environ.get("LOCALAPPDATA", "").strip()
+    DATA_DIR = (Path(local_app_data) if local_app_data else Path.home() / "AppData" / "Local") / "CodexWorld"
+else:
+    DATA_DIR = APP_DIR
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+LOCAL_CONFIG = DATA_DIR / ".world-console.local.json"
 DEFAULT_PORT = 8797
-WORLD_CACHE = APP_DIR / "cache" / "world.geojson"
-EVENT_TRANSLATION_CACHE = APP_DIR / "cache" / "translations.json"
-IMAGE_CACHE = APP_DIR / "cache" / "images.json"
-MARKET_CACHE = APP_DIR / "cache" / "markets.json"
-MARKET_HISTORY_CACHE = APP_DIR / "cache" / "market_history.json"
+WORLD_CACHE = DATA_DIR / "cache" / "world.geojson"
+EVENT_TRANSLATION_CACHE = DATA_DIR / "cache" / "translations.json"
+IMAGE_CACHE = DATA_DIR / "cache" / "images.json"
+MARKET_CACHE = DATA_DIR / "cache" / "markets.json"
+MARKET_HISTORY_CACHE = DATA_DIR / "cache" / "market_history.json"
 GOOGLE_TRANSLATE_ENDPOINT = "https://translation.googleapis.com/language/translate/v2"
 TRANSLATION_TARGET = "zh-TW"
 
