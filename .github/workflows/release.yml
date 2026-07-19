@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Release version, for example v0.2.0
+        description: Release version, for example v0.3.0
         required: true
-        default: v0.2.0
+        default: v0.3.0
   push:
     tags:
       - "v*"
@@ -58,6 +58,10 @@ jobs:
       - name: Build Windows x64 Setup
         shell: pwsh
         run: ./scripts/build-windows.ps1 -Version $env:RELEASE_VERSION -OutputDir release
+
+      - name: Verify packaged resources and shortcuts
+        shell: pwsh
+        run: python scripts/check-package-resources.py
 
       - name: Verify single download
         shell: pwsh

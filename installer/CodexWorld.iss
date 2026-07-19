@@ -1,11 +1,14 @@
 #ifndef AppVersion
-  #define AppVersion "0.2.0"
+  #define AppVersion "0.3.0"
 #endif
 #ifndef SourceDir
   #define SourceDir "..\build\world-installer\dist\Codex World"
 #endif
 #ifndef OutputDir
   #define OutputDir "..\release"
+#endif
+#ifndef UserDataDir
+  #define UserDataDir "{localappdata}\CodexWorld"
 #endif
 
 [Setup]
@@ -27,7 +30,7 @@ SetupArchitecture=x64
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 PrivilegesRequired=lowest
-Compression=lzma2/ultra64
+Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
 ShowLanguageDialog=yes
@@ -45,15 +48,13 @@ VersionInfoDescription=Codex World Setup for Windows x64
 Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "chinesesimp"; MessagesFile: "compiler:Languages\ChineseSimplified.isl"
 
-[Tasks]
-Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checkedonce
-
 [Files]
 Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
-Name: "{group}\Codex World"; Filename: "{app}\Codex World.exe"
-Name: "{autodesktop}\Codex World"; Filename: "{app}\Codex World.exe"; Tasks: desktopicon
+Name: "{group}\Codex World"; Filename: "{app}\Codex World.exe"; WorkingDir: "{app}"; IconFilename: "{app}\Codex World.exe"; IconIndex: 0
+Name: "{group}\Uninstall Codex World"; Filename: "{uninstallexe}"
+Name: "{autodesktop}\Codex World"; Filename: "{app}\Codex World.exe"; WorkingDir: "{app}"; IconFilename: "{app}\Codex World.exe"; IconIndex: 0
 
 [Registry]
 Root: HKCU; Subkey: "Software\Codex\Codex World"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Flags: uninsdeletekey
@@ -61,3 +62,7 @@ Root: HKCU; Subkey: "Software\Codex\Codex World"; ValueType: string; ValueName: 
 
 [Run]
 Filename: "{app}\Codex World.exe"; Description: "{cm:LaunchProgram,Codex World}"; Flags: nowait postinstall skipifsilent
+
+[UninstallDelete]
+Type: filesandordirs; Name: "{#UserDataDir}"
+Type: filesandordirs; Name: "{app}\cache"

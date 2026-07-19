@@ -1,5 +1,5 @@
 param(
-  [string]$Version = "0.2.0",
+  [string]$Version = "0.3.0",
   [string]$OutputDir = "release",
   [string]$Python = "python"
 )
@@ -31,6 +31,7 @@ function Remove-SafeBuildDirectory {
 function Resolve-InnoCompiler {
   $candidates = @(
     $env:INNO_SETUP_COMPILER,
+    (Join-Path $ProjectRoot "..\.tools\Inno Setup 7\ISCC.exe"),
     "C:\Program Files\Inno Setup 7\ISCC.exe",
     "C:\Program Files (x86)\Inno Setup 7\ISCC.exe",
     "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
@@ -77,6 +78,7 @@ $DataItems = @(
   @{ Source = "README.md"; Destination = "." },
   @{ Source = "Earth-taskbar-natural-20260521.ico"; Destination = "." },
   @{ Source = "Earth-taskbar-natural-20260521.png"; Destination = "." },
+  @{ Source = "bootstrap"; Destination = "bootstrap" },
   @{ Source = "wallpapers"; Destination = "wallpapers" }
 )
 

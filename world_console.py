@@ -2,6 +2,7 @@ import argparse
 import concurrent.futures
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
+import gzip
 import hashlib
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -34,7 +35,10 @@ def read_app_manifest():
 APP_MANIFEST = read_app_manifest()
 APP_VERSION = str(APP_MANIFEST.get("version") or "0.0.0-dev").strip()
 APP_INSTALL_MODE = str(APP_MANIFEST.get("installMode") or "source").strip().lower()
-if APP_INSTALL_MODE == "installed":
+CONFIGURED_DATA_DIR = os.environ.get("CODEX_WORLD_DATA_DIR", "").strip()
+if CONFIGURED_DATA_DIR:
+    DATA_DIR = Path(CONFIGURED_DATA_DIR).expanduser()
+elif APP_INSTALL_MODE == "installed":
     local_app_data = os.environ.get("LOCALAPPDATA", "").strip()
     DATA_DIR = (Path(local_app_data) if local_app_data else Path.home() / "AppData" / "Local") / "CodexWorld"
 else:
@@ -48,6 +52,30 @@ EVENT_TRANSLATION_CACHE = DATA_DIR / "cache" / "translations.json"
 IMAGE_CACHE = DATA_DIR / "cache" / "images.json"
 MARKET_CACHE = DATA_DIR / "cache" / "markets.json"
 MARKET_HISTORY_CACHE = DATA_DIR / "cache" / "market_history.json"
+BOOTSTRAP_DIR = APP_DIR / "bootstrap"
+
+
+def install_bootstrap_cache():
+    cache_dir = DATA_DIR / "cache"
+    for name in ("world.geojson", "markets.json", "market_history.json"):
+        source = BOOTSTRAP_DIR / f"{name}.gz"
+        target = cache_dir / name
+        if target.exists() or not source.is_file():
+            continue
+        temporary = target.with_suffix(target.suffix + ".tmp")
+        try:
+            cache_dir.mkdir(parents=True, exist_ok=True)
+            with gzip.open(source, "rb") as compressed, temporary.open("wb") as output:
+                shutil.copyfileobj(compressed, output)
+            os.replace(temporary, target)
+        except OSError:
+            try:
+                temporary.unlink(missing_ok=True)
+            except OSError:
+                pass
+
+
+install_bootstrap_cache()
 GOOGLE_TRANSLATE_ENDPOINT = "https://translation.googleapis.com/language/translate/v2"
 TRANSLATION_TARGET = "zh-TW"
 
@@ -946,7 +974,6 @@ def codex_executable_path():
     candidates = [
         os.environ.get("WORLD_CONSOLE_CODEX_CLI"),
         os.environ.get("CODEX_CLI_PATH"),
-        r"C:\Users\Randy\AppData\Local\OpenAI\Codex\bin\codex.exe",
         str(Path.home() / "AppData" / "Local" / "OpenAI" / "Codex" / "bin" / "codex.exe"),
         shutil.which("codex"),
     ]
@@ -1108,7 +1135,7 @@ def call_codex_market_ask(question, context, mode="think"):
     executable = codex_executable_path()
     if not executable:
         return None
-    output_path = APP_DIR / "cache" / "market_ask_last.txt"
+    output_path = DATA_DIR / "cache" / "market_ask_last.txt"
     output_path.parent.mkdir(exist_ok=True)
     try:
         if output_path.exists():
