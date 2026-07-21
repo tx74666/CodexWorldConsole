@@ -34,7 +34,7 @@ Installed copies keep caches and local settings per Windows account under:
 
 Local data is not included in GitHub releases.
 
-The installer includes a public bootstrap snapshot for the map and market panels. On first launch it is copied into the current Windows account and refreshed in the background. Personal settings and wallpaper history are never shared between devices.
+The installer includes lightweight public bootstrap snapshots for the map and market list. Chart history is fetched on demand so a release never pins users to an old curve. Personal settings and wallpaper history are never shared between devices.
 
 ## Requirements
 
@@ -55,7 +55,7 @@ Install Python 3.12 x64, PyInstaller, and Inno Setup 7, then run:
 
 ```powershell
 python -m pip install pyinstaller
-.\scripts\build-windows.ps1 -Version 0.3.0 -OutputDir release
+.\scripts\build-windows.ps1 -Version 0.3.1 -OutputDir release
 ```
 
 The result is `release\Codex-World-Setup-x64.exe`.

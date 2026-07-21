@@ -1432,6 +1432,8 @@ const boardSlots = [
 const MARKET_HISTORY_CACHE_POINTS = 20000;
 const MARKET_RANGE_HISTORY_CACHE_POINTS = 20000;
 const MARKET_SPARKLINE_CACHE_POINTS = 1000;
+const MARKET_HISTORY_FRESH_MS = 30 * 60 * 1000;
+const MARKET_HISTORY_RETRY_MS = 30 * 1000;
 const MAX_EARNING_OPPORTUNITIES = 10;
 const earningSourceFilters = [
   { key: "job-board", labelKey: "earningFilterJobBoard" },
@@ -1599,6 +1601,8 @@ let marketFreshRetryAttempts = 0;
 const marketHistoryPreloadQueue = [];
 const marketHistoryPreloadKeys = new Set();
 const marketHistoryPreloadDone = new Set();
+const marketHistoryRequests = new Set();
+const marketHistoryAttemptedAt = new Map();
 
 const translations = {
   en: {
@@ -2266,7 +2270,9 @@ function cloneMarketAssets(items) {
     history: Array.isArray(asset.history) ? asset.history.slice() : [],
     denseHistory: Array.isArray(asset.denseHistory) ? asset.denseHistory.slice() : [],
     shortHistory: Array.isArray(asset.shortHistory) ? asset.shortHistory.slice() : [],
-    rangeHistories: normalizeMarketRangeHistories(asset.rangeHistories)
+    rangeHistories: normalizeMarketRangeHistories(asset.rangeHistories),
+    rangeHistoryUpdatedAt: normalizeMarketRangeTimestamps(asset.rangeHistoryUpdatedAt),
+    rangeHistoryStale: normalizeMarketRangeFlags(asset.rangeHistoryStale)
   }));
 }
 
@@ -2555,8 +2561,28 @@ function normalizeMarketRangeHistories(histories) {
   return normalized;
 }
 
-function normalizeMarketAssets(items) {
+function normalizeMarketRangeTimestamps(values) {
+  const normalized = {};
+  if (!values || typeof values !== "object") return normalized;
+  marketRangeOptions.forEach(range => {
+    const value = String(values[range] || "").trim();
+    if (value && Number.isFinite(Date.parse(value))) normalized[range] = value;
+  });
+  return normalized;
+}
+
+function normalizeMarketRangeFlags(values) {
+  const normalized = {};
+  if (!values || typeof values !== "object") return normalized;
+  marketRangeOptions.forEach(range => {
+    if (values[range] === true || values[range] === false) normalized[range] = values[range];
+  });
+  return normalized;
+}
+
+function normalizeMarketAssets(items, existingItems = []) {
   const templateById = new Map(cloneMarketAssets(fallbackMarketAssets).map(asset => [asset.id, asset]));
+  cloneMarketAssets(existingItems).forEach(asset => templateById.set(asset.id, asset));
   const normalized = [];
   for (const incoming of Array.isArray(items) ? items : []) {
     if (!incoming || !incoming.id) continue;
@@ -2564,6 +2590,10 @@ function normalizeMarketAssets(items) {
     const incomingHistory = normalizeMarketHistory(incoming.history);
     const fallbackRangeHistories = normalizeMarketRangeHistories(fallback.rangeHistories);
     const incomingRangeHistories = normalizeMarketRangeHistories(incoming.rangeHistories);
+    const fallbackRangeUpdatedAt = normalizeMarketRangeTimestamps(fallback.rangeHistoryUpdatedAt);
+    const incomingRangeUpdatedAt = normalizeMarketRangeTimestamps(incoming.rangeHistoryUpdatedAt);
+    const fallbackRangeStale = normalizeMarketRangeFlags(fallback.rangeHistoryStale);
+    const incomingRangeStale = normalizeMarketRangeFlags(incoming.rangeHistoryStale);
     const merged = {
       ...fallback,
       ...incoming,
@@ -2579,7 +2609,9 @@ function normalizeMarketAssets(items) {
       rankChange: Number.isFinite(Number(incoming.rankChange)) ? Number(incoming.rankChange) : null,
       rankChangedAt: incoming.rankChangedAt || "",
       historyUrl: incoming.historyUrl || fallback.historyUrl || "",
-      rangeHistories: { ...fallbackRangeHistories, ...incomingRangeHistories }
+      rangeHistories: { ...fallbackRangeHistories, ...incomingRangeHistories },
+      rangeHistoryUpdatedAt: { ...fallbackRangeUpdatedAt, ...incomingRangeUpdatedAt },
+      rangeHistoryStale: { ...fallbackRangeStale, ...incomingRangeStale }
     };
     normalized.push(merged);
   }
@@ -3461,6 +3493,15 @@ function hasMarketHistoryForRange(asset, range = selectedMarketRange) {
     return actualRangedMarketHistory(asset, range).length >= 2;
   }
   return actualRangedMarketHistory(asset, range).length >= 2;
+}
+
+function hasFreshMarketHistoryForRange(asset, range = selectedMarketRange) {
+  if (!hasMarketHistoryForRange(asset, range)) return false;
+  if (asset?.rangeHistoryStale?.[range] === true) return false;
+  const updatedAt = Date.parse(asset?.rangeHistoryUpdatedAt?.[range] || "");
+  if (!Number.isFinite(updatedAt)) return false;
+  const age = Date.now() - updatedAt;
+  return age >= -5 * 60 * 1000 && age <= MARKET_HISTORY_FRESH_MS;
 }
 
 function formatMarketRange(asset) {
@@ -4452,7 +4493,9 @@ function compactMarketAssetForCache(asset, index) {
     history: includeChart ? trimMarketHistoryForCache(asset.history, MARKET_HISTORY_CACHE_POINTS) : [],
     denseHistory: includeChart ? trimMarketHistoryForCache(asset.denseHistory, MARKET_HISTORY_CACHE_POINTS) : [],
     shortHistory: includeChart ? trimMarketHistoryForCache(asset.shortHistory, MARKET_HISTORY_CACHE_POINTS) : [],
-    rangeHistories: includeChart ? compactRangeHistoriesForCache(asset.rangeHistories) : {}
+    rangeHistories: includeChart ? compactRangeHistoriesForCache(asset.rangeHistories) : {},
+    rangeHistoryUpdatedAt: includeChart ? normalizeMarketRangeTimestamps(asset.rangeHistoryUpdatedAt) : {},
+    rangeHistoryStale: includeChart ? normalizeMarketRangeFlags(asset.rangeHistoryStale) : {}
   };
 }
 
@@ -4721,10 +4764,11 @@ function updateMarketRefreshTime() {
 }
 
 function scheduleMarketFreshRetry() {
-  if (marketFreshRetryAttempts >= 3) return;
+  const retryDelays = [2500, 6000, 12000, 25000, 45000, 90000];
+  if (marketFreshRetryAttempts >= retryDelays.length) return;
+  const delay = retryDelays[marketFreshRetryAttempts];
   marketFreshRetryAttempts += 1;
   window.clearTimeout(marketFreshRetryTimer);
-  const delay = 2500 + (marketFreshRetryAttempts - 1) * 3500;
   marketFreshRetryTimer = window.setTimeout(() => {
     fetchMarkets({ announce: false });
   }, delay);
@@ -7773,7 +7817,18 @@ function applyMarketHistoryPayload(asset, payload, range = selectedMarketRange) 
     }
     updated = true;
   }
-  if (updated) {
+  asset.rangeHistoryUpdatedAt = asset.rangeHistoryUpdatedAt && typeof asset.rangeHistoryUpdatedAt === "object"
+    ? asset.rangeHistoryUpdatedAt
+    : {};
+  asset.rangeHistoryStale = asset.rangeHistoryStale && typeof asset.rangeHistoryStale === "object"
+    ? asset.rangeHistoryStale
+    : {};
+  const rangeUpdatedAt = String(payload.rangeUpdatedAt || "").trim();
+  if (rangeUpdatedAt && Number.isFinite(Date.parse(rangeUpdatedAt))) {
+    asset.rangeHistoryUpdatedAt[range] = rangeUpdatedAt;
+  }
+  asset.rangeHistoryStale[range] = payload.stale === true;
+  if (updated && payload.stale !== true) {
     asset.historyLoadFailed = false;
     asset.historyLoadFailedRange = null;
   }
@@ -7800,7 +7855,7 @@ function scheduleMarketHistorySnapshotSave() {
 }
 
 function queueMarketHistoryPreload(asset, range = "5d") {
-  if (!canFetchMarketHistory(asset) || hasMarketHistoryForRange(asset, range)) return;
+  if (!canFetchMarketHistory(asset) || hasFreshMarketHistoryForRange(asset, range)) return;
   const key = marketHistoryRequestKey(asset, range);
   if (marketHistoryPreloadDone.has(key) || marketHistoryPreloadKeys.has(key)) return;
   marketHistoryPreloadQueue.push({ assetId: asset.id, range });
@@ -7814,7 +7869,7 @@ function processMarketHistoryPreloadQueue() {
     const item = marketHistoryPreloadQueue.shift();
     const asset = marketAssets.find(candidate => candidate.id === item.assetId);
     const key = asset ? marketHistoryRequestKey(asset, item.range) : `${item.assetId}:${item.range}`;
-    if (!asset || hasMarketHistoryForRange(asset, item.range)) {
+    if (!asset || hasFreshMarketHistoryForRange(asset, item.range)) {
       marketHistoryPreloadKeys.delete(key);
       if (asset) marketHistoryPreloadDone.add(key);
       continue;
@@ -7822,9 +7877,7 @@ function processMarketHistoryPreloadQueue() {
     marketHistoryPreloadInFlight += 1;
     fetchMarketHistory(asset, { range: item.range, silent: true })
       .finally(() => {
-        if (hasMarketHistoryForRange(asset, item.range)) {
-          marketHistoryPreloadDone.add(key);
-        }
+        marketHistoryPreloadDone.add(key);
         marketHistoryPreloadKeys.delete(key);
         marketHistoryPreloadInFlight = Math.max(0, marketHistoryPreloadInFlight - 1);
         processMarketHistoryPreloadQueue();
@@ -7869,9 +7922,15 @@ async function fetchMarketHistory(asset, options = {}) {
   if (!canFetchMarketHistory(asset)) {
     return;
   }
-  if (hasMarketHistoryForRange(asset, range)) {
+  if (hasFreshMarketHistoryForRange(asset, range)) {
     return;
   }
+  const requestKey = marketHistoryRequestKey(asset, range);
+  if (marketHistoryRequests.has(requestKey)) return;
+  const attemptedAt = marketHistoryAttemptedAt.get(requestKey) || 0;
+  if (options.force !== true && Date.now() - attemptedAt < MARKET_HISTORY_RETRY_MS) return;
+  marketHistoryRequests.add(requestKey);
+  marketHistoryAttemptedAt.set(requestKey, Date.now());
   const requestId = silent ? 0 : ++marketHistoryRequestId;
   if (!silent) {
     asset.historyLoading = true;
@@ -7888,12 +7947,12 @@ async function fetchMarketHistory(asset, options = {}) {
     params.set("range", range);
     if (Number.isFinite(Number(asset.marketCap))) params.set("marketCap", String(asset.marketCap));
     if (Number.isFinite(Number(asset.value))) params.set("value", String(asset.value));
-    const historyTimeout = range === "1d" ? 12000 : range === "1m" ? 30000 : 18000;
+    const historyTimeout = range === "1d" ? 12000 : range === "1m" ? 20000 : 16000;
     const response = await fetchWithTimeout(`/api/market-history?${params.toString()}`, { cache: "no-store" }, historyTimeout);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const payload = await response.json();
     const updated = applyMarketHistoryPayload(asset, payload, range);
-    if (!silent && !hasMarketHistoryForRange(asset, range)) {
+    if (!silent && !hasFreshMarketHistoryForRange(asset, range)) {
       asset.historyLoadFailed = true;
       asset.historyLoadFailedRange = range;
     }
@@ -7911,6 +7970,7 @@ async function fetchMarketHistory(asset, options = {}) {
     }
     // Keep the chart honest. If history is not available, the panel says so.
   } finally {
+    marketHistoryRequests.delete(requestKey);
     if (!silent) asset.historyLoading = false;
     const shouldRender = selectedMarketId === asset.id && isMarketMode() && range === selectedMarketRange;
     if (shouldRender && (silent || requestId === marketHistoryRequestId)) {
@@ -9009,7 +9069,7 @@ async function fetchMarkets({ announce = false } = {}) {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const payload = await response.json();
     updateMarketFreshRetryState(payload);
-    const nextAssets = normalizeMarketAssets(payload.assets);
+    const nextAssets = normalizeMarketAssets(payload.assets, marketAssets);
     const nextCurrencies = normalizeCurrencyQuotes(payload.currencies?.quotes);
     if (hasCompleteCurrencySet(nextCurrencies)) {
       marketCurrencies = nextCurrencies;

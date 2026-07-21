@@ -57,7 +57,7 @@ BOOTSTRAP_DIR = APP_DIR / "bootstrap"
 
 def install_bootstrap_cache():
     cache_dir = DATA_DIR / "cache"
-    for name in ("world.geojson", "markets.json", "market_history.json"):
+    for name in ("world.geojson", "markets.json"):
         source = BOOTSTRAP_DIR / f"{name}.gz"
         target = cache_dir / name
         if target.exists() or not source.is_file():
@@ -114,6 +114,9 @@ MARKET_SPARKLINE_POINTS = 60
 MARKET_CACHE_REWRITE_BYTES = 64_000_000
 MARKET_REFRESH_LOCK = threading.Lock()
 MARKET_REFRESH_IN_PROGRESS = False
+MARKET_HISTORY_CACHE_LOCK = threading.RLock()
+MARKET_HISTORY_CACHE_MEMORY = None
+MARKET_HISTORY_SCHEMA_VERSION = 2
 SELECTION_TRANSLATION_CACHE = {}
 SELECTION_TRANSLATION_CACHE_LIMIT = 160
 SELECTION_TRANSLATION_CACHE_LOCK = threading.Lock()
@@ -2176,6 +2179,12 @@ def history_span_days(history):
     return (max(dates) - min(dates)).total_seconds() / 86400
 
 
+def history_latest_datetime(history):
+    dates = [history_point_datetime(item) for item in history or [] if isinstance(item, dict)]
+    dates = [date for date in dates if date is not None]
+    return max(dates) if dates else None
+
+
 def history_point_count(history):
     return len([item for item in history or [] if isinstance(item, dict)])
 
@@ -2423,31 +2432,83 @@ def save_market_cache(payload):
 
 
 def load_market_history_cache():
-    try:
-        if MARKET_HISTORY_CACHE.exists():
-            payload = json.loads(MARKET_HISTORY_CACHE.read_text(encoding="utf-8"))
-            return payload if isinstance(payload, dict) else {}
-    except (OSError, json.JSONDecodeError):
-        pass
-    return {}
+    global MARKET_HISTORY_CACHE_MEMORY
+    with MARKET_HISTORY_CACHE_LOCK:
+        if MARKET_HISTORY_CACHE_MEMORY is not None:
+            return MARKET_HISTORY_CACHE_MEMORY
+        try:
+            if MARKET_HISTORY_CACHE.exists():
+                payload = json.loads(MARKET_HISTORY_CACHE.read_text(encoding="utf-8"))
+                MARKET_HISTORY_CACHE_MEMORY = payload if isinstance(payload, dict) else {}
+            else:
+                MARKET_HISTORY_CACHE_MEMORY = {}
+        except (OSError, json.JSONDecodeError):
+            MARKET_HISTORY_CACHE_MEMORY = {}
+        return MARKET_HISTORY_CACHE_MEMORY
 
 
 def save_market_history_cache(cache):
-    try:
-        MARKET_HISTORY_CACHE.parent.mkdir(exist_ok=True)
-        MARKET_HISTORY_CACHE.write_text(json.dumps(cache, ensure_ascii=False, indent=2), encoding="utf-8")
-    except OSError:
-        pass
+    global MARKET_HISTORY_CACHE_MEMORY
+    with MARKET_HISTORY_CACHE_LOCK:
+        temporary = MARKET_HISTORY_CACHE.with_suffix(MARKET_HISTORY_CACHE.suffix + ".tmp")
+        try:
+            MARKET_HISTORY_CACHE.parent.mkdir(exist_ok=True)
+            temporary.write_text(
+                json.dumps(cache, ensure_ascii=False, separators=(",", ":")),
+                encoding="utf-8",
+            )
+            os.replace(temporary, MARKET_HISTORY_CACHE)
+            MARKET_HISTORY_CACHE_MEMORY = cache
+        except OSError:
+            try:
+                temporary.unlink(missing_ok=True)
+            except OSError:
+                pass
 
 
-def market_history_payload_is_fresh(payload):
+def store_market_history_payload(path, payload):
+    with MARKET_HISTORY_CACHE_LOCK:
+        cache = load_market_history_cache()
+        cache[path] = payload
+        save_market_history_cache(cache)
+
+
+def market_history_timestamp_key(range_name="", asset=None):
+    range_name = normalized_market_range(range_name)
+    if isinstance(asset, dict) and asset.get("group") == "companies" and not yahoo_symbol_for_asset(asset):
+        return "historyUpdatedAt"
+    if range_name in {"1d", "5d", "1m"}:
+        return "shortHistoryUpdatedAt"
+    if range_name in {"1y", "5y"}:
+        return "denseHistoryUpdatedAt"
+    if range_name == "all":
+        return "historyUpdatedAt"
+    return "updated"
+
+
+def market_history_payload_is_fresh(payload, range_name="", asset=None):
     if not isinstance(payload, dict):
         return False
+    timestamp_key = market_history_timestamp_key(range_name, asset)
     try:
-        updated = datetime.fromisoformat(str(payload.get("updated", "")).replace("Z", "+00:00"))
+        updated = datetime.fromisoformat(str(payload.get(timestamp_key, "")).replace("Z", "+00:00"))
     except ValueError:
         return False
-    return datetime.now(timezone.utc) - updated <= timedelta(seconds=MARKET_CACHE_SECONDS)
+    if updated.tzinfo is None:
+        updated = updated.replace(tzinfo=timezone.utc)
+    age = datetime.now(timezone.utc) - updated.astimezone(timezone.utc)
+    return -timedelta(minutes=5) <= age <= timedelta(seconds=MARKET_CACHE_SECONDS)
+
+
+def market_history_payload_with_status(payload, range_name="", asset=None):
+    response = dict(payload) if isinstance(payload, dict) else {}
+    timestamp_key = market_history_timestamp_key(range_name, asset)
+    response["historySchemaVersion"] = MARKET_HISTORY_SCHEMA_VERSION
+    response["range"] = normalized_market_range(range_name)
+    response["rangeUpdatedAt"] = response.get(timestamp_key) or ""
+    response["stale"] = not market_history_payload_is_fresh(response, range_name, asset)
+    response["servedAt"] = datetime.now(timezone.utc).isoformat()
+    return response
 
 
 def finite_number(*values):
@@ -2882,6 +2943,16 @@ def history_payload_has_range(payload, range_name):
     )
 
 
+def history_series_covers_request(key, history, range_name):
+    if key == "shortHistory" and range_name in {"1d", "5d", "1m"}:
+        return history_payload_has_range({"shortHistory": history}, range_name)
+    if key == "denseHistory" and range_name in {"1y", "5y"}:
+        return history_point_count(history) >= 30
+    if key == "history" and range_name == "all":
+        return history_has_dated_points(history)
+    return history_point_count(history) >= 2
+
+
 def enrich_history_with_dense_prices(payload, asset, range_name=""):
     if not isinstance(payload, dict) or not isinstance(asset, dict):
         return payload
@@ -2890,7 +2961,10 @@ def enrich_history_with_dense_prices(payload, asset, range_name=""):
     if not symbol:
         return payload
     if not yahoo_symbol_for_asset(asset):
-        for key in ("denseHistory", "shortHistory", "denseHistorySource", "shortHistorySource"):
+        for key in (
+            "denseHistory", "shortHistory", "denseHistorySource", "shortHistorySource",
+            "denseHistoryUpdatedAt", "shortHistoryUpdatedAt",
+        ):
             payload.pop(key, None)
         return payload
     enriched = {
@@ -2903,13 +2977,33 @@ def enrich_history_with_dense_prices(payload, asset, range_name=""):
         enriched["history"] = payload.get("history")
     attach_dense_price_histories([enriched], limit=1, detailed_short=True, range_name=range_name)
     changed = False
+    series_metadata = {
+        "history": ("historySource", "historyUpdatedAt"),
+        "denseHistory": ("denseHistorySource", "denseHistoryUpdatedAt"),
+        "shortHistory": ("shortHistorySource", "shortHistoryUpdatedAt"),
+    }
     for key in ("history", "denseHistory", "shortHistory"):
         incoming = enriched.get(key)
         if not incoming:
             continue
         existing = payload.get(key)
+        source_key, updated_key = series_metadata[key]
+        fetched_at = enriched.get(updated_key)
+        if not fetched_at:
+            continue
+        incoming_latest = history_latest_datetime(incoming)
+        existing_latest = history_latest_datetime(existing)
+        covers_request = history_series_covers_request(key, incoming, range_name)
+        is_at_least_as_current = (
+            existing_latest is None
+            or (incoming_latest is not None and incoming_latest >= existing_latest - timedelta(minutes=5))
+        )
+        if not covers_request or not is_at_least_as_current:
+            continue
         should_replace = not existing
-        if key == "shortHistory" and range_name in {"1d", "5d", "1m"}:
+        if incoming_latest is not None and existing_latest is not None and incoming_latest > existing_latest:
+            should_replace = True
+        elif key == "shortHistory" and range_name in {"1d", "5d", "1m"}:
             should_replace = (
                 not history_payload_has_range({"shortHistory": existing}, range_name)
                 or history_span_days(incoming) > history_span_days(existing) + 0.25
@@ -2921,12 +3015,15 @@ def enrich_history_with_dense_prices(payload, asset, range_name=""):
         if should_replace:
             payload[key] = incoming
             changed = True
-    for key in ("historySource", "denseHistorySource", "shortHistorySource"):
-        if enriched.get(key):
-            payload[key] = enriched[key]
+        if enriched.get(source_key) and payload.get(source_key) != enriched[source_key]:
+            payload[source_key] = enriched[source_key]
+            changed = True
+        if payload.get(updated_key) != fetched_at:
+            payload[updated_key] = fetched_at
             changed = True
     if changed:
         payload["updated"] = datetime.now(timezone.utc).isoformat()
+        payload["historySchemaVersion"] = MARKET_HISTORY_SCHEMA_VERSION
     return payload
 
 
@@ -2935,7 +3032,8 @@ def load_market_history(url, asset=None, range_name=""):
     path = company_history_url(url)
     if not path:
         payload = {"source": "CompaniesMarketCap", "history": []}
-        return enrich_history_with_dense_prices(payload, asset, range_name)
+        payload = enrich_history_with_dense_prices(payload, asset, range_name)
+        return market_history_payload_with_status(payload, range_name, asset)
 
     cache = load_market_history_cache()
     cached = cache.get(path)
@@ -2943,26 +3041,30 @@ def load_market_history(url, asset=None, range_name=""):
     if isinstance(cached, dict):
         if asset and not yahoo_symbol_for_asset(asset):
             cached = dict(cached)
-            for key in ("denseHistory", "shortHistory", "denseHistorySource", "shortHistorySource"):
+            for key in (
+                "denseHistory", "shortHistory", "denseHistorySource", "shortHistorySource",
+                "denseHistoryUpdatedAt", "shortHistoryUpdatedAt",
+            ):
                 cached.pop(key, None)
-        if history_payload_has_range(cached, range_name):
-            return cached
+        has_cached_range = history_payload_has_range(cached, range_name)
+        if asset and not yahoo_symbol_for_asset(asset) and history_has_dated_points(cached.get("history")):
+            has_cached_range = True
+        if has_cached_range and market_history_payload_is_fresh(cached, range_name, asset):
+            return market_history_payload_with_status(cached, range_name, asset)
         if isinstance(cached.get("history"), list):
             stale_history = cached.get("history") or []
 
     has_yahoo_history = bool(asset and yahoo_symbol_for_asset(asset))
-    has_fresh_cmc_history = bool(stale_history and market_history_payload_is_fresh(cached))
+    has_fresh_cmc_history = bool(stale_history and market_history_payload_is_fresh(cached, "all", asset))
     if range_name in {"1d", "5d", "1m", "1y", "5y"} and asset and (has_yahoo_history or has_fresh_cmc_history):
         payload = dict(cached) if isinstance(cached, dict) else {
             "source": "CompaniesMarketCap",
-            "updated": datetime.now(timezone.utc).isoformat(),
             "history": stale_history,
         }
         payload = enrich_history_with_dense_prices(payload, asset, range_name)
         if payload.get("denseHistory") or payload.get("shortHistory"):
-            cache[path] = payload
-            save_market_history_cache(cache)
-        return payload
+            store_market_history_payload(path, payload)
+        return market_history_payload_with_status(payload, range_name, asset)
 
     try:
         absolute = urllib.parse.urljoin(COMPANIES_MARKETCAP_BASE, path)
@@ -2972,27 +3074,28 @@ def load_market_history(url, asset=None, range_name=""):
         history = []
 
     if not history and stale_history:
-        payload = {
+        payload = dict(cached) if isinstance(cached, dict) else {
             "source": "CompaniesMarketCap",
-            "updated": datetime.now(timezone.utc).isoformat(),
             "history": stale_history,
         }
         payload = enrich_history_with_dense_prices(payload, asset, range_name)
         if payload.get("denseHistory") or payload.get("shortHistory"):
-            cache[path] = payload
-            save_market_history_cache(cache)
-        return payload
+            store_market_history_payload(path, payload)
+        return market_history_payload_with_status(payload, range_name, asset)
 
+    fetched_at = datetime.now(timezone.utc).isoformat()
     payload = {
         "source": "CompaniesMarketCap",
-        "updated": datetime.now(timezone.utc).isoformat(),
+        "updated": fetched_at,
         "history": history,
     }
+    if history:
+        payload["historyUpdatedAt"] = fetched_at
+        payload["historySchemaVersion"] = MARKET_HISTORY_SCHEMA_VERSION
     payload = enrich_history_with_dense_prices(payload, asset, range_name)
     if history or payload.get("denseHistory") or payload.get("shortHistory"):
-        cache[path] = payload
-        save_market_history_cache(cache)
-    return payload
+        store_market_history_payload(path, payload)
+    return market_history_payload_with_status(payload, range_name, asset)
 
 
 def yahoo_symbol_for_asset(asset):
@@ -3133,39 +3236,67 @@ def merge_history_series(*series_list):
     )
 
 
+def attach_currency_history(quote):
+    if not isinstance(quote, dict):
+        return quote
+    code = str(quote.get("code") or "").upper()
+    if code == "USD":
+        return quote
+    try:
+        dense = currency_history_from_yahoo(code, range_name="5y", interval="1d")
+    except Exception:
+        dense = []
+    try:
+        long_history = currency_history_from_yahoo(code, range_name="max", interval="1mo")
+    except Exception:
+        long_history = []
+    try:
+        short = merge_history_series(
+            currency_history_from_yahoo(code, range_name="1mo", interval="2m"),
+            currency_history_from_yahoo(code, range_name="60d", interval="5m"),
+            currency_history_from_yahoo(code, range_name="5d", interval="1m"),
+            currency_history_from_yahoo(code, range_name="1d", interval="1m"),
+        )
+    except Exception:
+        short = []
+
+    fetched_at = datetime.now(timezone.utc).isoformat()
+    existing_long = quote.get("history")
+    incoming_latest = history_latest_datetime(long_history)
+    existing_latest = history_latest_datetime(existing_long)
+    long_is_newer = (
+        incoming_latest is not None
+        and (existing_latest is None or incoming_latest > existing_latest)
+    )
+    if long_history and (long_is_newer or history_span_days(long_history) > history_span_days(existing_long) + 30):
+        quote["history"] = limit_history_points(long_history, MARKET_FULL_HISTORY_POINTS)
+        quote["historySource"] = "Yahoo Finance monthly close"
+        quote["historyUpdatedAt"] = fetched_at
+    if dense:
+        quote["denseHistory"] = limit_dense_history_points(dense, MARKET_DENSE_HISTORY_POINTS)
+        quote["denseHistorySource"] = "Yahoo Finance daily close"
+        quote["denseHistoryUpdatedAt"] = fetched_at
+    if short:
+        quote["shortHistory"] = limit_history_points(short, MARKET_SHORT_HISTORY_POINTS)
+        quote["shortHistorySource"] = "Yahoo Finance intraday close"
+        quote["shortHistoryUpdatedAt"] = fetched_at
+    return quote
+
+
 def attach_currency_histories(quotes):
-    for quote in quotes:
-        if not isinstance(quote, dict):
-            continue
-        code = str(quote.get("code") or "").upper()
-        if code == "USD":
-            continue
-        try:
-            dense = currency_history_from_yahoo(code, range_name="5y", interval="1d")
-        except Exception:
-            dense = []
-        try:
-            long_history = currency_history_from_yahoo(code, range_name="max", interval="1mo")
-        except Exception:
-            long_history = []
-        try:
-            short = merge_history_series(
-                currency_history_from_yahoo(code, range_name="1mo", interval="2m"),
-                currency_history_from_yahoo(code, range_name="60d", interval="5m"),
-                currency_history_from_yahoo(code, range_name="5d", interval="1m"),
-                currency_history_from_yahoo(code, range_name="1d", interval="1m"),
-            )
-        except Exception:
-            short = []
-        if long_history and history_span_days(long_history) > history_span_days(quote.get("history")) + 30:
-            quote["history"] = limit_history_points(long_history, MARKET_FULL_HISTORY_POINTS)
-            quote["historySource"] = "Yahoo Finance monthly close"
-        if dense:
-            quote["denseHistory"] = limit_dense_history_points(dense, MARKET_DENSE_HISTORY_POINTS)
-            quote["denseHistorySource"] = "Yahoo Finance daily close"
-        if short:
-            quote["shortHistory"] = limit_history_points(short, MARKET_SHORT_HISTORY_POINTS)
-            quote["shortHistorySource"] = "Yahoo Finance intraday close"
+    candidates = [
+        quote for quote in quotes
+        if isinstance(quote, dict) and str(quote.get("code") or "").upper() != "USD"
+    ]
+    if not candidates:
+        return quotes
+    with concurrent.futures.ThreadPoolExecutor(max_workers=min(4, len(candidates))) as executor:
+        futures = [executor.submit(attach_currency_history, quote) for quote in candidates]
+        for future in concurrent.futures.as_completed(futures):
+            try:
+                future.result()
+            except Exception:
+                pass
     return quotes
 
 
@@ -3206,12 +3337,15 @@ def attach_dense_price_histories(assets, limit=None, detailed_short=False, range
         if long_history and should_fill_all_history and history_span_days(long_history) > existing_span + 30:
             asset["history"] = limit_history_points(long_history, MARKET_FULL_HISTORY_POINTS)
             asset["historySource"] = "Yahoo Finance monthly close, rescaled to latest CompaniesMarketCap value"
+            asset["historyUpdatedAt"] = datetime.now(timezone.utc).isoformat()
         if dense:
             asset["denseHistory"] = limit_dense_history_points(dense, MARKET_DENSE_HISTORY_POINTS)
             asset["denseHistorySource"] = "Yahoo Finance daily close, rescaled to latest CompaniesMarketCap value"
+            asset["denseHistoryUpdatedAt"] = datetime.now(timezone.utc).isoformat()
         if short:
             asset["shortHistory"] = limit_history_points(short, MARKET_SHORT_HISTORY_POINTS)
             asset["shortHistorySource"] = "Yahoo Finance intraday close, rescaled to latest CompaniesMarketCap value"
+            asset["shortHistoryUpdatedAt"] = datetime.now(timezone.utc).isoformat()
         if dense or short or long_history:
             attached += 1
     return assets

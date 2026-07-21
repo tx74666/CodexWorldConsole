@@ -1,4 +1,5 @@
 import argparse
+from datetime import datetime, timedelta, timezone
 import gzip
 import json
 import struct
@@ -6,7 +7,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-BOOTSTRAP_FILES = ("world.geojson", "markets.json", "market_history.json")
+BOOTSTRAP_FILES = ("world.geojson", "markets.json")
 
 
 def require(condition, message):
@@ -32,21 +33,25 @@ def read_bootstrap(directory, name):
 
 
 def main():
+    source_manifest = json.loads((ROOT / "app-manifest.json").read_text(encoding="utf-8"))
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--app-dir",
         type=Path,
         default=ROOT / "build" / "world-installer" / "dist" / "Codex World",
     )
+    parser.add_argument("--expected-version", default=str(source_manifest.get("version") or ""))
     args = parser.parse_args()
 
     check_ico(ROOT / "Earth-taskbar-natural-20260521.ico")
     world = read_bootstrap(ROOT / "bootstrap", "world.geojson")
     markets = read_bootstrap(ROOT / "bootstrap", "markets.json")
-    history = read_bootstrap(ROOT / "bootstrap", "market_history.json")
     require(world.get("type") == "FeatureCollection" and len(world.get("features", [])) >= 170, "world bootstrap is incomplete")
     require(markets.get("schemaVersion") == 11 and len(markets.get("assets", [])) >= 50, "market bootstrap is incomplete")
-    require(len(history) >= 20, "market history bootstrap is incomplete")
+    market_updated = datetime.fromisoformat(str(markets.get("updated") or "").replace("Z", "+00:00"))
+    market_age = datetime.now(timezone.utc) - market_updated.astimezone(timezone.utc)
+    require(-timedelta(minutes=5) <= market_age <= timedelta(days=7), f"market bootstrap is stale ({market_age})")
+    require(not (ROOT / "bootstrap" / "market_history.json.gz").exists(), "a stale market-history snapshot must not enter releases")
 
     installer = (ROOT / "installer" / "CodexWorld.iss").read_text(encoding="utf-8")
     desktop_line = next(
@@ -66,12 +71,16 @@ def main():
     manifests = list(app_dir.rglob("app-manifest.json"))
     require(len(manifests) == 1, "packaged manifest is missing or duplicated")
     manifest = json.loads(manifests[0].read_text(encoding="utf-8"))
-    require(manifest.get("version") == "0.3.0", f"unexpected packaged version: {manifest.get('version')}")
+    require(manifest.get("version") == args.expected_version, f"unexpected packaged version: {manifest.get('version')}")
 
     packaged_bootstrap = next((path.parent for path in app_dir.rglob("world.geojson.gz") if path.parent.name == "bootstrap"), None)
     require(packaged_bootstrap is not None, "bootstrap directory was not packaged")
-    for name in BOOTSTRAP_FILES:
-        read_bootstrap(packaged_bootstrap, name)
+    packaged_payloads = {name: read_bootstrap(packaged_bootstrap, name) for name in BOOTSTRAP_FILES}
+    require(
+        packaged_payloads["markets.json"].get("updated") == markets.get("updated"),
+        "packaged market bootstrap does not match the release snapshot",
+    )
+    require(not (packaged_bootstrap / "market_history.json.gz").exists(), "packaged app contains stale market history")
 
     image_extensions = {".jpg", ".jpeg", ".png", ".webp"}
     wallpapers = [

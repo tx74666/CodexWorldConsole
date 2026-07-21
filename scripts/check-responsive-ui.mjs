@@ -83,6 +83,42 @@ try {
   await page.waitForSelector("#marketBoard .market-leaders", { timeout: 15_000 });
   const marketRows = await page.locator("#marketBoard [data-asset-id]").count();
   assert(marketRows > 0, "market bootstrap did not render any assets");
+  await page.waitForSelector('#marketBoard .market-chart svg[role="img"]', { timeout: 30_000 });
+  const chartState = await page.evaluate(() => {
+    const chart = document.querySelector('#marketBoard .market-chart svg[role="img"]');
+    const paths = Array.from(chart?.querySelectorAll("path") || []);
+    return {
+      labels: Array.from(chart?.querySelectorAll("text") || []).map(node => node.textContent).filter(Boolean),
+      pathLengths: paths.map(path => (path.getAttribute("d") || "").length)
+    };
+  });
+  assert(chartState.labels.length >= 7, `market chart labels are incomplete: ${JSON.stringify(chartState)}`);
+  assert(chartState.pathLengths.some(length => length > 100), `market chart path is empty: ${JSON.stringify(chartState)}`);
+
+  for (const viewport of [{ width: 390, height: 844 }, { width: 1280, height: 800 }]) {
+    await page.setViewportSize(viewport);
+    await page.waitForTimeout(150);
+    const marketLayout = await page.evaluate(() => {
+      const chart = document.querySelector("#marketBoard .market-chart");
+      const board = document.querySelector("#marketBoard");
+      const chartRect = chart?.getBoundingClientRect();
+      const boardRect = board?.getBoundingClientRect();
+      return {
+        viewportWidth: document.documentElement.clientWidth,
+        scrollWidth: document.documentElement.scrollWidth,
+        chartRight: Math.round(chartRect?.right || 0),
+        boardRight: Math.round(boardRect?.right || 0),
+        clippedControls: Array.from(board?.querySelectorAll("button") || [])
+          .filter(element => element.offsetParent && element.scrollWidth > element.clientWidth + 1)
+          .map(element => element.textContent?.trim() || element.tagName)
+          .slice(0, 12)
+      };
+    });
+    assert(marketLayout.scrollWidth <= marketLayout.viewportWidth, `market page overflows at ${viewport.width}px: ${JSON.stringify(marketLayout)}`);
+    assert(marketLayout.chartRight <= marketLayout.viewportWidth + 1, `market chart escapes at ${viewport.width}px: ${JSON.stringify(marketLayout)}`);
+    assert(marketLayout.boardRight <= marketLayout.viewportWidth + 1, `market board escapes at ${viewport.width}px: ${JSON.stringify(marketLayout)}`);
+    assert(marketLayout.clippedControls.length === 0, `market controls are clipped at ${viewport.width}px: ${JSON.stringify(marketLayout)}`);
+  }
   assert(errors.length === 0, `page errors: ${errors.join("; ")}`);
 
   console.log("PASS Codex World responsive UI (390-2560 px)");

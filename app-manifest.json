@@ -1,6 +1,6 @@
 {
   "name": "Codex World",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "repository": "tx74666/CodexWorldConsole",
   "channel": "stable",
   "installMode": "source",
