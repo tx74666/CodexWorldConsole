@@ -61,6 +61,11 @@ def main():
     require(desktop_line, "desktop shortcut is missing from Setup")
     require("Tasks:" not in desktop_line, "desktop shortcut is optional instead of guaranteed")
     require('IconFilename: "{app}\\Codex World.exe"' in desktop_line, "shortcut icon is not pinned to the installed EXE")
+    require("Check: ShouldCreateDesktopShortcut" in desktop_line, "desktop shortcut is overwritten during upgrades")
+    require(
+        "not FileExists(ExpandConstant('{autodesktop}\\Codex World.lnk'))" in installer,
+        "desktop shortcut preservation check is missing",
+    )
     require('Name: "{group}\\Uninstall Codex World"; Filename: "{uninstallexe}"' in installer, "Start menu uninstaller is missing")
     require('#define UserDataDir "{localappdata}\\CodexWorld"' in installer, "default World data directory is not device-local")
     require('Type: filesandordirs; Name: "{#UserDataDir}"' in installer, "local World data is not removed on uninstall")

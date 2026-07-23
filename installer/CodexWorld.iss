@@ -1,5 +1,5 @@
 #ifndef AppVersion
-  #define AppVersion "0.3.1"
+  #define AppVersion "0.3.2"
 #endif
 #ifndef SourceDir
   #define SourceDir "..\build\world-installer\dist\Codex World"
@@ -54,7 +54,7 @@ Source: "{#SourceDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs 
 [Icons]
 Name: "{group}\Codex World"; Filename: "{app}\Codex World.exe"; WorkingDir: "{app}"; IconFilename: "{app}\Codex World.exe"; IconIndex: 0
 Name: "{group}\Uninstall Codex World"; Filename: "{uninstallexe}"
-Name: "{autodesktop}\Codex World"; Filename: "{app}\Codex World.exe"; WorkingDir: "{app}"; IconFilename: "{app}\Codex World.exe"; IconIndex: 0
+Name: "{autodesktop}\Codex World"; Filename: "{app}\Codex World.exe"; WorkingDir: "{app}"; IconFilename: "{app}\Codex World.exe"; IconIndex: 0; Check: ShouldCreateDesktopShortcut
 
 [Registry]
 Root: HKCU; Subkey: "Software\Codex\Codex World"; ValueType: string; ValueName: "InstallPath"; ValueData: "{app}"; Flags: uninsdeletekey
@@ -66,3 +66,9 @@ Filename: "{app}\Codex World.exe"; Description: "{cm:LaunchProgram,Codex World}"
 [UninstallDelete]
 Type: filesandordirs; Name: "{#UserDataDir}"
 Type: filesandordirs; Name: "{app}\cache"
+
+[Code]
+function ShouldCreateDesktopShortcut(): Boolean;
+begin
+  Result := not FileExists(ExpandConstant('{autodesktop}\Codex World.lnk'));
+end;

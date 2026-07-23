@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Release version, for example v0.3.1
+        description: Release version, for example v0.3.2
         required: true
-        default: v0.3.1
+        default: v0.3.2
   push:
     tags:
       - "v*"
@@ -86,11 +86,10 @@ jobs:
           make_latest: true
           files: release/Codex-World-Setup-x64.exe
           body: |
-            ## v0.3.1 highlights
+            ## v0.3.2 highlights
 
-            - Refreshes stale company, metal, crypto, and currency chart histories by range.
-            - Keeps cached charts visible while current data loads, and prevents duplicate requests.
-            - Removes the dated bundled history snapshot and speeds up currency-history refreshes.
+            - Preserves the existing Codex World desktop shortcut and its Windows desktop position during upgrades.
+            - Creates the shortcut only when it is missing.
 
             ## Windows x64
 
