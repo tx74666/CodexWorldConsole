@@ -84,6 +84,7 @@ try {
   const marketRows = await page.locator("#marketBoard [data-asset-id]").count();
   assert(marketRows > 0, "market bootstrap did not render any assets");
   await page.waitForSelector('#marketBoard .market-chart svg[role="img"]', { timeout: 30_000 });
+  await page.waitForSelector('#marketBoard .market-chart svg[role="img"]:not([data-provisional="true"])', { timeout: 30_000 });
   const chartState = await page.evaluate(() => {
     const chart = document.querySelector('#marketBoard .market-chart svg[role="img"]');
     const paths = Array.from(chart?.querySelectorAll("path") || []);
@@ -119,9 +120,46 @@ try {
     assert(marketLayout.boardRight <= marketLayout.viewportWidth + 1, `market board escapes at ${viewport.width}px: ${JSON.stringify(marketLayout)}`);
     assert(marketLayout.clippedControls.length === 0, `market controls are clipped at ${viewport.width}px: ${JSON.stringify(marketLayout)}`);
   }
+
+  let releaseHistoryRequest;
+  const historyRequestGate = new Promise(resolve => {
+    releaseHistoryRequest = resolve;
+  });
+  await page.route("**/api/market-history?**", async route => {
+    await historyRequestGate;
+    await route.continue();
+  });
+  await page.evaluate(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  });
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await page.locator('[data-map-mode="markets"]').click();
+  await page.waitForSelector("#marketBoard .market-leaders", { timeout: 15_000 });
+  await page.waitForSelector('#marketBoard .market-chart svg[data-provisional="true"]', { timeout: 2_000 });
+  const provisionalState = await page.evaluate(() => {
+    const chart = document.querySelector('#marketBoard .market-chart svg[data-provisional="true"]');
+    const linePath = Array.from(chart?.querySelectorAll("path") || [])
+      .find(path => path.getAttribute("stroke")?.includes("--green") || path.getAttribute("stroke")?.includes("--red"));
+    const coordinates = Array.from((linePath?.getAttribute("d") || "").matchAll(/[ML]\s+[\d.]+\s+([\d.]+)/g))
+      .map(match => Number(match[1]));
+    return {
+      hasLoadingPlaceholder: Array.from(document.querySelectorAll(".market-chart-empty"))
+        .some(element => element.textContent.includes("Loading historical chart")),
+      pathLength: (linePath?.getAttribute("d") || "").length,
+      yValues: Array.from(new Set(coordinates.map(value => value.toFixed(1))))
+    };
+  });
+  assert(!provisionalState.hasLoadingPlaceholder, `delayed history showed a blocking placeholder: ${JSON.stringify(provisionalState)}`);
+  assert(provisionalState.pathLength > 20, `provisional history line is empty: ${JSON.stringify(provisionalState)}`);
+  assert(provisionalState.yValues.length === 1, `provisional history is not horizontal: ${JSON.stringify(provisionalState)}`);
+  releaseHistoryRequest();
+  await page.waitForSelector('#marketBoard .market-chart svg[role="img"]:not([data-provisional="true"])', { timeout: 15_000 });
+  await page.unroute("**/api/market-history?**");
+
   assert(errors.length === 0, `page errors: ${errors.join("; ")}`);
 
-  console.log("PASS Codex World responsive UI (390-2560 px)");
+  console.log("PASS Codex World responsive UI and non-blocking market history (390-2560 px)");
 } finally {
   await browser.close();
 }

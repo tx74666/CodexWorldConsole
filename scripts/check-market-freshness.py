@@ -71,7 +71,46 @@ def main():
     require(response["stale"] is False, "fresh private-company history was marked stale")
     require(response["rangeUpdatedAt"] == private_payload["historyUpdatedAt"], "range timestamp was not exposed")
 
-    print("PASS market history freshness and rolling-window replacement")
+    stale_payload = {
+        "source": "test",
+        "updated": (now - timedelta(days=1)).isoformat(),
+        "shortHistoryUpdatedAt": (now - timedelta(days=1)).isoformat(),
+        "shortHistory": old_points,
+    }
+    history_url = "https://companiesmarketcap.com/apple/marketcap/"
+    cache_key = world.market_history_cache_key(history_url, asset)
+    with (
+        patch.object(world, "load_market_history_cache", return_value={cache_key: stale_payload}),
+        patch.object(world, "refresh_market_history_async", return_value=True) as refresh,
+    ):
+        stale_response = world.load_market_history(history_url, asset, "1d")
+    require(stale_response["refreshing"] is True, "stale history did not switch to background refresh")
+    require(stale_response["stale"] is True, "stale history was presented as fresh")
+    require(stale_response["shortHistory"] == old_points, "stale-while-revalidate did not return cached history")
+    refresh.assert_called_once()
+
+    metal_asset = {"symbol": "XAU", "group": "metals", "value": 3_400}
+    require(
+        world.market_history_cache_key("", metal_asset) == "asset:metals:XAU",
+        "pathless metal history did not receive a stable cache key",
+    )
+    refreshed_metal = {
+        "source": "test",
+        "updated": now.isoformat(),
+        "shortHistoryUpdatedAt": now.isoformat(),
+        "shortHistory": new_points,
+    }
+    stored = {}
+    with (
+        patch.object(world, "load_market_history_cache", return_value={}),
+        patch.object(world, "enrich_history_with_dense_prices", return_value=refreshed_metal),
+        patch.object(world, "store_market_history_payload", side_effect=lambda key, value: stored.update({key: value})),
+    ):
+        metal_response = world.load_market_history("", metal_asset, "1d", force_refresh=True)
+    require(metal_response["stale"] is False, "fresh pathless history was marked stale")
+    require(stored.get("asset:metals:XAU") == refreshed_metal, "pathless history was not cached")
+
+    print("PASS market history freshness, stale-while-revalidate, and pathless caching")
 
 
 if __name__ == "__main__":

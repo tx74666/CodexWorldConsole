@@ -1434,6 +1434,7 @@ const MARKET_RANGE_HISTORY_CACHE_POINTS = 20000;
 const MARKET_SPARKLINE_CACHE_POINTS = 1000;
 const MARKET_HISTORY_FRESH_MS = 30 * 60 * 1000;
 const MARKET_HISTORY_RETRY_MS = 30 * 1000;
+const MARKET_HISTORY_REFRESH_DELAYS_MS = [700, 1400, 2600, 4500, 7500, 12000];
 const MAX_EARNING_OPPORTUNITIES = 10;
 const earningSourceFilters = [
   { key: "job-board", labelKey: "earningFilterJobBoard" },
@@ -1603,6 +1604,8 @@ const marketHistoryPreloadKeys = new Set();
 const marketHistoryPreloadDone = new Set();
 const marketHistoryRequests = new Set();
 const marketHistoryAttemptedAt = new Map();
+const marketHistoryRefreshTimers = new Map();
+const marketHistoryRefreshAttempts = new Map();
 
 const translations = {
   en: {
@@ -1780,6 +1783,7 @@ Object.assign(translations.en, {
   marketUnavailableTitle: "Market data is unavailable",
   marketUnavailableSummary: "The console could not reach the market data source. No placeholder prices are shown.",
   loadingHistory: "Loading historical chart...",
+  refreshingHistory: "Refreshing...",
   noReliableChart: "No reliable chart",
   chartUnavailableForRange: "No reliable data for this range",
   range1d: "1D",
@@ -1909,6 +1913,7 @@ Object.assign(translations.zh, {
   marketUnavailableTitle: "市场数据暂不可用",
   marketUnavailableSummary: "现在没有拿到可靠行情源，所以这里不显示占位价格。",
   loadingHistory: "正在加载历史曲线...",
+  refreshingHistory: "更新中...",
   noReliableChart: "暂无可靠曲线",
   chartUnavailableForRange: "这个时间段暂无可靠数据",
   range1d: "1天",
@@ -3483,6 +3488,30 @@ function rangedMarketHistory(asset, range = selectedMarketRange, options = {}) {
   }
   if (sparseCarry.length >= 2) return sparseCarry;
   return [];
+}
+
+function provisionalMarketHistory(asset, range = selectedMarketRange) {
+  const valueKind = asset?.group === "companies" ? "marketCap" : "price";
+  const value = Number(valueKind === "marketCap" ? asset?.marketCap : asset?.value);
+  if (!Number.isFinite(value) || value <= 0) return [];
+  const spanDays = {
+    "1d": 1,
+    "5d": 5,
+    "1m": 31,
+    "1y": 365,
+    "5y": 365 * 5,
+    all: 365 * 10
+  }[range] || 31;
+  const end = Date.now();
+  const start = end - spanDays * 24 * 60 * 60 * 1000;
+  return [start, start + (end - start) / 2, end].map(timestamp => ({
+    date: new Date(timestamp).toISOString().slice(0, 10),
+    time: new Date(timestamp).toISOString(),
+    value,
+    valueKind,
+    carryFlat: true,
+    provisional: true
+  }));
 }
 
 function hasMarketHistoryForRange(asset, range = selectedMarketRange) {
@@ -6064,7 +6093,13 @@ function createMarketChart(asset) {
   const padRight = 18;
   const padTop = 18;
   const padBottom = 28;
-  const rawHistory = rangedMarketHistory(asset);
+  const loadedHistory = rangedMarketHistory(asset);
+  const provisionalChart = loadedHistory.length < 2;
+  const awaitingHistory = provisionalChart
+    && (asset?.historyLoading
+      || asset?.historyRefreshing
+      || (canFetchMarketHistory(asset) && !marketHistoryLoadFailedForRange(asset, selectedMarketRange)));
+  const rawHistory = provisionalChart ? provisionalMarketHistory(asset) : loadedHistory;
   if (rawHistory.length < 2) {
     const empty = document.createElement("div");
     empty.className = "market-chart-empty";
@@ -6109,6 +6144,10 @@ function createMarketChart(asset) {
   svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
   svg.setAttribute("role", "img");
   svg.setAttribute("aria-label", `${marketName(asset)} ${t("marketRange")}`);
+  if (awaitingHistory) {
+    svg.setAttribute("aria-busy", "true");
+  }
+  if (provisionalChart) svg.dataset.provisional = "true";
 
   for (let index = 0; index < 4; index += 1) {
     const y = padTop + (index / 3) * chartHeight;
@@ -6129,6 +6168,16 @@ function createMarketChart(asset) {
     yLabel.setAttribute("class", "market-axis-label");
     yLabel.textContent = formatChartValue(asset, { value, valueKind: history[0]?.valueKind });
     svg.appendChild(yLabel);
+  }
+
+  if (provisionalChart) {
+    const status = document.createElementNS(ns, "text");
+    status.setAttribute("x", width - padRight);
+    status.setAttribute("y", padTop + 12);
+    status.setAttribute("text-anchor", "end");
+    status.setAttribute("class", "market-axis-label market-chart-refreshing");
+    status.textContent = awaitingHistory ? t("refreshingHistory") : t("noReliableChart");
+    svg.appendChild(status);
   }
 
   const pathData = chartPathData(points);
@@ -7794,6 +7843,46 @@ function marketHistoryRequestKey(asset, range = selectedMarketRange) {
   return `${asset?.id || asset?.symbol || ""}:${range}`;
 }
 
+function clearMarketHistoryRefreshRetry(asset, range = selectedMarketRange) {
+  const key = marketHistoryRequestKey(asset, range);
+  const timer = marketHistoryRefreshTimers.get(key);
+  if (timer) window.clearTimeout(timer);
+  marketHistoryRefreshTimers.delete(key);
+  marketHistoryRefreshAttempts.delete(key);
+}
+
+function scheduleMarketHistoryRefreshRetry(asset, range = selectedMarketRange) {
+  if (!asset || hasFreshMarketHistoryForRange(asset, range)) {
+    if (asset) clearMarketHistoryRefreshRetry(asset, range);
+    return;
+  }
+  const key = marketHistoryRequestKey(asset, range);
+  if (marketHistoryRefreshTimers.has(key)) return;
+  const attempt = marketHistoryRefreshAttempts.get(key) || 0;
+  if (attempt >= MARKET_HISTORY_REFRESH_DELAYS_MS.length) {
+    marketHistoryRefreshAttempts.delete(key);
+    asset.historyRefreshing = false;
+    asset.historyLoadFailed = true;
+    asset.historyLoadFailedRange = range;
+    if (selectedMarketId === asset.id && isMarketMode() && range === selectedMarketRange) {
+      renderMarketInspect(asset);
+      renderMarketBoard();
+    }
+    return;
+  }
+  const timer = window.setTimeout(async () => {
+    marketHistoryRefreshTimers.delete(key);
+    const current = marketAssets.find(candidate => candidate.id === asset.id) || asset;
+    if (hasFreshMarketHistoryForRange(current, range)) {
+      clearMarketHistoryRefreshRetry(current, range);
+      return;
+    }
+    marketHistoryRefreshAttempts.set(key, attempt + 1);
+    await fetchMarketHistory(current, { range, silent: true, force: true });
+  }, MARKET_HISTORY_REFRESH_DELAYS_MS[attempt]);
+  marketHistoryRefreshTimers.set(key, timer);
+}
+
 function applyMarketHistoryPayload(asset, payload, range = selectedMarketRange) {
   if (!asset || !payload) return false;
   const history = normalizeMarketHistory(payload.history);
@@ -7828,6 +7917,7 @@ function applyMarketHistoryPayload(asset, payload, range = selectedMarketRange) 
     asset.rangeHistoryUpdatedAt[range] = rangeUpdatedAt;
   }
   asset.rangeHistoryStale[range] = payload.stale === true;
+  asset.historyRefreshing = payload.refreshing === true;
   if (updated && payload.stale !== true) {
     asset.historyLoadFailed = false;
     asset.historyLoadFailedRange = null;
@@ -7952,7 +8042,11 @@ async function fetchMarketHistory(asset, options = {}) {
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const payload = await response.json();
     const updated = applyMarketHistoryPayload(asset, payload, range);
-    if (!silent && !hasFreshMarketHistoryForRange(asset, range)) {
+    if (hasFreshMarketHistoryForRange(asset, range)) {
+      clearMarketHistoryRefreshRetry(asset, range);
+    } else if (payload.refreshing === true) {
+      scheduleMarketHistoryRefreshRetry(asset, range);
+    } else if (!silent) {
       asset.historyLoadFailed = true;
       asset.historyLoadFailedRange = range;
     }
@@ -7967,6 +8061,9 @@ async function fetchMarketHistory(asset, options = {}) {
     if (!silent) {
       asset.historyLoadFailed = true;
       asset.historyLoadFailedRange = range;
+    }
+    if (options.force === true || asset.historyRefreshing === true) {
+      scheduleMarketHistoryRefreshRetry(asset, range);
     }
     // Keep the chart honest. If history is not available, the panel says so.
   } finally {

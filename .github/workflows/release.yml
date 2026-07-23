@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Release version, for example v0.3.2
+        description: Release version, for example v0.3.3
         required: true
-        default: v0.3.2
+        default: v0.3.3
   push:
     tags:
       - "v*"
@@ -86,17 +86,19 @@ jobs:
           make_latest: true
           files: release/Codex-World-Setup-x64.exe
           body: |
-            ## v0.3.2 highlights
+            ## v0.3.3 highlights
 
-            - Preserves the existing Codex World desktop shortcut and its Windows desktop position during upgrades.
-            - Creates the shortcut only when it is missing.
+            - Draws an immediate current-value baseline instead of blocking on an empty historical chart.
+            - Returns cached history immediately and refreshes stale or missing data in the background.
+            - Replaces provisional charts automatically when fresh company, metal, or cryptocurrency data arrives.
+            - Adds persistent history caching for metals and cryptocurrencies.
 
             ## Windows x64
 
             Download only **Codex-World-Setup-x64.exe**.
 
             1. Double-click the downloaded Setup file.
-            2. Choose **简体中文** or **English**.
+            2. Choose **Simplified Chinese** or **English**.
             3. On the destination page, choose the drive and install folder.
             4. Finish Setup, then launch **Codex World** from the desktop or Start menu.
 

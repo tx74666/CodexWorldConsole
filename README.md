@@ -55,7 +55,7 @@ Install Python 3.12 x64, PyInstaller, and Inno Setup 7, then run:
 
 ```powershell
 python -m pip install pyinstaller
-.\scripts\build-windows.ps1 -Version 0.3.2 -OutputDir release
+.\scripts\build-windows.ps1 -Version 0.3.3 -OutputDir release
 ```
 
 The result is `release\Codex-World-Setup-x64.exe`.

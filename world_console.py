@@ -117,6 +117,8 @@ MARKET_REFRESH_IN_PROGRESS = False
 MARKET_HISTORY_CACHE_LOCK = threading.RLock()
 MARKET_HISTORY_CACHE_MEMORY = None
 MARKET_HISTORY_SCHEMA_VERSION = 2
+MARKET_HISTORY_REFRESH_LOCK = threading.Lock()
+MARKET_HISTORY_REFRESH_IN_PROGRESS = set()
 SELECTION_TRANSLATION_CACHE = {}
 SELECTION_TRANSLATION_CACHE_LIMIT = 160
 SELECTION_TRANSLATION_CACHE_LOCK = threading.Lock()
@@ -2469,7 +2471,13 @@ def save_market_history_cache(cache):
 def store_market_history_payload(path, payload):
     with MARKET_HISTORY_CACHE_LOCK:
         cache = load_market_history_cache()
-        cache[path] = payload
+        existing = cache.get(path)
+        if isinstance(existing, dict) and isinstance(payload, dict):
+            merged = dict(existing)
+            merged.update(payload)
+            cache[path] = merged
+        else:
+            cache[path] = payload
         save_market_history_cache(cache)
 
 
@@ -2500,13 +2508,14 @@ def market_history_payload_is_fresh(payload, range_name="", asset=None):
     return -timedelta(minutes=5) <= age <= timedelta(seconds=MARKET_CACHE_SECONDS)
 
 
-def market_history_payload_with_status(payload, range_name="", asset=None):
+def market_history_payload_with_status(payload, range_name="", asset=None, refreshing=False):
     response = dict(payload) if isinstance(payload, dict) else {}
     timestamp_key = market_history_timestamp_key(range_name, asset)
     response["historySchemaVersion"] = MARKET_HISTORY_SCHEMA_VERSION
     response["range"] = normalized_market_range(range_name)
     response["rangeUpdatedAt"] = response.get(timestamp_key) or ""
     response["stale"] = not market_history_payload_is_fresh(response, range_name, asset)
+    response["refreshing"] = bool(refreshing)
     response["servedAt"] = datetime.now(timezone.utc).isoformat()
     return response
 
@@ -3027,17 +3036,60 @@ def enrich_history_with_dense_prices(payload, asset, range_name=""):
     return payload
 
 
-def load_market_history(url, asset=None, range_name=""):
+def market_history_cache_key(url, asset=None):
+    path = company_history_url(url)
+    if path:
+        return path
+    if not isinstance(asset, dict):
+        return ""
+    group = str(asset.get("group") or "asset").strip().lower()
+    symbol = str(asset.get("symbol") or "").strip().upper()
+    if not symbol:
+        return ""
+    return f"asset:{group}:{symbol}"
+
+
+def refresh_market_history_async(url, asset=None, range_name=""):
+    cache_key = market_history_cache_key(url, asset)
+    if not cache_key:
+        return False
+    normalized_range = normalized_market_range(range_name)
+    refresh_key = f"{cache_key}:{normalized_range}"
+    with MARKET_HISTORY_REFRESH_LOCK:
+        if refresh_key in MARKET_HISTORY_REFRESH_IN_PROGRESS:
+            return True
+        MARKET_HISTORY_REFRESH_IN_PROGRESS.add(refresh_key)
+
+    def refresh():
+        try:
+            load_market_history(
+                url,
+                dict(asset) if isinstance(asset, dict) else asset,
+                normalized_range,
+                force_refresh=True,
+            )
+        except Exception:
+            pass
+        finally:
+            with MARKET_HISTORY_REFRESH_LOCK:
+                MARKET_HISTORY_REFRESH_IN_PROGRESS.discard(refresh_key)
+
+    threading.Thread(
+        target=refresh,
+        name=f"market-history-{normalized_range}",
+        daemon=True,
+    ).start()
+    return True
+
+
+def load_market_history(url, asset=None, range_name="", force_refresh=False):
     range_name = normalized_market_range(range_name)
     path = company_history_url(url)
-    if not path:
-        payload = {"source": "CompaniesMarketCap", "history": []}
-        payload = enrich_history_with_dense_prices(payload, asset, range_name)
-        return market_history_payload_with_status(payload, range_name, asset)
-
+    cache_key = market_history_cache_key(url, asset)
     cache = load_market_history_cache()
-    cached = cache.get(path)
+    cached = cache.get(cache_key) if cache_key else None
     stale_history = []
+    has_cached_range = False
     if isinstance(cached, dict):
         if asset and not yahoo_symbol_for_asset(asset):
             cached = dict(cached)
@@ -3054,6 +3106,14 @@ def load_market_history(url, asset=None, range_name=""):
         if isinstance(cached.get("history"), list):
             stale_history = cached.get("history") or []
 
+    if not force_refresh:
+        payload = dict(cached) if isinstance(cached, dict) else {
+            "source": "CompaniesMarketCap",
+            "history": [],
+        }
+        refreshing = refresh_market_history_async(url, asset, range_name)
+        return market_history_payload_with_status(payload, range_name, asset, refreshing=refreshing)
+
     has_yahoo_history = bool(asset and yahoo_symbol_for_asset(asset))
     has_fresh_cmc_history = bool(stale_history and market_history_payload_is_fresh(cached, "all", asset))
     if range_name in {"1d", "5d", "1m", "1y", "5y"} and asset and (has_yahoo_history or has_fresh_cmc_history):
@@ -3062,8 +3122,18 @@ def load_market_history(url, asset=None, range_name=""):
             "history": stale_history,
         }
         payload = enrich_history_with_dense_prices(payload, asset, range_name)
-        if payload.get("denseHistory") or payload.get("shortHistory"):
-            store_market_history_payload(path, payload)
+        if cache_key and (payload.get("denseHistory") or payload.get("shortHistory")):
+            store_market_history_payload(cache_key, payload)
+        return market_history_payload_with_status(payload, range_name, asset)
+
+    if not path:
+        payload = dict(cached) if isinstance(cached, dict) else {
+            "source": "CompaniesMarketCap",
+            "history": stale_history,
+        }
+        payload = enrich_history_with_dense_prices(payload, asset, range_name)
+        if cache_key and (payload.get("history") or payload.get("denseHistory") or payload.get("shortHistory")):
+            store_market_history_payload(cache_key, payload)
         return market_history_payload_with_status(payload, range_name, asset)
 
     try:
@@ -3079,8 +3149,8 @@ def load_market_history(url, asset=None, range_name=""):
             "history": stale_history,
         }
         payload = enrich_history_with_dense_prices(payload, asset, range_name)
-        if payload.get("denseHistory") or payload.get("shortHistory"):
-            store_market_history_payload(path, payload)
+        if cache_key and (payload.get("denseHistory") or payload.get("shortHistory")):
+            store_market_history_payload(cache_key, payload)
         return market_history_payload_with_status(payload, range_name, asset)
 
     fetched_at = datetime.now(timezone.utc).isoformat()
@@ -3093,8 +3163,8 @@ def load_market_history(url, asset=None, range_name=""):
         payload["historyUpdatedAt"] = fetched_at
         payload["historySchemaVersion"] = MARKET_HISTORY_SCHEMA_VERSION
     payload = enrich_history_with_dense_prices(payload, asset, range_name)
-    if history or payload.get("denseHistory") or payload.get("shortHistory"):
-        store_market_history_payload(path, payload)
+    if cache_key and (history or payload.get("denseHistory") or payload.get("shortHistory")):
+        store_market_history_payload(cache_key, payload)
     return market_history_payload_with_status(payload, range_name, asset)
 
 
@@ -3358,7 +3428,7 @@ def attach_company_histories(assets, limit=8):
             break
         if asset.get("group") != "companies" or not asset.get("historyUrl"):
             continue
-        history_payload = load_market_history(asset.get("historyUrl"))
+        history_payload = load_market_history(asset.get("historyUrl"), force_refresh=True)
         history = history_payload.get("history") if isinstance(history_payload, dict) else []
         if history:
             asset["history"] = limit_history_points(history, MARKET_FULL_HISTORY_POINTS)
