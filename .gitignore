@@ -34,6 +34,7 @@ build/
 dist/
 release/
 *.spec.local
+node_modules/
 
 # OS/editor noise
 .DS_Store

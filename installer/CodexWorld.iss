@@ -1,5 +1,5 @@
 #ifndef AppVersion
-  #define AppVersion "0.3.3"
+  #define AppVersion "0.4.0"
 #endif
 #ifndef SourceDir
   #define SourceDir "..\build\world-installer\dist\Codex World"
@@ -64,7 +64,9 @@ Root: HKCU; Subkey: "Software\Codex\Codex World"; ValueType: string; ValueName: 
 Filename: "{app}\Codex World.exe"; Description: "{cm:LaunchProgram,Codex World}"; Flags: nowait postinstall skipifsilent
 
 [UninstallDelete]
-Type: filesandordirs; Name: "{#UserDataDir}"
+; Preserve preferences and saved API configuration across uninstall/reinstall.
+Type: filesandordirs; Name: "{#UserDataDir}\cache"
+Type: filesandordirs; Name: "{#UserDataDir}\logs"
 Type: filesandordirs; Name: "{app}\cache"
 
 [Code]

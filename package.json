@@ -1,0 +1,16 @@
+{
+  "name": "codex-world-console",
+  "version": "0.4.0",
+  "private": true,
+  "description": "Reproducible browser checks for Codex World",
+  "scripts": {
+    "check": "node --check app.js",
+    "test:responsive": "node scripts/check-responsive-ui.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

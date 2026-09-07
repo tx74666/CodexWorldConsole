@@ -1,20 +1,29 @@
 import argparse
+import base64
 import concurrent.futures
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 import gzip
 import hashlib
+import http.client
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+import ipaddress
 from pathlib import Path
 import html
 import json
+import logging
+from logging.handlers import RotatingFileHandler
+import math
 import os
 import re
 import shutil
 import socket
 import subprocess
 import sys
+import tempfile
 import threading
+import time
+import urllib.error
 import urllib.request
 import urllib.parse
 import webbrowser
@@ -22,6 +31,8 @@ import xml.etree.ElementTree as ET
 
 
 APP_DIR = Path(__file__).resolve().parent
+LOGGER = logging.getLogger("codex-world")
+LOGGER.addHandler(logging.NullHandler())
 
 
 def read_app_manifest():
@@ -32,18 +43,33 @@ def read_app_manifest():
     return payload if isinstance(payload, dict) else {}
 
 
+def configure_logging():
+    if any(isinstance(handler, RotatingFileHandler) for handler in LOGGER.handlers):
+        return
+    try:
+        log_path = DATA_DIR / "logs" / "world-console.log"
+        log_path.parent.mkdir(parents=True, exist_ok=True)
+        handler = RotatingFileHandler(log_path, maxBytes=1_000_000, backupCount=2, encoding="utf-8")
+        handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+        LOGGER.handlers = [handler]
+        LOGGER.setLevel(logging.INFO)
+    except OSError:
+        # A read-only or temporarily unavailable log directory must not prevent startup.
+        if not any(isinstance(handler, logging.NullHandler) for handler in LOGGER.handlers):
+            LOGGER.addHandler(logging.NullHandler())
+
+
 APP_MANIFEST = read_app_manifest()
 APP_VERSION = str(APP_MANIFEST.get("version") or "0.0.0-dev").strip()
-APP_INSTALL_MODE = str(APP_MANIFEST.get("installMode") or "source").strip().lower()
 CONFIGURED_DATA_DIR = os.environ.get("CODEX_WORLD_DATA_DIR", "").strip()
 if CONFIGURED_DATA_DIR:
     DATA_DIR = Path(CONFIGURED_DATA_DIR).expanduser()
-elif APP_INSTALL_MODE == "installed":
+elif os.name == "nt":
     local_app_data = os.environ.get("LOCALAPPDATA", "").strip()
     DATA_DIR = (Path(local_app_data) if local_app_data else Path.home() / "AppData" / "Local") / "CodexWorld"
 else:
-    DATA_DIR = APP_DIR
-DATA_DIR.mkdir(parents=True, exist_ok=True)
+    data_home = os.environ.get("XDG_DATA_HOME", "").strip()
+    DATA_DIR = (Path(data_home) if data_home else Path.home() / ".local" / "share") / "CodexWorld"
 
 LOCAL_CONFIG = DATA_DIR / ".world-console.local.json"
 DEFAULT_PORT = 8797
@@ -62,20 +88,29 @@ def install_bootstrap_cache():
         target = cache_dir / name
         if target.exists() or not source.is_file():
             continue
-        temporary = target.with_suffix(target.suffix + ".tmp")
+        temporary = None
         try:
             cache_dir.mkdir(parents=True, exist_ok=True)
+            descriptor, temporary_name = tempfile.mkstemp(
+                prefix=f".{target.name}.",
+                suffix=".tmp",
+                dir=str(cache_dir),
+            )
+            os.close(descriptor)
+            temporary = Path(temporary_name)
             with gzip.open(source, "rb") as compressed, temporary.open("wb") as output:
                 shutil.copyfileobj(compressed, output)
             os.replace(temporary, target)
         except OSError:
-            try:
-                temporary.unlink(missing_ok=True)
-            except OSError:
-                pass
+            pass
+        finally:
+            if temporary is not None:
+                try:
+                    temporary.unlink(missing_ok=True)
+                except OSError:
+                    pass
 
 
-install_bootstrap_cache()
 GOOGLE_TRANSLATE_ENDPOINT = "https://translation.googleapis.com/language/translate/v2"
 TRANSLATION_TARGET = "zh-TW"
 
@@ -114,16 +149,63 @@ MARKET_SPARKLINE_POINTS = 60
 MARKET_CACHE_REWRITE_BYTES = 64_000_000
 MARKET_REFRESH_LOCK = threading.Lock()
 MARKET_REFRESH_IN_PROGRESS = False
+MARKET_COLD_BUILD_LOCK = threading.Lock()
+MARKET_CACHE_MEMORY = None
+MARKET_CACHE_MEMORY_SIGNATURE = None
 MARKET_HISTORY_CACHE_LOCK = threading.RLock()
 MARKET_HISTORY_CACHE_MEMORY = None
+MARKET_HISTORY_CACHE_VERSION = 0
+MARKET_HISTORY_SAVED_VERSION = 0
+MARKET_HISTORY_SAVE_THREAD = None
+MARKET_HISTORY_SAVE_DELAY_SECONDS = 0.75
+MARKET_HISTORY_CACHE_MAX_ENTRIES = 72
+MARKET_HISTORY_PERSIST_LOCK = threading.Lock()
 MARKET_HISTORY_SCHEMA_VERSION = 2
 MARKET_HISTORY_REFRESH_LOCK = threading.Lock()
 MARKET_HISTORY_REFRESH_IN_PROGRESS = set()
+MARKET_HISTORY_REFRESH_SEMAPHORE = threading.BoundedSemaphore(4)
+LOCAL_CONFIG_LOCK = threading.RLock()
+IMAGE_CACHE_LOCK = threading.RLock()
+IMAGE_FETCH_IN_PROGRESS = {}
+MARKET_CACHE_LOCK = threading.RLock()
+TRANSLATION_CACHE_LOCK = threading.RLock()
+WORLD_CACHE_LOCK = threading.RLock()
+EVENT_CACHE_LOCK = threading.Lock()
+EVENT_CACHE_MEMORY = None
+EVENT_CACHE_MONOTONIC = 0.0
+EVENT_CACHE_UPDATED = None
+EVENT_SOURCE_STATUS = "unavailable"
+EVENT_FAILED_SOURCES = []
+EVENT_NEXT_RETRY_MONOTONIC = 0.0
+EVENT_REFRESH_IN_PROGRESS = False
+EVENT_CACHE_SECONDS = 300
+EVENT_RETRY_SECONDS = 30
+MARKET_ASK_SEMAPHORE = threading.BoundedSemaphore(2)
+MAX_JSON_REQUEST_BYTES = 80_000
+MAX_JSON_RESPONSE_BYTES = 4 * 1024 * 1024
+MAX_TRANSLATION_RESPONSE_BYTES = 1 * 1024 * 1024
+MAX_FETCH_BYTES = 8 * 1024 * 1024
+MAX_IMAGE_BYTES = 12 * 1024 * 1024
+JSON_GZIP_MIN_BYTES = 1_024
+SAFE_IMAGE_TYPES = {
+    "image/avif",
+    "image/gif",
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+}
+STATIC_FILES = {
+    "/index.html",
+    "/app.js",
+    "/styles.css",
+    "/Earth-taskbar-natural-20260521.ico",
+}
 SELECTION_TRANSLATION_CACHE = {}
 SELECTION_TRANSLATION_CACHE_LIMIT = 160
 SELECTION_TRANSLATION_CACHE_LOCK = threading.Lock()
 SELECTION_TRANSLATION_EXTERNAL_TIMEOUT = 3.2
 SELECTION_TRANSLATION_EXECUTOR = concurrent.futures.ThreadPoolExecutor(max_workers=6)
+SELECTION_TRANSLATION_SEMAPHORE = threading.BoundedSemaphore(2)
 SELECTION_TRANSLATION_FALLBACKS = {
     "injured": {
         "zh-CN": "受伤",
@@ -748,114 +830,529 @@ FALLBACK_EVENTS = [
 ]
 
 
+def atomic_write_text(path, text, *, private=False):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{path.name}.",
+        suffix=".tmp",
+        dir=str(path.parent),
+    )
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as output:
+            output.write(text)
+            output.flush()
+            os.fsync(output.fileno())
+        if private:
+            try:
+                os.chmod(temporary, 0o600)
+            except OSError:
+                pass
+        os.replace(temporary, path)
+    finally:
+        try:
+            temporary.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+
+def _read_local_config_unlocked():
+    if not LOCAL_CONFIG.exists():
+        return {}
+    try:
+        payload = json.loads(LOCAL_CONFIG.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise ValueError("local config is invalid JSON; repair or remove it before saving") from exc
+    except OSError:
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def read_local_config():
+    with LOCAL_CONFIG_LOCK:
+        try:
+            return _read_local_config_unlocked()
+        except ValueError:
+            return {}
+
+
+def _write_local_config_unlocked(payload):
+    if not isinstance(payload, dict):
+        raise ValueError("bad config")
+    atomic_write_text(
+        LOCAL_CONFIG,
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+        private=True,
+    )
+
+
+def write_local_config(payload):
+    with LOCAL_CONFIG_LOCK:
+        _write_local_config_unlocked(payload)
+
+
+class RequestError(ValueError):
+    def __init__(self, message, status=400):
+        super().__init__(message)
+        self.status = status
+
+
+def normalized_http_url(value, *, allow_loopback_http=False):
+    candidate = str(value or "").strip().rstrip("/")
+    parsed = urllib.parse.urlsplit(candidate)
+    if (
+        parsed.scheme not in {"http", "https"}
+        or not parsed.hostname
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.query
+        or parsed.fragment
+    ):
+        raise ValueError("base URL must be an HTTP(S) origin/path without credentials, query, or fragment")
+    hostname = parsed.hostname.lower().rstrip(".")
+    try:
+        port = parsed.port
+    except ValueError as exc:
+        raise ValueError("base URL has an invalid port") from exc
+    if port is not None and not 1 <= port <= 65535:
+        raise ValueError("base URL port must be between 1 and 65535")
+    is_loopback = hostname == "localhost"
+    try:
+        is_loopback = is_loopback or ipaddress.ip_address(hostname).is_loopback
+    except ValueError:
+        pass
+    if parsed.scheme == "http" and not (allow_loopback_http and is_loopback):
+        raise ValueError("base URL must use HTTPS; HTTP is allowed only for loopback services")
+    return candidate
+
+
+def resolve_public_target(value, resolver=socket.getaddrinfo):
+    try:
+        parsed = urllib.parse.urlsplit(str(value or "").strip())
+    except ValueError as exc:
+        raise urllib.error.URLError("unsafe URL") from exc
+    if (
+        parsed.scheme not in {"http", "https"}
+        or not parsed.hostname
+        or parsed.username is not None
+        or parsed.password is not None
+    ):
+        raise urllib.error.URLError("unsafe URL")
+    hostname = parsed.hostname.lower().rstrip(".")
+    if hostname == "localhost":
+        raise urllib.error.URLError("unsafe URL")
+    try:
+        port = parsed.port or (443 if parsed.scheme == "https" else 80)
+    except ValueError as exc:
+        raise urllib.error.URLError("unsafe URL") from exc
+    if not 1 <= port <= 65535:
+        raise urllib.error.URLError("unsafe URL")
+    try:
+        addresses = tuple(resolver(hostname, port, type=socket.SOCK_STREAM))
+    except (OSError, ValueError):
+        raise urllib.error.URLError("unsafe URL")
+    if not addresses:
+        raise urllib.error.URLError("unsafe URL")
+    for _family, _socket_type, _protocol, _canonical_name, socket_address in addresses:
+        try:
+            parsed_address = ipaddress.ip_address(str(socket_address[0]).split("%", 1)[0])
+        except ValueError:
+            raise urllib.error.URLError("unsafe URL")
+        if (
+            not parsed_address.is_global
+            or parsed_address.is_multicast
+            or parsed_address.is_unspecified
+            or parsed_address.is_reserved
+            or parsed_address.is_link_local
+            or parsed_address.is_loopback
+            or parsed_address.is_private
+        ):
+            raise urllib.error.URLError("unsafe URL")
+    return {
+        "url": parsed,
+        "hostname": hostname,
+        "port": port,
+        "addresses": addresses,
+    }
+
+
+def is_public_http_url(value):
+    try:
+        resolve_public_target(value)
+        return True
+    except (OSError, ValueError, urllib.error.URLError):
+        return False
+
+
+def connect_resolved(addresses, timeout, source_address=None, socket_factory=socket.socket):
+    last_error = None
+    for family, socket_type, protocol, _canonical_name, socket_address in addresses:
+        connection = None
+        try:
+            connection = socket_factory(family, socket_type or socket.SOCK_STREAM, protocol)
+            if timeout is not socket._GLOBAL_DEFAULT_TIMEOUT:
+                connection.settimeout(timeout)
+            if source_address:
+                connection.bind(source_address)
+            connection.connect(socket_address)
+            return connection
+        except OSError as exc:
+            last_error = exc
+            if connection is not None:
+                try:
+                    connection.close()
+                except OSError:
+                    pass
+    if last_error is not None:
+        raise last_error
+    raise OSError("no resolved address was available")
+
+
+def read_limited_response(response, max_bytes):
+    length = response.headers.get("Content-Length") if getattr(response, "headers", None) else None
+    if length:
+        try:
+            declared_length = int(length)
+        except ValueError:
+            declared_length = None
+        if declared_length is not None and declared_length > max_bytes:
+            raise ValueError("upstream response is too large")
+    body = response.read(max_bytes + 1)
+    if len(body) > max_bytes:
+        raise ValueError("upstream response is too large")
+    return body
+
+
+def accepts_gzip_encoding(value):
+    wildcard_quality = None
+    for item in str(value or "").split(","):
+        parts = [part.strip() for part in item.split(";") if part.strip()]
+        if not parts:
+            continue
+        coding = parts[0].lower()
+        quality = 1.0
+        for parameter in parts[1:]:
+            name, separator, raw_value = parameter.partition("=")
+            if separator and name.strip().lower() == "q":
+                try:
+                    quality = float(raw_value.strip())
+                except ValueError:
+                    quality = 0.0
+        if coding == "gzip":
+            return quality > 0
+        if coding == "*":
+            wildcard_quality = quality
+    return wildcard_quality is not None and wildcard_quality > 0
+
+
+class NoRedirectHandler(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+def open_json_request(request, timeout, max_bytes=MAX_JSON_RESPONSE_BYTES):
+    with urllib.request.build_opener(NoRedirectHandler()).open(request, timeout=timeout) as response:
+        return json.loads(read_limited_response(response, max_bytes).decode("utf-8"))
+
+
+def open_public_request(request, timeout, max_bytes):
+    if request.get_method() not in {"GET", "HEAD"} or request.data is not None:
+        raise urllib.error.URLError("public fetch supports only GET and HEAD")
+    current_url = request.full_url
+    headers = {
+        key: value
+        for key, value in request.header_items()
+        if key.lower() not in {"authorization", "cookie", "host", "proxy-authorization"}
+    }
+    for _redirect in range(6):
+        target = resolve_public_target(current_url)
+        parsed = target["url"]
+        connection_type = http.client.HTTPSConnection if parsed.scheme == "https" else http.client.HTTPConnection
+        connection = connection_type(target["hostname"], target["port"], timeout=timeout)
+        connection._create_connection = lambda _address, connect_timeout=timeout, source_address=None: connect_resolved(
+            target["addresses"],
+            connect_timeout,
+            source_address,
+        )
+        try:
+            path = urllib.parse.urlunsplit(("", "", parsed.path or "/", parsed.query, ""))
+            connection.request(request.get_method(), path, headers=headers)
+            response = connection.getresponse()
+            if response.status in {301, 302, 303, 307, 308}:
+                location = response.headers.get("Location", "").strip()
+                if not location:
+                    raise urllib.error.HTTPError(current_url, response.status, response.reason, response.headers, None)
+                current_url = urllib.parse.urljoin(current_url, location)
+                continue
+            if not 200 <= response.status < 300:
+                raise urllib.error.HTTPError(current_url, response.status, response.reason, response.headers, None)
+            return response, read_limited_response(response, max_bytes)
+        finally:
+            connection.close()
+    raise urllib.error.URLError("too many redirects")
+
+
 def runtime_features():
     earning_enabled = False
     environment_value = os.environ.get("WORLD_CONSOLE_EARNING")
     if environment_value is not None:
         earning_enabled = environment_value.strip().lower() in {"1", "true", "yes", "on"}
     else:
-        try:
-            payload = json.loads(LOCAL_CONFIG.read_text(encoding="utf-8"))
-            features = payload.get("features", payload) if isinstance(payload, dict) else {}
-            earning_enabled = features.get("earning") is True
-        except (OSError, json.JSONDecodeError):
-            pass
+        payload = read_local_config()
+        features = payload.get("features", payload) if isinstance(payload, dict) else {}
+        earning_enabled = features.get("earning") is True
     return {"earning": earning_enabled}
 
 
 class ConsoleHandler(SimpleHTTPRequestHandler):
+    server_version = "CodexWorld"
+    sys_version = ""
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(APP_DIR), **kwargs)
 
+    def _valid_host(self):
+        host = (self.headers.get("Host") or "").strip()
+        try:
+            parsed = urllib.parse.urlsplit(f"//{host}")
+            port = parsed.port or 80
+        except ValueError:
+            return False
+        return parsed.hostname in {"127.0.0.1", "localhost"} and port == self.server.server_port
+
+    def _valid_request_origin(self):
+        if (self.headers.get("Sec-Fetch-Site") or "").lower() == "cross-site":
+            return False
+        origin = (self.headers.get("Origin") or "").strip()
+        if not origin:
+            return True
+        try:
+            parsed = urllib.parse.urlsplit(origin)
+            port = parsed.port or (443 if parsed.scheme == "https" else 80)
+        except ValueError:
+            return False
+        return (
+            parsed.scheme == "http"
+            and parsed.hostname in {"127.0.0.1", "localhost"}
+            and port == self.server.server_port
+        )
+
+    def _allow_api(self):
+        if not self._valid_host():
+            self.send_json({"error": "invalid host"}, status=421)
+            return False
+        if not self._valid_request_origin():
+            self.send_json({"error": "cross-origin request rejected"}, status=403)
+            return False
+        return True
+
+    def read_json_body(self, max_bytes=MAX_JSON_REQUEST_BYTES):
+        content_type = (self.headers.get("Content-Type") or "").split(";", 1)[0].strip().lower()
+        if content_type != "application/json":
+            raise RequestError("Content-Type must be application/json", 415)
+        length_header = self.headers.get("Content-Length")
+        if length_header is None:
+            raise RequestError("Content-Length required", 411)
+        try:
+            length = int(length_header)
+        except ValueError as exc:
+            raise RequestError("invalid Content-Length", 400) from exc
+        if length < 0:
+            raise RequestError("invalid Content-Length", 400)
+        if length > max_bytes:
+            raise RequestError("request body too large", 413)
+        try:
+            body = self.rfile.read(length)
+            payload = json.loads(body.decode("utf-8")) if body else {}
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise RequestError("invalid JSON request", 400) from exc
+        if not isinstance(payload, dict):
+            raise RequestError("JSON body must be an object", 400)
+        return payload
+
     def do_GET(self):
-        if self.path.startswith("/api/config"):
-            self.send_json({"features": runtime_features()})
+        parsed_path = urllib.parse.urlsplit(self.path)
+        route = parsed_path.path
+        if route.startswith("/api/") and not self._allow_api():
             return
-        if self.path.startswith("/api/events"):
-            self.send_json({"events": load_events(), "updated": datetime.now(timezone.utc).isoformat()})
+        if route == "/api/config":
+            self.send_json({
+                "features": runtime_features(),
+                "ask": public_market_ask_config(),
+            })
             return
-        if self.path.startswith("/api/markets"):
-            self.send_json(load_markets())
+        if route == "/api/events":
+            self.send_json(load_events_payload())
             return
-        if self.path.startswith("/api/market-history"):
-            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
-            url = query.get("url", [""])[0]
-            asset = {
-                "symbol": query.get("symbol", [""])[0],
-                "group": query.get("group", [""])[0],
-                "marketCap": finite_number(query.get("marketCap", [""])[0]),
-                "value": finite_number(query.get("value", [""])[0]),
-            }
-            self.send_json(load_market_history(url, asset, query.get("range", [""])[0]))
+        if route == "/api/markets":
+            self.send_json(market_summary_payload(load_markets()))
             return
-        if self.path.startswith("/api/translate"):
-            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
-            text = query.get("text", [""])[0]
-            target = query.get("target", ["zh-CN"])[0]
-            ui_language = query.get("ui", ["zh"])[0]
-            context = query.get("context", [""])[0]
-            try:
-                self.send_json(translate_text(text, target, ui_language, context))
-            except Exception:
-                self.send_json({"error": "translation unavailable"}, status=502)
+        if route == "/api/currency-history":
+            query = urllib.parse.parse_qs(parsed_path.query)
+            code = query.get("code", [""])[0].strip().upper()
+            if not re.fullmatch(r"[A-Z0-9]{2,8}", code):
+                self.send_json({"error": "invalid currency"}, status=400)
+                return
+            quote = market_currency_history(code)
+            if not quote:
+                self.send_json({"error": "unknown currency"}, status=404)
+                return
+            self.send_json({"quote": quote})
             return
-        if self.path.startswith("/api/image-file"):
-            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        if route == "/api/market-history":
+            query = urllib.parse.parse_qs(parsed_path.query)
+            asset_id = query.get("id", [""])[0].strip()
+            if not re.fullmatch(r"[A-Za-z0-9._-]{1,80}", asset_id):
+                self.send_json({"error": "invalid market asset"}, status=400)
+                return
+            asset = market_history_asset(asset_id)
+            if not asset:
+                self.send_json({"error": "unknown market asset"}, status=404)
+                return
+            self.send_json(load_market_history(asset.get("historyUrl", ""), asset, query.get("range", [""])[0]))
+            return
+        if route == "/api/image-file":
+            query = urllib.parse.parse_qs(parsed_path.query)
             url = query.get("url", [""])[0]
             self.send_image(url)
             return
-        if self.path.startswith("/api/article-image-file"):
-            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        if route == "/api/article-image-file":
+            query = urllib.parse.parse_qs(parsed_path.query)
             url = query.get("url", [""])[0]
             self.send_article_image(url)
             return
-        if self.path.startswith("/api/image"):
-            query = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
-            url = query.get("url", [""])[0]
-            self.send_json({"imageUrl": article_image_url(url)})
-            return
-        if self.path.startswith("/api/world"):
+        if route == "/api/world":
             geojson = load_world_geojson()
             if geojson:
                 self.send_json(geojson)
             else:
                 self.send_json({"error": "world map unavailable"}, status=503)
             return
+        if route.startswith("/api/"):
+            self.send_json({"error": "not found"}, status=404)
+            return
+        if route in {"", "/"}:
+            self.path = "/index.html"
+            route = "/index.html"
+        if route not in STATIC_FILES:
+            self.send_error(404, "File not found")
+            return
+        self._cache_control = "no-cache"
         super().do_GET()
 
+    def do_HEAD(self):
+        self.send_error(405, "Method not allowed")
+
     def do_POST(self):
-        if self.path.startswith("/api/market-ask"):
+        route = urllib.parse.urlsplit(self.path).path
+        if not self._allow_api():
+            return
+        if route == "/api/translate":
             try:
-                length = min(int(self.headers.get("Content-Length", "0") or 0), 80_000)
-                body = self.rfile.read(length)
-                payload = json.loads(body.decode("utf-8", errors="ignore")) if body else {}
-            except Exception:
-                self.send_json({"error": "bad request"}, status=400)
+                payload = self.read_json_body(16_000)
+            except RequestError as exc:
+                self.send_json({"error": str(exc)}, status=exc.status)
+                return
+            if not SELECTION_TRANSLATION_SEMAPHORE.acquire(blocking=False):
+                self.send_json({"error": "translation service is busy; try again shortly"}, status=429)
+                return
+            try:
+                self.send_json(translate_text(
+                    payload.get("text", ""),
+                    payload.get("target", "zh-CN"),
+                    payload.get("ui", "zh"),
+                    payload.get("context", ""),
+                ))
+            except Exception as exc:
+                LOGGER.info("selection translation unavailable (%s)", exc.__class__.__name__)
+                self.send_json({"error": "translation unavailable"}, status=502)
+            finally:
+                SELECTION_TRANSLATION_SEMAPHORE.release()
+            return
+        if route == "/api/ask-config":
+            try:
+                payload = self.read_json_body(16_000)
+                self.send_json(save_market_ask_config(payload))
+            except RequestError as exc:
+                self.send_json({"error": str(exc)}, status=exc.status)
+            except ValueError as exc:
+                self.send_json({"error": str(exc) or "bad config"}, status=400)
+            except Exception as exc:
+                LOGGER.exception("saving model configuration failed (%s)", exc.__class__.__name__)
+                self.send_json({"error": "could not save ask config"}, status=500)
+            return
+        if route == "/api/market-ask":
+            try:
+                payload = self.read_json_body()
+            except RequestError as exc:
+                self.send_json({"error": str(exc)}, status=exc.status)
+                return
+            if not MARKET_ASK_SEMAPHORE.acquire(blocking=False):
+                self.send_json({"error": "answer service is busy; try again shortly"}, status=429)
                 return
             try:
                 result = answer_market_question(payload)
                 status = int(result.pop("_status", 200)) if isinstance(result, dict) else 200
                 self.send_json(result, status=status)
+            except ValueError as exc:
+                self.send_json({"error": str(exc) or "bad request"}, status=400)
             except Exception as exc:
-                self.send_json({"error": str(exc) or "market ask unavailable"}, status=502)
+                LOGGER.exception("market ask handler failed (%s)", exc.__class__.__name__)
+                self.send_json({"error": "market ask unavailable"}, status=502)
+            finally:
+                MARKET_ASK_SEMAPHORE.release()
             return
         self.send_json({"error": "not found"}, status=404)
 
     def end_headers(self):
-        self.send_header("Cache-Control", "no-store")
+        self.send_header("Cache-Control", getattr(self, "_cache_control", "no-store"))
+        self.send_header(
+            "Content-Security-Policy",
+            "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data: https:; connect-src 'self' https://api.open-meteo.com "
+            "https://en.wikipedia.org https://commons.wikimedia.org; object-src 'none'; "
+            "base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
+        )
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("Referrer-Policy", "no-referrer")
+        self.send_header("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
         super().end_headers()
 
     def log_message(self, fmt, *args):
         return
 
     def send_json(self, payload, status=200):
-        body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        try:
+            body = json.dumps(
+                payload,
+                ensure_ascii=False,
+                allow_nan=False,
+                separators=(",", ":"),
+            ).encode("utf-8")
+        except (TypeError, ValueError):
+            LOGGER.exception("API response serialization failed")
+            body = b'{"error":"response serialization failed"}'
+            status = 500
+        content_encoding = ""
+        if len(body) >= JSON_GZIP_MIN_BYTES and accepts_gzip_encoding(self.headers.get("Accept-Encoding")):
+            compressed = gzip.compress(body, compresslevel=5, mtime=0)
+            if len(compressed) < len(body):
+                body = compressed
+                content_encoding = "gzip"
+        self._cache_control = "no-store"
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
+        if content_encoding:
+            self.send_header("Content-Encoding", content_encoding)
+            self.send_header("Vary", "Accept-Encoding")
         self.send_header("Content-Length", str(len(body)))
-        self.send_header("Cache-Control", "no-store")
         self.end_headers()
-        self.wfile.write(body)
+        try:
+            self.wfile.write(body)
+        except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+            pass
 
     def send_image(self, url):
         image_url = clean_image_url(url)
@@ -864,19 +1361,21 @@ class ConsoleHandler(SimpleHTTPRequestHandler):
             return
         try:
             request = urllib.request.Request(image_url, headers={"User-Agent": "CodexWorldConsole/1.0"})
-            with urllib.request.urlopen(request, timeout=8) as response:
-                content_type = response.headers.get("Content-Type", "image/jpeg").split(";", 1)[0]
-                body = response.read()
-            if not content_type.startswith("image/") or not body:
+            response, body = open_public_request(request, timeout=8, max_bytes=MAX_IMAGE_BYTES)
+            content_type = response.headers.get("Content-Type", "").split(";", 1)[0].strip().lower()
+            if content_type not in SAFE_IMAGE_TYPES or not body:
                 self.send_json({"error": "image unavailable"}, status=404)
                 return
+            self._cache_control = "public, max-age=86400"
             self.send_response(200)
             self.send_header("Content-Type", content_type)
             self.send_header("Content-Length", str(len(body)))
-            self.send_header("Cache-Control", "public, max-age=86400")
             self.end_headers()
             self.wfile.write(body)
-        except Exception:
+        except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+            return
+        except Exception as exc:
+            LOGGER.info("image proxy unavailable (%s)", exc.__class__.__name__)
             self.send_json({"error": "image unavailable"}, status=404)
 
     def send_article_image(self, url):
@@ -887,10 +1386,13 @@ class ConsoleHandler(SimpleHTTPRequestHandler):
         self.send_image(image_url)
 
 
-def fetch_url(url, timeout=6, user_agent="CodexWorldConsole/1.0"):
+def fetch_url(url, timeout=6, user_agent="CodexWorldConsole/1.0", max_bytes=MAX_FETCH_BYTES, public_only=False):
     request = urllib.request.Request(url, headers={"User-Agent": user_agent})
+    if public_only:
+        _response, body = open_public_request(request, timeout=timeout, max_bytes=max_bytes)
+        return body
     with urllib.request.urlopen(request, timeout=timeout) as response:
-        return response.read()
+        return read_limited_response(response, max_bytes)
 
 
 def compact_text(value, limit=1200):
@@ -901,7 +1403,7 @@ def compact_text(value, limit=1200):
 def extract_response_text(payload):
     if not isinstance(payload, dict):
         return ""
-    direct = compact_text(payload.get("output_text"), 4000)
+    direct = str(payload.get("output_text") or "").strip()[:8000]
     if direct:
         return direct
     chunks = []
@@ -914,18 +1416,161 @@ def extract_response_text(payload):
             text = content.get("text")
             if isinstance(text, dict):
                 text = text.get("value")
-            text = compact_text(text, 4000)
+            text = str(text or "").strip()[:8000]
             if text:
                 chunks.append(text)
     return "\n".join(chunks).strip()
 
 
+def extract_response_citations(payload, answer_length):
+    if not isinstance(payload, dict):
+        return []
+    citations = []
+    seen = set()
+    for item in payload.get("output") or []:
+        if not isinstance(item, dict):
+            continue
+        for content in item.get("content") or []:
+            if not isinstance(content, dict):
+                continue
+            for annotation in content.get("annotations") or []:
+                if not isinstance(annotation, dict) or annotation.get("type") != "url_citation":
+                    continue
+                detail = (
+                    annotation.get("url_citation")
+                    if isinstance(annotation.get("url_citation"), dict)
+                    else annotation
+                )
+                url = str(detail.get("url") or "").strip()
+                parsed = urllib.parse.urlparse(url)
+                if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+                    continue
+                try:
+                    start_index = int(detail.get("start_index"))
+                    end_index = int(detail.get("end_index"))
+                except (TypeError, ValueError):
+                    continue
+                if start_index < 0 or end_index <= start_index or start_index >= answer_length:
+                    continue
+                end_index = min(end_index, answer_length)
+                key = (start_index, end_index, url)
+                if key in seen:
+                    continue
+                seen.add(key)
+                citations.append({
+                    "startIndex": start_index,
+                    "endIndex": end_index,
+                    "url": url[:2000],
+                    "title": compact_text(detail.get("title"), 240),
+                })
+                if len(citations) >= 12:
+                    return citations
+    return citations
+
+
+def extract_response_answer_and_citations(payload, limit=8000):
+    if not isinstance(payload, dict):
+        return "", []
+    blocks = []
+    for item in payload.get("output") or []:
+        if not isinstance(item, dict):
+            continue
+        for content in item.get("content") or []:
+            if not isinstance(content, dict):
+                continue
+            text = content.get("text")
+            if isinstance(text, dict):
+                text = text.get("value")
+            if isinstance(text, str) and text:
+                blocks.append((text, content.get("annotations") or []))
+
+    direct = payload.get("output_text")
+    raw_answer = direct if isinstance(direct, str) and direct else "\n".join(text for text, _ in blocks)
+    if not raw_answer:
+        return "", []
+
+    block_offsets = []
+    search_from = 0
+    fallback_offset = 0
+    for text, annotations in blocks:
+        offset = raw_answer.find(text, search_from)
+        if offset < 0:
+            offset = fallback_offset
+        block_offsets.append((offset, text, annotations))
+        search_from = max(search_from, offset + len(text))
+        fallback_offset = offset + len(text) + 1
+
+    leading = len(raw_answer) - len(raw_answer.lstrip())
+    answer = raw_answer.strip()[:limit].rstrip()
+    citations = []
+    seen = set()
+    for offset, _text, annotations in block_offsets:
+        for annotation in annotations:
+            if not isinstance(annotation, dict) or annotation.get("type") != "url_citation":
+                continue
+            detail = annotation.get("url_citation") if isinstance(annotation.get("url_citation"), dict) else annotation
+            url = str(detail.get("url") or "").strip()
+            parsed = urllib.parse.urlsplit(url)
+            if parsed.scheme not in {"http", "https"} or not parsed.netloc:
+                continue
+            try:
+                start_index = offset + int(detail.get("start_index")) - leading
+                end_index = offset + int(detail.get("end_index")) - leading
+            except (TypeError, ValueError):
+                continue
+            if start_index < 0 or end_index <= start_index or start_index >= len(answer):
+                continue
+            end_index = min(end_index, len(answer))
+            key = (start_index, end_index, url)
+            if key in seen:
+                continue
+            seen.add(key)
+            citations.append({
+                "startIndex": start_index,
+                "endIndex": end_index,
+                "url": url[:2000],
+                "title": compact_text(detail.get("title"), 240),
+            })
+            if len(citations) >= 12:
+                return answer, citations
+    return answer, citations
+
+
+def extract_chat_completion_text(payload):
+    if not isinstance(payload, dict):
+        return ""
+    choices = payload.get("choices")
+    if not isinstance(choices, list) or not choices:
+        return ""
+    message = choices[0].get("message") if isinstance(choices[0], dict) else {}
+    content = message.get("content") if isinstance(message, dict) else ""
+    if isinstance(content, str):
+        return content.strip()
+    chunks = []
+    for item in content if isinstance(content, list) else []:
+        if not isinstance(item, dict):
+            continue
+        text = item.get("text")
+        if isinstance(text, dict):
+            text = text.get("value")
+        text = compact_text(text, 4000)
+        if text:
+            chunks.append(text)
+    return "\n".join(chunks).strip()
+
+
 def market_ask_endpoint():
-    return (
+    value = (
         os.environ.get("WORLD_CONSOLE_MARKET_ASK_API_URL")
         or os.environ.get("WORLD_CONSOLE_MCP_API_URL")
         or ""
     ).strip()
+    if not value:
+        return ""
+    try:
+        return normalized_http_url(value, allow_loopback_http=True)
+    except ValueError:
+        return ""
 
 
 def market_ask_api_key():
@@ -936,28 +1581,270 @@ def market_ask_api_key():
     ).strip()
 
 
-def openai_api_key():
-    return (
+def normalize_market_ask_protocol(value):
+    return "chat-completions" if str(value or "").strip().lower() in {
+        "chat",
+        "chat-completions",
+        "chat_completions",
+    } else "responses"
+
+
+def protect_local_secret(value):
+    secret = str(value or "").encode("utf-8")
+    if not secret:
+        return ""
+    if os.name != "nt":
+        return "plain:" + base64.b64encode(secret).decode("ascii")
+
+    import ctypes
+    from ctypes import wintypes
+
+    class DataBlob(ctypes.Structure):
+        _fields_ = [("cbData", wintypes.DWORD), ("pbData", ctypes.POINTER(ctypes.c_ubyte))]
+
+    crypt32 = ctypes.WinDLL("crypt32", use_last_error=True)
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    buffer = ctypes.create_string_buffer(secret)
+    source = DataBlob(len(secret), ctypes.cast(buffer, ctypes.POINTER(ctypes.c_ubyte)))
+    protected = DataBlob()
+    if not crypt32.CryptProtectData(
+        ctypes.byref(source),
+        "Codex World model API key",
+        None,
+        None,
+        None,
+        0x1,  # CRYPTPROTECT_UI_FORBIDDEN
+        ctypes.byref(protected),
+    ):
+        raise OSError(ctypes.get_last_error(), "Windows could not protect the API key")
+    try:
+        payload = ctypes.string_at(protected.pbData, protected.cbData)
+    finally:
+        kernel32.LocalFree(protected.pbData)
+    return "dpapi:" + base64.b64encode(payload).decode("ascii")
+
+
+def unprotect_local_secret(value):
+    stored = str(value or "")
+    if stored.startswith("plain:"):
+        try:
+            return base64.b64decode(stored[6:], validate=True).decode("utf-8")
+        except (ValueError, UnicodeDecodeError):
+            return ""
+    if not stored.startswith("dpapi:") or os.name != "nt":
+        return ""
+
+    import ctypes
+    from ctypes import wintypes
+
+    class DataBlob(ctypes.Structure):
+        _fields_ = [("cbData", wintypes.DWORD), ("pbData", ctypes.POINTER(ctypes.c_ubyte))]
+
+    try:
+        encrypted = base64.b64decode(stored[6:], validate=True)
+    except ValueError:
+        return ""
+    buffer = ctypes.create_string_buffer(encrypted)
+    source = DataBlob(len(encrypted), ctypes.cast(buffer, ctypes.POINTER(ctypes.c_ubyte)))
+    clear = DataBlob()
+    crypt32 = ctypes.WinDLL("crypt32", use_last_error=True)
+    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    if not crypt32.CryptUnprotectData(
+        ctypes.byref(source),
+        None,
+        None,
+        None,
+        None,
+        0x1,  # CRYPTPROTECT_UI_FORBIDDEN
+        ctypes.byref(clear),
+    ):
+        return ""
+    try:
+        return ctypes.string_at(clear.pbData, clear.cbData).decode("utf-8")
+    except UnicodeDecodeError:
+        return ""
+    finally:
+        kernel32.LocalFree(clear.pbData)
+
+
+def stored_market_api_key(config):
+    if not isinstance(config, dict):
+        return ""
+    protected = unprotect_local_secret(config.get("apiKeyProtected"))
+    if protected:
+        return protected
+    return str(config.get("apiKey") or "").strip()
+
+
+def migrate_legacy_source_config():
+    """Copy the pre-0.3.4 source-tree config into the user data directory once."""
+    if CONFIGURED_DATA_DIR or LOCAL_CONFIG.exists():
+        return False
+    legacy_config = APP_DIR / ".world-console.local.json"
+    try:
+        if legacy_config.resolve() == LOCAL_CONFIG.resolve() or not legacy_config.is_file():
+            return False
+        payload = json.loads(legacy_config.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return False
+    if not isinstance(payload, dict):
+        return False
+
+    migrated = dict(payload)
+    if isinstance(payload.get("ask"), dict):
+        ask = dict(payload["ask"])
+        plaintext_key = str(ask.pop("apiKey", "") or "").strip()
+        if plaintext_key:
+            try:
+                ask["apiKeyProtected"] = protect_local_secret(plaintext_key)
+            except OSError:
+                LOGGER.warning("legacy model configuration could not be protected")
+                return False
+        migrated["ask"] = ask
+
+    with LOCAL_CONFIG_LOCK:
+        if LOCAL_CONFIG.exists():
+            return False
+        try:
+            _write_local_config_unlocked(migrated)
+        except OSError:
+            return False
+    return True
+
+
+def market_model_api_config():
+    payload = read_local_config()
+    local = payload.get("ask") if isinstance(payload.get("ask"), dict) else {}
+    environment_names = (
+        "WORLD_CONSOLE_OPENAI_API_KEY",
+        "OPENAI_API_KEY",
+        "WORLD_CONSOLE_OPENAI_BASE_URL",
+        "OPENAI_BASE_URL",
+        "WORLD_CONSOLE_MARKET_ASK_MODEL",
+        "OPENAI_MODEL",
+        "WORLD_CONSOLE_MARKET_ASK_PROTOCOL",
+        "WORLD_CONSOLE_MARKET_ASK_WEB_SEARCH",
+    )
+    managed_by_environment = any(str(os.environ.get(name) or "").strip() for name in environment_names)
+    environment_changes_connection = any(str(os.environ.get(name) or "").strip() for name in (
+        "WORLD_CONSOLE_OPENAI_API_KEY",
+        "OPENAI_API_KEY",
+        "WORLD_CONSOLE_OPENAI_BASE_URL",
+        "OPENAI_BASE_URL",
+    ))
+    # Never send a locally stored credential to an environment-selected endpoint.
+    # Model/protocol/search overrides, however, are safe overlays on the saved connection.
+    source = {} if environment_changes_connection else local
+    explicit_base_url = (
+        os.environ.get("WORLD_CONSOLE_OPENAI_BASE_URL")
+        or os.environ.get("OPENAI_BASE_URL")
+        or str(source.get("baseUrl") or "")
+    ).strip()
+    try:
+        base_url = normalized_http_url(
+            explicit_base_url or "https://api.openai.com/v1",
+            allow_loopback_http=True,
+        )
+    except ValueError:
+        base_url = ""
+    api_key = (
         os.environ.get("WORLD_CONSOLE_OPENAI_API_KEY")
         or os.environ.get("OPENAI_API_KEY")
-        or ""
+        or stored_market_api_key(source)
     ).strip()
+    model = (
+        os.environ.get("WORLD_CONSOLE_MARKET_ASK_MODEL")
+        or os.environ.get("OPENAI_MODEL")
+        or str(source.get("model") or "")
+        or "gpt-5.6-terra"
+    ).strip()
+    protocol = normalize_market_ask_protocol(
+        os.environ.get("WORLD_CONSOLE_MARKET_ASK_PROTOCOL")
+        or source.get("protocol")
+    )
+    environment_web_search = os.environ.get("WORLD_CONSOLE_MARKET_ASK_WEB_SEARCH")
+    web_search = (
+        environment_web_search.strip().lower() in {"1", "true", "yes", "on"}
+        if environment_web_search is not None
+        else source.get("webSearch") is True
+    )
+    hostname = (urllib.parse.urlparse(base_url).hostname or "").lower()
+    needs_api_key = hostname in {"api.openai.com", "openai.com"}
+    configured = bool(base_url and model and (api_key or (explicit_base_url and not needs_api_key)))
+    return {
+        "configured": configured,
+        "baseUrl": base_url,
+        "model": model,
+        "protocol": protocol,
+        "webSearch": web_search,
+        "apiKey": api_key,
+        "hasApiKey": bool(api_key),
+        "managedByEnvironment": managed_by_environment,
+    }
+
+
+def public_market_ask_config():
+    config = market_model_api_config()
+    return {
+        "configured": config["configured"] or bool(market_ask_endpoint()) or (
+            use_codex_market_ask() and bool(codex_executable_path())
+        ),
+        "baseUrl": config["baseUrl"],
+        "model": config["model"],
+        "protocol": config["protocol"],
+        "webSearch": config["webSearch"],
+        "hasApiKey": config["hasApiKey"],
+        "managedByEnvironment": config["managedByEnvironment"],
+    }
+
+
+def save_market_ask_config(payload):
+    if not isinstance(payload, dict):
+        raise ValueError("bad config")
+    base_url = normalized_http_url(payload.get("baseUrl"), allow_loopback_http=True)
+    model = compact_text(payload.get("model"), 120)
+    protocol = normalize_market_ask_protocol(payload.get("protocol"))
+    if not base_url:
+        raise ValueError("base URL required")
+    if not model:
+        raise ValueError("model required")
+
+    with LOCAL_CONFIG_LOCK:
+        config = _read_local_config_unlocked()
+        existing = config.get("ask") if isinstance(config.get("ask"), dict) else {}
+        ask = {
+            "baseUrl": base_url,
+            "model": model,
+            "protocol": protocol,
+            "webSearch": (
+                payload["webSearch"]
+                if isinstance(payload.get("webSearch"), bool)
+                else existing.get("webSearch") is True
+            ),
+        }
+        submitted_api_key = payload.get("apiKey")
+        endpoint_changed = str(existing.get("baseUrl") or "").rstrip("/") != base_url
+        if isinstance(submitted_api_key, str) and submitted_api_key.strip():
+            ask["apiKeyProtected"] = protect_local_secret(submitted_api_key.strip()[:2000])
+        elif payload.get("clearApiKey") is not True and not endpoint_changed:
+            existing_api_key = stored_market_api_key(existing)
+            if existing_api_key:
+                ask["apiKeyProtected"] = protect_local_secret(existing_api_key)
+        config["ask"] = ask
+        _write_local_config_unlocked(config)
+    return public_market_ask_config()
+
+
+def openai_api_key():
+    return market_model_api_config()["apiKey"]
 
 
 def openai_base_url():
-    return (
-        os.environ.get("WORLD_CONSOLE_OPENAI_BASE_URL")
-        or os.environ.get("OPENAI_BASE_URL")
-        or "https://api.openai.com/v1"
-    ).strip().rstrip("/")
+    return market_model_api_config()["baseUrl"]
 
 
 def openai_market_model():
-    return (
-        os.environ.get("WORLD_CONSOLE_MARKET_ASK_MODEL")
-        or os.environ.get("OPENAI_MODEL")
-        or "gpt-5-mini"
-    ).strip()
+    return market_model_api_config()["model"]
 
 
 def normalize_market_ask_mode(value):
@@ -1041,19 +1928,12 @@ def enrich_market_context_for_thinking(question, context):
 
 
 def market_answer_limit(mode="think"):
-    return 520 if normalize_market_ask_mode(mode) == "fast" else 1100
+    return 1200 if normalize_market_ask_mode(mode) == "fast" else 3600
 
 
 def clean_market_answer(answer, limit=900):
-    text = compact_text(answer, limit)
-    if not text:
-        return ""
-    text = re.sub(r"^(只能|只可|目前只能|当前只能)[^。；\n]{0,90}[。；]\s*", "", text)
-    text = re.sub(r"没有新闻、财报或行业催化信息[，,、]?", "", text)
-    text = text.replace("无法确认具体上涨原因", "")
-    text = text.replace("无法确认具体下跌原因", "")
-    text = text.replace("无法确认具体原因", "")
-    return re.sub(r"\s+", " ", text).strip(" ，,;\n")
+    text = str(answer or "").replace("\r\n", "\n").replace("\r", "\n").strip()
+    return text[:limit].rstrip()
 
 
 def call_market_ask_endpoint(question, context, mode="think"):
@@ -1074,8 +1954,7 @@ def call_market_ask_endpoint(question, context, mode="think"):
         headers["Authorization"] = f"Bearer {api_key}"
         headers["X-API-Key"] = api_key
     request = urllib.request.Request(endpoint, data=body, headers=headers, method="POST")
-    with urllib.request.urlopen(request, timeout=14 if mode == "fast" else 24) as response:
-        payload = json.loads(response.read().decode("utf-8", errors="ignore"))
+    payload = open_json_request(request, timeout=14 if mode == "fast" else 24)
     answer = compact_text(
         payload.get("answer") or payload.get("response") or payload.get("text") or payload.get("result"),
         4000,
@@ -1087,74 +1966,108 @@ def call_market_ask_endpoint(question, context, mode="think"):
 
 
 def call_openai_market_ask(question, context, mode="think"):
-    api_key = openai_api_key()
-    if not api_key:
+    config = market_model_api_config()
+    if not config["configured"]:
         return None
     instructions = (
-        "You are a sharp market analysis assistant inside a local market console. "
-        "Use the selected asset, currency pair, marketSnapshot, semiconductorPeers, and research snippets when present. "
-        "Do not ask clarifying questions; infer whether the user asks about the asset, sector, currency pair, rank, or chart. "
-        "When explaining a move, connect the visible price move to sector breadth, valuation/positioning, macro pressure, catalysts, and what to watch next. "
-        "If the question is about semiconductor or AI-chip weakness, explicitly consider AI valuation/profit taking, earnings expectations, rates/jobs pressure, and supply-chain contagion when supported by context. "
-        "Avoid generic phrases like 'repricing' unless you explain what is being repriced. "
-        "Do not expose internal uncertainty phrases such as 'only from current data' or 'cannot confirm'. "
-        "If evidence is indirect, say '可能' once and then give the concrete driver. Do not invent live prices, dates, or events not present in context. "
-        "Answer in Chinese unless the user asks for another language. "
-        "Fast mode: one compact paragraph, usually 3-5 sentences. Think mode: 4-7 concise sentences or short bullets, with a clear conclusion. "
-        "This is informational analysis, not financial advice."
+        "You are the general-purpose assistant inside Codex World. "
+        "Answer the user's natural-language question directly, like a capable conversational assistant. "
+        "The selected Codex World state is supplied as JSON and may contain an asset, currency pair, nearby rankings, "
+        "a broader market universe, and recent research headlines. Use only the parts relevant to the question. "
+        "Never infer the user's intent from the mere presence of a field, peer, mover, or keyword list in that JSON. "
+        "Do not turn a company-description question into price-move analysis, and do not force every answer into a market narrative. "
+        "When the question is time-sensitive, distinguish facts present in the supplied context from general background knowledge. "
+        "Do not invent live prices, dates, news, filings, or causes. If evidence is insufficient, state the missing evidence plainly. "
+        "Use the language of the user's question. Fast mode should be concise; Think mode may reason more fully. "
+        "Market-related answers are informational, not financial advice."
     )
-    body = {
-        "model": openai_market_model(),
-        "instructions": instructions,
-        "input": (
-            "User question:\n"
-            f"{question}\n\n"
-            f"Mode: {mode}\n\n"
-            "Selected market context JSON:\n"
-            f"{json.dumps(context, ensure_ascii=False, indent=2)}"
-        ),
-        "max_output_tokens": 1100 if mode == "think" else 650,
+    user_input = (
+        f"User question:\n{question}\n\n"
+        f"Mode: {mode}\n\n"
+        "Selected Codex World context JSON:\n"
+        f"{json.dumps(context, ensure_ascii=False, indent=2)}"
+    )
+    protocol = config["protocol"]
+    hostname = (urllib.parse.urlparse(config["baseUrl"]).hostname or "").lower()
+    if protocol == "chat-completions":
+        path = "/chat/completions"
+        body = {
+            "model": config["model"],
+            "messages": [
+                {"role": "system", "content": instructions},
+                {"role": "user", "content": user_input},
+            ],
+        }
+        body[
+            "max_completion_tokens" if hostname in {"api.openai.com", "openai.com"} else "max_tokens"
+        ] = 1800 if mode == "think" else 900
+    else:
+        path = "/responses"
+        body = {
+            "model": config["model"],
+            "instructions": instructions,
+            "input": user_input,
+            "max_output_tokens": 1800 if mode == "think" else 900,
+        }
+        if mode == "think" and config.get("webSearch") is True:
+            body["tools"] = [{"type": "web_search"}]
+        reasoning_setting = os.environ.get("WORLD_CONSOLE_MARKET_ASK_REASONING")
+        reasoning_effort = (
+            reasoning_setting.strip()
+            if reasoning_setting is not None
+            else ("low" if mode == "think" else "none")
+            if hostname in {"api.openai.com", "openai.com"}
+            else ""
+        )
+        if reasoning_effort:
+            body["reasoning"] = {"effort": reasoning_effort}
+    headers = {
+        "Content-Type": "application/json; charset=utf-8",
+        "User-Agent": "CodexWorldConsole/1.0",
     }
-    reasoning_effort = os.environ.get("WORLD_CONSOLE_MARKET_ASK_REASONING", "low").strip()
-    if mode == "fast":
-        reasoning_effort = os.environ.get("WORLD_CONSOLE_MARKET_ASK_FAST_REASONING", "minimal").strip()
-    if reasoning_effort:
-        body["reasoning"] = {"effort": reasoning_effort}
+    if config["apiKey"]:
+        headers["Authorization"] = f"Bearer {config['apiKey']}"
     request = urllib.request.Request(
-        f"{openai_base_url()}/responses",
+        f"{config['baseUrl']}{path}",
         data=json.dumps(body, ensure_ascii=False).encode("utf-8"),
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json; charset=utf-8",
-            "User-Agent": "CodexWorldConsole/1.0",
-        },
+        headers=headers,
         method="POST",
     )
-    with urllib.request.urlopen(request, timeout=14 if mode == "fast" else 30) as response:
-        payload = json.loads(response.read().decode("utf-8", errors="ignore"))
-    answer = clean_market_answer(extract_response_text(payload), market_answer_limit(mode))
-    return {"answer": answer, "source": f"OpenAI · {openai_market_model()}"} if answer else None
+    payload = open_json_request(request, timeout=25 if mode == "fast" else 60)
+    if protocol == "chat-completions":
+        answer = clean_market_answer(extract_chat_completion_text(payload), market_answer_limit(mode))
+        citations = []
+    else:
+        answer, citations = extract_response_answer_and_citations(payload, market_answer_limit(mode))
+    if not answer:
+        return None
+    result = {"answer": answer, "source": f"Model API · {config['model']}"}
+    if citations:
+        result["citations"] = citations
+    return result
 
 
 def call_codex_market_ask(question, context, mode="think"):
     executable = codex_executable_path()
     if not executable:
         return None
-    output_path = DATA_DIR / "cache" / "market_ask_last.txt"
-    output_path.parent.mkdir(exist_ok=True)
-    try:
-        if output_path.exists():
-            output_path.unlink()
-    except OSError:
-        pass
+    output_directory = DATA_DIR / "cache"
+    output_directory.mkdir(parents=True, exist_ok=True)
+    descriptor, output_name = tempfile.mkstemp(
+        prefix="market-ask-",
+        suffix=".txt",
+        dir=str(output_directory),
+    )
+    os.close(descriptor)
+    output_path = Path(output_name)
 
     prompt = (
-        "你是 WorldConsole 里的市场问答助手。"
-        "你只能基于用户问题和给定 JSON 上下文回答；不要调用工具，不要修改文件，不要编造实时数据、新闻或日期。"
-        "上下文可能包含 asset、currency、marketSnapshot、semiconductorPeers、research。"
-        "如果用户问涨跌原因，要把当前资产、同板块广度、估值/仓位、宏观压力、直接催化和后续观察点串起来。"
-        "不要只说“重新定价”，除非你解释到底在重估什么。"
-        "请用中文，直接回答。\n\n"
+        "你是 Codex World 里的通用问答助手，要像成熟的对话模型一样直接理解并回答用户的自然语言问题。"
+        "给定 JSON 是当前界面上下文，可能包含选中资产、汇率、附近排名、完整市场列表和研究标题；只使用与问题相关的字段。"
+        "不要因为 JSON 里出现某个同行、涨跌榜或字段，就擅自猜测用户在问涨跌原因。"
+        "公司介绍就回答公司介绍，行情问题才分析行情；不要把所有回答都套成市场分析。"
+        "不要调用工具，不要修改文件，不要编造上下文中不存在的实时价格、日期、新闻或事件。"
+        "如果证据不足，就明确指出缺少哪类信息。请使用用户提问的语言直接回答。\n\n"
         f"用户问题：{question}\n\n"
         "当前选中上下文 JSON：\n"
         f"{json.dumps(context, ensure_ascii=False, indent=2)}"
@@ -1162,10 +2075,8 @@ def call_codex_market_ask(question, context, mode="think"):
     prompt = (
         prompt
         + "\n\n"
-        + f"\u91cd\u8981\uff1a\u6a21\u5f0f\u662f {mode}\u3002\u4f60\u8981\u81ea\u5df1\u5224\u65ad\u7528\u6237\u95ee\u7684\u662f\u8d44\u4ea7\u3001\u6c47\u7387\u3001\u6392\u540d\u8fd8\u662f\u8d70\u52bf\uff0c\u4e0d\u8981\u628a\u5224\u65ad\u8fc7\u7a0b\u5199\u51fa\u6765\u3002"
-        + "\u4e0d\u8981\u5199\u201c\u53ea\u80fd\u4ece\u5f53\u524d\u6570\u636e\u201d\u3001\u201c\u65e0\u6cd5\u786e\u8ba4\u201d\u8fd9\u7c7b\u5185\u90e8\u9650\u5236\u53e5\u3002"
-        + "\u8bc1\u636e\u95f4\u63a5\u65f6\u7528\u201c\u53ef\u80fd\u201d\uff0c\u7136\u540e\u7ed9\u51fa\u5177\u4f53\u63a8\u65ad\u3002"
-        + ("\u56de\u7b54\u9650 500 \u4e2a\u4e2d\u6587\u5b57\u7b26\u3002" if mode == "fast" else "\u56de\u7b54\u53ef\u4ee5\u7528 5-8 \u53e5\uff0c\u628a\u56e0\u679c\u94fe\u8bb2\u5b8c\u6574\u3002")
+        + f"当前模式是 {mode}。"
+        + ("回答要简洁，通常一个短段落。" if mode == "fast" else "可以更完整地解释，但先给出直接答案。")
     )
     env = os.environ.copy()
     env["CODEX_HOME"] = codex_home_path()
@@ -1187,285 +2098,51 @@ def call_codex_market_ask(question, context, mode="think"):
         str(output_path),
         "-",
     ]
-    completed = subprocess.run(
-        command,
-        input=prompt,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        cwd=str(APP_DIR),
-        env=env,
-        timeout=28 if mode == "fast" else 75,
-        creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
-    )
-    answer = ""
     try:
-        if output_path.exists():
-            answer = clean_market_answer(output_path.read_text(encoding="utf-8", errors="replace"), 4000)
-    except OSError:
         answer = ""
-    if not answer:
-        lines = [
-            line.strip()
-            for line in (completed.stdout or "").splitlines()
-            if line.strip()
-            and not line.startswith("OpenAI Codex")
-            and not line.startswith("--------")
-            and not line.startswith("workdir:")
-            and not line.startswith("model:")
-            and not line.startswith("provider:")
-            and not line.startswith("approval:")
-            and not line.startswith("sandbox:")
-            and not line.startswith("reasoning")
-            and not line.startswith("session id:")
-            and not line.startswith("tokens used")
-            and not re.match(r"^\d{4}-\d{2}-\d{2}T", line)
-        ]
-        answer = clean_market_answer(lines[-1] if lines else "", 4000)
-    if completed.returncode == 0 and answer:
-        return {"answer": answer, "source": "Local Codex"}
-    return None
-
-
-def finite_float(value):
-    try:
-        number = float(value)
-    except (TypeError, ValueError):
+        completed = subprocess.run(
+            command,
+            input=prompt,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            cwd=str(APP_DIR),
+            env=env,
+            timeout=28 if mode == "fast" else 60,
+            creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0,
+        )
+        try:
+            answer = clean_market_answer(output_path.read_text(encoding="utf-8", errors="replace"), 4000)
+        except OSError:
+            answer = ""
+        if not answer:
+            lines = [
+                line.strip()
+                for line in (completed.stdout or "").splitlines()
+                if line.strip()
+                and not line.startswith("OpenAI Codex")
+                and not line.startswith("--------")
+                and not line.startswith("workdir:")
+                and not line.startswith("model:")
+                and not line.startswith("provider:")
+                and not line.startswith("approval:")
+                and not line.startswith("sandbox:")
+                and not line.startswith("reasoning")
+                and not line.startswith("session id:")
+                and not line.startswith("tokens used")
+                and not re.match(r"^\d{4}-\d{2}-\d{2}T", line)
+            ]
+            answer = clean_market_answer(lines[-1] if lines else "", 4000)
+        if completed.returncode == 0 and answer:
+            return {"answer": answer, "source": "Local Codex"}
         return None
-    if number != number or abs(number) == float("inf"):
-        return None
-    return number
-
-
-def market_context_value(context, *keys):
-    data = context
-    for key in keys:
-        if not isinstance(data, dict):
-            return None
-        data = data.get(key)
-    return data
-
-
-def market_context_dict(context, *keys):
-    data = market_context_value(context, *keys)
-    return data if isinstance(data, dict) else {}
-
-
-def market_context_list(context, *keys):
-    data = market_context_value(context, *keys)
-    return data if isinstance(data, list) else []
-
-
-def market_item_name(item):
-    if not isinstance(item, dict):
-        return ""
-    return compact_text(item.get("name") or item.get("symbol") or item.get("id"), 80)
-
-
-def market_item_symbol(item):
-    if not isinstance(item, dict):
-        return ""
-    return compact_text(item.get("symbol"), 32).upper()
-
-
-def market_item_pct(item):
-    if not isinstance(item, dict):
-        return None
-    pct = finite_float(item.get("changePct"))
-    if pct is not None:
-        return pct
-    move = compact_text(item.get("move"), 40)
-    match = re.search(r"[-+]?\d+(?:\.\d+)?", move)
-    return finite_float(match.group(0)) if match else None
-
-
-def market_item_label(item, include_rank=False):
-    name = market_item_name(item)
-    if not name:
-        return ""
-    pct = market_item_pct(item)
-    rank = item.get("rank") if isinstance(item, dict) else None
-    prefix = f"#{rank} " if include_rank and rank else ""
-    if pct is None:
-        return f"{prefix}{name}"
-    return f"{prefix}{name} {pct:+.2f}%"
-
-
-def format_market_item_list(items, limit=5, include_rank=False):
-    labels = []
-    for item in items:
-        label = market_item_label(item, include_rank=include_rank)
-        if label:
-            labels.append(label)
-        if len(labels) >= limit:
-            break
-    return "、".join(labels)
-
-
-def compact_money(value):
-    number = finite_float(value)
-    if number is None:
-        return ""
-    absolute = abs(number)
-    if absolute >= 1_000_000_000_000:
-        return f"${number / 1_000_000_000_000:.2f}T"
-    if absolute >= 1_000_000_000:
-        return f"${number / 1_000_000_000:.2f}B"
-    if absolute >= 1_000_000:
-        return f"${number / 1_000_000:.2f}M"
-    return f"${number:,.2f}"
-
-
-def research_headlines(context, limit=3):
-    items = market_context_list(context, "research", "items")
-    titles = []
-    for item in items:
-        title = compact_text(item.get("title") if isinstance(item, dict) else item, 110)
-        if title:
-            titles.append(title)
-        if len(titles) >= limit:
-            break
-    return titles
-
-
-SEMICONDUCTOR_QUERY_RE = re.compile(
-    r"半导体|半導體|芯片|晶片|AI\s*芯|HBM|SOX|台股|台积电|台積電|联发科|聯發科|"
-    r"semiconductor|chip|chips|broadcom|博通|nvidia|英伟达|英偉達|amd|micron|美光|"
-    r"marvell|tsmc|asml|hynix|海力士|qualcomm|高通|intel|英特尔|英特爾",
-    re.IGNORECASE,
-)
-
-
-def is_semiconductor_question(question, context):
-    asset = market_context_dict(context, "asset")
-    text = " ".join([
-        compact_text(question, 300),
-        market_item_name(asset),
-        market_item_symbol(asset),
-        " ".join(market_item_symbol(item) for item in market_context_list(context, "semiconductorPeers")[:8]),
-    ])
-    return bool(SEMICONDUCTOR_QUERY_RE.search(text))
-
-
-def is_taiwan_supply_chain_question(question, context):
-    asset = market_context_dict(context, "asset")
-    text = " ".join([compact_text(question, 300), market_item_name(asset), market_item_symbol(asset)])
-    return bool(re.search(r"台股|台湾|臺灣|台积|台積|联发科|聯發科|TSMC|MediaTek|Hynix|海力士", text, re.IGNORECASE))
-
-
-def local_semiconductor_answer(question, context):
-    asset = market_context_dict(context, "asset")
-    selected = market_item_label(asset)
-    peers = market_context_list(context, "semiconductorPeers")
-    peer_decliners = [item for item in peers if (market_item_pct(item) or 0) < 0]
-    peer_gainers = [item for item in peers if (market_item_pct(item) or 0) > 0]
-    decliner_line = format_market_item_list(peer_decliners, limit=6)
-    gainer_line = format_market_item_list(peer_gainers, limit=4)
-    titles = research_headlines(context, limit=2)
-    question_blob = f"{question} {market_item_name(asset)} {market_item_symbol(asset)}"
-    mentions_broadcom = bool(re.search(r"broadcom|博通|AVGO", question_blob, re.IGNORECASE))
-
-    lines = []
-    if selected:
-        lines.append(f"这不像 {selected} 单独出问题，更像半导体/AI 芯片链条一起降温。")
-    else:
-        lines.append("这更像半导体/AI 芯片链条的集中降温，不是单一公司的孤立波动。")
-    if decliner_line:
-        lines.append(f"同屏里 {decliner_line} 都在跌，说明资金先砍高 beta、涨幅大的 AI/芯片仓位。")
-    elif gainer_line:
-        lines.append(f"同屏半导体并非全跌，{gainer_line} 仍然上涨，所以更像局部仓位切换，而不是行业基本面同时崩掉。")
-    if mentions_broadcom:
-        lines.append("Broadcom 这类龙头的财报/指引只要没有继续大幅抬高 AI 预期，市场就容易按“高预期落空、利多出尽”处理。")
-    else:
-        lines.append("核心逻辑通常是 AI 芯片交易太拥挤：需求故事还在，但股价和估值先跑得太快，任何不够惊艳的财报或指引都会触发获利回吐。")
-    if titles:
-        lines.append(f"已抓到的相关标题里，{titles[0]}，这类消息会放大市场对增长节奏和估值的敏感度。")
-    else:
-        lines.append("宏观上如果同时遇到强就业、利率上行或降息推迟预期，高估值科技股会被压估值，半导体指数通常反应更剧烈。")
-    if is_taiwan_supply_chain_question(question, context):
-        lines.append("台积电、联发科、海力士这类供应链跟跌，更多是美股 AI 链条估值修正传导，不等于台湾公司基本面突然变差。")
-    else:
-        lines.append("全球供应链会被一起带下来，是因为资金把 GPU、HBM、晶圆代工、网络芯片和服务器链条当作同一个 AI trade 处理。")
-    lines.append("所以当前更像 correction/估值重估；后面真正要警惕的是 AI 服务器订单、HBM 需求、云厂商资本开支如果连续下修，那才可能从回调变成趋势反转。")
-    return clean_market_answer(" ".join(lines), 1100)
-
-
-def local_currency_answer(question, context):
-    currency = market_context_dict(context, "currency")
-    pair = compact_text(currency.get("pair"), 80)
-    move = compact_text(currency.get("move"), 40)
-    anchor = market_context_dict(currency, "anchor")
-    quote = market_context_dict(currency, "quote")
-    if not pair:
-        return ""
-    anchor_name = compact_text(anchor.get("name") or anchor.get("code"), 60)
-    quote_name = compact_text(quote.get("name") or quote.get("code"), 60)
-    return clean_market_answer(
-        f"{pair} 当前变动 {move or '接近持平'}。这类汇率问题重点看两边相对强弱："
-        f"{anchor_name} 是基准，{quote_name} 是报价；如果图表上行，表示同一单位 {anchor.get('code') or '基准货币'} 能换到更多 {quote.get('code') or '报价货币'}。"
-        "短线原因通常来自利率预期、风险偏好和美元流动性，长期再看通胀差、贸易和央行政策。",
-        760,
-    )
-
-
-def local_asset_answer(question, context):
-    asset = market_context_dict(context, "asset")
-    name = market_item_name(asset)
-    if not name:
-        return ""
-    symbol = market_item_symbol(asset)
-    pct = market_item_pct(asset)
-    move = compact_text(asset.get("move"), 40)
-    rank = asset.get("rank")
-    cap = compact_money(asset.get("marketCap"))
-    titles = research_headlines(context, limit=2)
-    nearby = market_context_list(context, "marketSnapshot", "nearby")
-    decliners = market_context_list(context, "marketSnapshot", "decliners")
-    gainers = market_context_list(context, "marketSnapshot", "gainers")
-    direction = "上涨" if pct is not None and pct > 0 else "下跌" if pct is not None and pct < 0 else "波动"
-    facts = [name]
-    if symbol and symbol != name.upper():
-        facts.append(symbol)
-    if rank:
-        facts.append(f"排名 #{rank}")
-    if cap:
-        facts.append(f"市值 {cap}")
-    if move:
-        facts.append(f"当前 {move}")
-
-    lines = [f"{'，'.join(facts)}。"]
-    if titles:
-        lines.append(f"直接消息面先看：{titles[0]}。这会影响市场对它短期增长、估值或风险折价的判断。")
-    strongest_same_side = [item for item in (decliners if pct is not None and pct < 0 else gainers) if market_item_name(item) != name]
-    same_side_line = format_market_item_list(strongest_same_side, limit=4)
-    nearby_line = format_market_item_list(nearby, limit=4, include_rank=True)
-    if same_side_line:
-        lines.append(f"从同屏涨跌看，{same_side_line} 也在同方向移动，说明这不一定只是单家公司事件，可能有板块或风格资金在一起切换。")
-    elif nearby_line:
-        lines.append(f"它附近排名的参照是 {nearby_line}，如果只有它明显异动，就更偏公司自身消息；如果一起动，就更偏板块因素。")
-    if pct is not None:
-        if abs(pct) >= 5:
-            lines.append(f"{abs(pct):.2f}% 的幅度已经不是普通噪音，通常意味着预期、仓位或消息面至少有一项被明显重估。")
-        else:
-            lines.append(f"这个幅度更像短线情绪和仓位调整，除非后续新闻、成交量或指引继续确认，否则先不要把它直接等同于基本面反转。")
-    lines.append(f"结论：这次{direction}要先分清是公司催化、板块共振还是宏观估值压力；现在的屏幕证据更适合把它当作“需要继续确认的市场定价变化”。")
-    return clean_market_answer(" ".join(lines), 950)
-
-
-def local_market_answer(question, context):
-    if not isinstance(context, dict):
-        return "没有足够的市场上下文。"
-    if is_semiconductor_question(question, context):
-        return local_semiconductor_answer(question, context)
-    asset_answer = local_asset_answer(question, context)
-    if asset_answer:
-        return asset_answer
-    currency_answer = local_currency_answer(question, context)
-    if currency_answer:
-        return currency_answer
-    return "没有足够的市场上下文。"
+    finally:
+        try:
+            output_path.unlink(missing_ok=True)
+        except OSError:
+            pass
 
 
 def answer_market_question(payload):
@@ -1476,31 +2153,52 @@ def answer_market_question(payload):
     mode = normalize_market_ask_mode(payload.get("mode"))
     if not question:
         raise ValueError("question required")
-    if mode == "fast":
-        for caller in (call_market_ask_endpoint, call_openai_market_ask):
-            try:
-                result = caller(question, context, mode)
-            except Exception:
-                result = None
-            if result and result.get("answer"):
-                result["answer"] = clean_market_answer(result["answer"], market_answer_limit(mode))
-                result["mode"] = mode
-                return result
-        return {"answer": local_market_answer(question, context), "source": "Fast", "mode": mode}
-    context = enrich_market_context_for_thinking(question, context)
-    callers = [call_market_ask_endpoint, call_openai_market_ask]
-    if use_codex_market_ask():
+    if mode == "think":
+        context = enrich_market_context_for_thinking(question, context)
+
+    callers = []
+    if market_ask_endpoint():
+        callers.append(call_market_ask_endpoint)
+    if market_model_api_config()["configured"]:
+        callers.append(call_openai_market_ask)
+    if use_codex_market_ask() and codex_executable_path():
         callers.append(call_codex_market_ask)
+
+    use_chinese = compact_text(context.get("language"), 16).lower().startswith("zh")
+    if not callers:
+        return {
+            "error": "问答模型尚未配置，请先打开 API 设置。" if use_chinese else "No answer model is configured. Open API settings first.",
+            "code": "ask_not_configured",
+            "mode": mode,
+            "_status": 503,
+        }
+
+    errors = []
     for caller in callers:
         try:
             result = caller(question, context, mode)
-        except Exception:
+        except urllib.error.HTTPError as exc:
+            errors.append(f"HTTP {exc.code}")
+            LOGGER.info("market answer provider %s returned HTTP %s", caller.__name__, exc.code)
+            result = None
+        except Exception as exc:
+            errors.append(compact_text(str(exc), 160) or exc.__class__.__name__)
+            LOGGER.info("market answer provider %s failed (%s)", caller.__name__, exc.__class__.__name__)
             result = None
         if result and result.get("answer"):
             result["answer"] = clean_market_answer(result["answer"], market_answer_limit(mode))
             result["mode"] = mode
             return result
-    return {"answer": local_market_answer(question, context), "source": "Local", "mode": mode}
+    detail = errors[-1] if errors and re.fullmatch(r"HTTP \d{3}", errors[-1]) else ""
+    message = "模型接口调用失败" if use_chinese else "The model API request failed"
+    if detail:
+        message = f"{message}：{detail}" if use_chinese else f"{message}: {detail}"
+    return {
+        "error": message,
+        "code": "ask_failed",
+        "mode": mode,
+        "_status": 502,
+    }
 
 
 def parse_translation_response(payload):
@@ -1574,8 +2272,7 @@ def internal_translate_text(text, target="zh-CN", context="", timeout=1.15):
 
     try:
         request = urllib.request.Request(endpoint, data=body, headers=headers, method="POST")
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            payload = json.loads(response.read().decode("utf-8", errors="ignore"))
+        payload = open_json_request(request, timeout, MAX_TRANSLATION_RESPONSE_BYTES)
         translated = parse_translation_response(payload)
         explanation = re.sub(r"\s+", " ", str(payload.get("explanation") or payload.get("reason") or "")).strip() if isinstance(payload, dict) else ""
         if translated:
@@ -1594,8 +2291,7 @@ def internal_translate_text(text, target="zh-CN", context="", timeout=1.15):
         query = urllib.parse.urlencode({"text": text, "q": text, "target": target, "source": "auto"})
         separator = "&" if "?" in endpoint else "?"
         request = urllib.request.Request(endpoint + separator + query, headers={"User-Agent": "CodexWorldConsole/1.0"})
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            payload = json.loads(response.read().decode("utf-8", errors="ignore"))
+        payload = open_json_request(request, timeout, MAX_TRANSLATION_RESPONSE_BYTES)
         translated = parse_translation_response(payload)
         if translated:
             return {
@@ -1696,8 +2392,7 @@ def google_cloud_translate_text(text, target="zh-CN", timeout=2.8):
         method="POST",
     )
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
-            payload = json.loads(response.read().decode("utf-8"))
+        payload = open_json_request(request, timeout, MAX_TRANSLATION_RESPONSE_BYTES)
         rows = payload.get("data", {}).get("translations", []) if isinstance(payload, dict) else []
         first = rows[0] if rows else {}
         translated = html.unescape(str(first.get("translatedText") or "")).strip()
@@ -2045,20 +2740,24 @@ def item_image_url(item, raw_summary=""):
 
 
 def load_image_cache():
-    try:
-        if IMAGE_CACHE.exists():
-            return json.loads(IMAGE_CACHE.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        pass
+    with IMAGE_CACHE_LOCK:
+        try:
+            if IMAGE_CACHE.exists():
+                payload = json.loads(IMAGE_CACHE.read_text(encoding="utf-8"))
+                return payload if isinstance(payload, dict) else {}
+        except (OSError, json.JSONDecodeError):
+            pass
     return {}
 
 
 def save_image_cache(cache):
-    try:
-        IMAGE_CACHE.parent.mkdir(exist_ok=True)
-        IMAGE_CACHE.write_text(json.dumps(cache, ensure_ascii=False, indent=2), encoding="utf-8")
-    except OSError:
-        pass
+    if not isinstance(cache, dict):
+        return
+    with IMAGE_CACHE_LOCK:
+        try:
+            atomic_write_text(IMAGE_CACHE, json.dumps(cache, ensure_ascii=False, indent=2))
+        except OSError:
+            pass
 
 
 def extract_article_image(html_text, base_url):
@@ -2078,22 +2777,50 @@ def extract_article_image(html_text, base_url):
 
 def article_image_url(url):
     url = clean_image_url(url)
-    if not url:
+    if not url or not is_public_http_url(url):
         return ""
 
     cache = load_image_cache()
-    cached = cache.get(url)
+    cached = cache.get(url) if url in cache else None
     if isinstance(cached, str):
-        return cached
+        if not cached or is_public_http_url(cached):
+            return cached
 
+    with IMAGE_CACHE_LOCK:
+        in_progress = IMAGE_FETCH_IN_PROGRESS.get(url)
+        if in_progress is None:
+            in_progress = threading.Event()
+            IMAGE_FETCH_IN_PROGRESS[url] = in_progress
+            is_fetcher = True
+        else:
+            is_fetcher = False
+
+    if not is_fetcher:
+        in_progress.wait(timeout=7)
+        cached = load_image_cache().get(url)
+        return cached if isinstance(cached, str) and (not cached or is_public_http_url(cached)) else ""
+
+    image_url = ""
     try:
-        html_text = fetch_url(url, timeout=5).decode("utf-8", errors="ignore")
+        html_text = fetch_url(
+            url,
+            timeout=5,
+            max_bytes=2 * 1024 * 1024,
+            public_only=True,
+        ).decode("utf-8", errors="ignore")
         image_url = extract_article_image(html_text, url)
+        if image_url and not is_public_http_url(image_url):
+            image_url = ""
     except Exception:
         image_url = ""
-
-    cache[url] = image_url
-    save_image_cache(cache)
+    finally:
+        with IMAGE_CACHE_LOCK:
+            latest = load_image_cache()
+            latest[url] = image_url
+            save_image_cache(latest)
+            completed = IMAGE_FETCH_IN_PROGRESS.pop(url, None)
+            if completed is not None:
+                completed.set()
     return image_url
 
 
@@ -2353,84 +3080,189 @@ def has_enough_market_fill(assets):
     )
 
 
-def market_cache_payload(allow_stale=False):
+def market_cache_file_signature():
     try:
-        if not MARKET_CACHE.exists():
+        stat = MARKET_CACHE.stat()
+    except OSError:
+        return None
+    return stat.st_mtime_ns, stat.st_size
+
+
+def market_cache_payload(allow_stale=False):
+    global MARKET_CACHE_MEMORY, MARKET_CACHE_MEMORY_SIGNATURE
+    with MARKET_CACHE_LOCK:
+        signature = market_cache_file_signature()
+        if signature is None:
+            MARKET_CACHE_MEMORY = None
+            MARKET_CACHE_MEMORY_SIGNATURE = None
             return None
-        payload = json.loads(MARKET_CACHE.read_text(encoding="utf-8"))
-        assets = payload.get("assets")
-        if not assets:
+        try:
+            if MARKET_CACHE_MEMORY is not None and MARKET_CACHE_MEMORY_SIGNATURE == signature:
+                payload = MARKET_CACHE_MEMORY
+                updated = datetime.fromisoformat(str(payload.get("updated", "")).replace("Z", "+00:00"))
+                if updated.tzinfo is None:
+                    updated = updated.replace(tzinfo=timezone.utc)
+                age = datetime.now(timezone.utc) - updated
+                if not allow_stale and age > timedelta(seconds=MARKET_CACHE_SECONDS):
+                    return None
+                response = dict(payload)
+                response["stale"] = age > timedelta(seconds=MARKET_CACHE_SECONDS)
+                response["servedAt"] = datetime.now(timezone.utc).isoformat()
+                return response
+            else:
+                payload = json.loads(MARKET_CACHE.read_text(encoding="utf-8"))
+        except (OSError, ValueError, json.JSONDecodeError):
             return None
-        if payload.get("source") != "companiesmarketcap-assets":
-            return None
-        schema_mismatch = payload.get("schemaVersion") != MARKET_CACHE_SCHEMA_VERSION
-        if schema_mismatch and not allow_stale:
-            return None
-        if len(assets) < MARKET_DISPLAY_COUNT:
-            return None
-        if not allow_stale and not has_enough_market_fill(assets):
-            return None
-        if not any(str(item.get("symbol", "")).upper() == "GOLD" for item in payload.get("assets", []) if isinstance(item, dict)):
-            return None
-        if not any(str(item.get("symbol", "")).upper() == "BTC" for item in payload.get("assets", []) if isinstance(item, dict)):
-            return None
-        if any(is_etf_name(item.get("name", ""), item.get("symbol", "")) for item in payload.get("assets", []) if isinstance(item, dict)):
-            return None
-        if not any(item.get("countryFlag") for item in payload.get("assets", []) if isinstance(item, dict) and item.get("country")):
-            return None
-        if not any(item.get("countryCode") for item in payload.get("assets", []) if isinstance(item, dict) and item.get("country")):
-            return None
-        if payload.get("source") == "companiesmarketcap-assets" and not any(
-            item.get("historyUrl") for item in payload.get("assets", []) if isinstance(item, dict)
-        ):
-            return None
-        currencies = payload.get("currencies")
-        if not isinstance(currencies, dict) or not currencies.get("quotes"):
-            return None
-        if not has_required_currency_quotes(currencies):
-            return None
-        if not any(
-            any(
-                history_has_dated_points(item.get(key))
-                for key in ("history", "denseHistory", "shortHistory")
-            )
-            for item in currencies.get("quotes", [])
-            if isinstance(item, dict) and item.get("code") != "USD"
-        ):
-            return None
-        allowed_currency_codes = {"USD", *FIAT_CURRENCY_CODES, *CURRENCY_ANCHOR_CODES}
-        if any(
-            str(item.get("code", "")).upper() not in allowed_currency_codes
-            for item in currencies.get("quotes", []) if isinstance(item, dict)
-        ):
-            return None
-        updated = datetime.fromisoformat(str(payload.get("updated", "")).replace("Z", "+00:00"))
-        age = datetime.now(timezone.utc) - updated
-        if allow_stale or age <= timedelta(seconds=MARKET_CACHE_SECONDS):
+
+        try:
+            assets = payload.get("assets")
+            if not assets:
+                return None
+            if payload.get("source") != "companiesmarketcap-assets":
+                return None
+            schema_mismatch = payload.get("schemaVersion") != MARKET_CACHE_SCHEMA_VERSION
+            if schema_mismatch and not allow_stale:
+                return None
+            if len(assets) < MARKET_DISPLAY_COUNT:
+                return None
+            if not allow_stale and not has_enough_market_fill(assets):
+                return None
+            if not any(str(item.get("symbol", "")).upper() == "GOLD" for item in payload.get("assets", []) if isinstance(item, dict)):
+                return None
+            if not any(str(item.get("symbol", "")).upper() == "BTC" for item in payload.get("assets", []) if isinstance(item, dict)):
+                return None
+            if any(is_etf_name(item.get("name", ""), item.get("symbol", "")) for item in payload.get("assets", []) if isinstance(item, dict)):
+                return None
+            if not any(item.get("countryFlag") for item in payload.get("assets", []) if isinstance(item, dict) and item.get("country")):
+                return None
+            if not any(item.get("countryCode") for item in payload.get("assets", []) if isinstance(item, dict) and item.get("country")):
+                return None
+            if payload.get("source") == "companiesmarketcap-assets" and not any(
+                item.get("historyUrl") for item in payload.get("assets", []) if isinstance(item, dict)
+            ):
+                return None
+            currencies = payload.get("currencies")
+            if not isinstance(currencies, dict) or not currencies.get("quotes"):
+                return None
+            if not has_required_currency_quotes(currencies):
+                return None
+            if not any(
+                any(
+                    history_has_dated_points(item.get(key))
+                    for key in ("history", "denseHistory", "shortHistory")
+                )
+                for item in currencies.get("quotes", [])
+                if isinstance(item, dict) and item.get("code") != "USD"
+            ):
+                return None
+            allowed_currency_codes = {"USD", *FIAT_CURRENCY_CODES, *CURRENCY_ANCHOR_CODES}
+            if any(
+                str(item.get("code", "")).upper() not in allowed_currency_codes
+                for item in currencies.get("quotes", []) if isinstance(item, dict)
+            ):
+                return None
+            updated = datetime.fromisoformat(str(payload.get("updated", "")).replace("Z", "+00:00"))
+            if updated.tzinfo is None:
+                updated = updated.replace(tzinfo=timezone.utc)
+            age = datetime.now(timezone.utc) - updated
+            if not allow_stale and age > timedelta(seconds=MARKET_CACHE_SECONDS):
+                return None
             payload = compact_market_payload(payload)
             payload["schemaVersion"] = MARKET_CACHE_SCHEMA_VERSION
+            MARKET_CACHE_MEMORY = payload
+            MARKET_CACHE_MEMORY_SIGNATURE = signature
             try:
-                if schema_mismatch or MARKET_CACHE.stat().st_size > MARKET_CACHE_REWRITE_BYTES:
+                if schema_mismatch or signature[1] > MARKET_CACHE_REWRITE_BYTES:
                     save_market_cache(payload)
             except OSError:
                 pass
-            payload["stale"] = age > timedelta(seconds=MARKET_CACHE_SECONDS)
-            payload["servedAt"] = datetime.now(timezone.utc).isoformat()
-            return payload
-    except (OSError, ValueError, json.JSONDecodeError):
-        return None
-    return None
+            response = dict(payload)
+            response["stale"] = age > timedelta(seconds=MARKET_CACHE_SECONDS)
+            response["servedAt"] = datetime.now(timezone.utc).isoformat()
+            return response
+        except (OSError, TypeError, ValueError, json.JSONDecodeError):
+            return None
 
 
 def save_market_cache(payload):
-    try:
-        MARKET_CACHE.parent.mkdir(exist_ok=True)
-        if isinstance(payload, dict):
-            payload["schemaVersion"] = MARKET_CACHE_SCHEMA_VERSION
-        payload = compact_market_payload(payload)
-        MARKET_CACHE.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-    except OSError:
-        pass
+    global MARKET_CACHE_MEMORY, MARKET_CACHE_MEMORY_SIGNATURE
+    with MARKET_CACHE_LOCK:
+        try:
+            if isinstance(payload, dict):
+                payload["schemaVersion"] = MARKET_CACHE_SCHEMA_VERSION
+            payload = compact_market_payload(payload)
+            serialized = json.dumps(
+                payload,
+                ensure_ascii=False,
+                allow_nan=False,
+                separators=(",", ":"),
+            )
+            atomic_write_text(MARKET_CACHE, serialized)
+            MARKET_CACHE_MEMORY = payload
+            MARKET_CACHE_MEMORY_SIGNATURE = market_cache_file_signature()
+        except (OSError, TypeError, ValueError) as exc:
+            LOGGER.info("market cache save unavailable (%s)", exc.__class__.__name__)
+
+
+def market_history_asset(asset_id):
+    payload = market_cache_payload(allow_stale=True)
+    assets = payload.get("assets", []) if isinstance(payload, dict) else []
+    source = next(
+        (item for item in assets if isinstance(item, dict) and str(item.get("id") or "") == asset_id),
+        None,
+    )
+    if not source:
+        return None
+    symbol = str(source.get("symbol") or "").strip()
+    group = str(source.get("group") or "").strip().lower()
+    if not re.fullmatch(r"[A-Za-z0-9.^=_-]{1,32}", symbol):
+        return None
+    if group not in {"indices", "fx", "commodities", "companies", "metals", "crypto"}:
+        return None
+    return {
+        "id": asset_id,
+        "symbol": symbol,
+        "group": group,
+        "historyUrl": str(source.get("historyUrl") or "").strip(),
+        "marketCap": finite_number(source.get("marketCap")),
+        "value": finite_number(source.get("value")),
+    }
+
+
+def market_summary_payload(payload):
+    if not isinstance(payload, dict):
+        return payload
+    response = dict(payload)
+    currencies = payload.get("currencies")
+    if not isinstance(currencies, dict):
+        return response
+    compact_currencies = dict(currencies)
+    compact_currencies["quotes"] = [
+        {
+            key: value
+            for key, value in quote.items()
+            if key not in {
+                "history", "denseHistory", "shortHistory",
+                "historySource", "denseHistorySource", "shortHistorySource",
+            }
+        }
+        for quote in currencies.get("quotes", [])
+        if isinstance(quote, dict)
+    ]
+    response["currencies"] = compact_currencies
+    response["currencyHistoryLazy"] = True
+    return response
+
+
+def market_currency_history(code):
+    payload = market_cache_payload(allow_stale=True)
+    currencies = payload.get("currencies") if isinstance(payload, dict) else None
+    quotes = currencies.get("quotes", []) if isinstance(currencies, dict) else []
+    quote = next(
+        (item for item in quotes if isinstance(item, dict) and str(item.get("code") or "").upper() == code),
+        None,
+    )
+    return dict(quote) if quote else None
 
 
 def load_market_history_cache():
@@ -2449,36 +3281,141 @@ def load_market_history_cache():
         return MARKET_HISTORY_CACHE_MEMORY
 
 
-def save_market_history_cache(cache):
-    global MARKET_HISTORY_CACHE_MEMORY
-    with MARKET_HISTORY_CACHE_LOCK:
-        temporary = MARKET_HISTORY_CACHE.with_suffix(MARKET_HISTORY_CACHE.suffix + ".tmp")
+def market_history_cache_recency(payload):
+    if not isinstance(payload, dict):
+        return 0.0
+    values = []
+    for key in (
+        "cacheStoredAt", "shortHistoryUpdatedAt", "denseHistoryUpdatedAt",
+        "historyUpdatedAt", "updated",
+    ):
         try:
-            MARKET_HISTORY_CACHE.parent.mkdir(exist_ok=True)
-            temporary.write_text(
-                json.dumps(cache, ensure_ascii=False, separators=(",", ":")),
-                encoding="utf-8",
-            )
-            os.replace(temporary, MARKET_HISTORY_CACHE)
-            MARKET_HISTORY_CACHE_MEMORY = cache
-        except OSError:
+            timestamp = datetime.fromisoformat(str(payload.get(key, "")).replace("Z", "+00:00"))
+            if timestamp.tzinfo is None:
+                timestamp = timestamp.replace(tzinfo=timezone.utc)
+            values.append(timestamp.timestamp())
+        except (OSError, OverflowError, ValueError):
+            continue
+    return max(values, default=0.0)
+
+
+def prune_market_history_cache(cache):
+    if not isinstance(cache, dict) or len(cache) <= MARKET_HISTORY_CACHE_MAX_ENTRIES:
+        return cache
+    oldest = sorted(cache, key=lambda key: market_history_cache_recency(cache.get(key)))
+    for key in oldest[:len(cache) - MARKET_HISTORY_CACHE_MAX_ENTRIES]:
+        cache.pop(key, None)
+    return cache
+
+
+def write_current_market_history_snapshot():
+    global MARKET_HISTORY_SAVED_VERSION
+    with MARKET_HISTORY_PERSIST_LOCK:
+        with MARKET_HISTORY_CACHE_LOCK:
+            if MARKET_HISTORY_CACHE_MEMORY is None or MARKET_HISTORY_CACHE_VERSION <= MARKET_HISTORY_SAVED_VERSION:
+                return MARKET_HISTORY_SAVED_VERSION
+            version = MARKET_HISTORY_CACHE_VERSION
+            snapshot = dict(MARKET_HISTORY_CACHE_MEMORY)
+        serialized = json.dumps(
+            snapshot,
+            ensure_ascii=False,
+            allow_nan=False,
+            separators=(",", ":"),
+        )
+        atomic_write_text(MARKET_HISTORY_CACHE, serialized)
+        with MARKET_HISTORY_CACHE_LOCK:
+            MARKET_HISTORY_SAVED_VERSION = max(MARKET_HISTORY_SAVED_VERSION, version)
+        return version
+
+
+def flush_market_history_cache():
+    with MARKET_HISTORY_CACHE_LOCK:
+        writer = MARKET_HISTORY_SAVE_THREAD
+    if writer is not None and writer is not threading.current_thread():
+        writer.join()
+    try:
+        write_current_market_history_snapshot()
+    except (OSError, TypeError, ValueError) as exc:
+        LOGGER.info("market history cache save unavailable (%s)", exc.__class__.__name__)
+        return False
+    return True
+
+
+def market_history_save_worker():
+    global MARKET_HISTORY_SAVE_THREAD
+    time.sleep(MARKET_HISTORY_SAVE_DELAY_SECONDS)
+    attempted_version = -1
+    write_failed = False
+    try:
+        while True:
+            with MARKET_HISTORY_CACHE_LOCK:
+                if MARKET_HISTORY_CACHE_VERSION <= MARKET_HISTORY_SAVED_VERSION:
+                    return
+                attempted_version = MARKET_HISTORY_CACHE_VERSION
             try:
-                temporary.unlink(missing_ok=True)
-            except OSError:
-                pass
+                write_current_market_history_snapshot()
+            except (OSError, TypeError, ValueError) as exc:
+                LOGGER.info("market history cache save unavailable (%s)", exc.__class__.__name__)
+                write_failed = True
+                return
+            with MARKET_HISTORY_CACHE_LOCK:
+                if MARKET_HISTORY_CACHE_VERSION <= MARKET_HISTORY_SAVED_VERSION:
+                    return
+    finally:
+        reschedule = False
+        with MARKET_HISTORY_CACHE_LOCK:
+            if MARKET_HISTORY_SAVE_THREAD is threading.current_thread():
+                MARKET_HISTORY_SAVE_THREAD = None
+                reschedule = (
+                    MARKET_HISTORY_CACHE_VERSION > MARKET_HISTORY_SAVED_VERSION
+                    and (not write_failed or MARKET_HISTORY_CACHE_VERSION > attempted_version)
+                )
+        if reschedule:
+            schedule_market_history_cache_save()
+
+
+def schedule_market_history_cache_save():
+    global MARKET_HISTORY_SAVE_THREAD
+    with MARKET_HISTORY_CACHE_LOCK:
+        if MARKET_HISTORY_SAVE_THREAD is not None and MARKET_HISTORY_SAVE_THREAD.is_alive():
+            return False
+        thread = threading.Thread(
+            target=market_history_save_worker,
+            name="market-history-cache-save",
+            daemon=True,
+        )
+        MARKET_HISTORY_SAVE_THREAD = thread
+        try:
+            thread.start()
+        except RuntimeError:
+            MARKET_HISTORY_SAVE_THREAD = None
+            return False
+        return True
+
+
+def save_market_history_cache(cache):
+    global MARKET_HISTORY_CACHE_MEMORY, MARKET_HISTORY_CACHE_VERSION
+    with MARKET_HISTORY_CACHE_LOCK:
+        MARKET_HISTORY_CACHE_MEMORY = prune_market_history_cache(cache if isinstance(cache, dict) else {})
+        MARKET_HISTORY_CACHE_VERSION += 1
+    return flush_market_history_cache()
 
 
 def store_market_history_payload(path, payload):
+    global MARKET_HISTORY_CACHE_VERSION
     with MARKET_HISTORY_CACHE_LOCK:
         cache = load_market_history_cache()
         existing = cache.get(path)
         if isinstance(existing, dict) and isinstance(payload, dict):
             merged = dict(existing)
             merged.update(payload)
+            merged["cacheStoredAt"] = datetime.now(timezone.utc).isoformat()
             cache[path] = merged
         else:
             cache[path] = payload
-        save_market_history_cache(cache)
+        prune_market_history_cache(cache)
+        MARKET_HISTORY_CACHE_VERSION += 1
+        schedule_market_history_cache_save()
 
 
 def market_history_timestamp_key(range_name="", asset=None):
@@ -2523,11 +3460,18 @@ def market_history_payload_with_status(payload, range_name="", asset=None, refre
 def finite_number(*values):
     for value in values:
         if isinstance(value, (int, float)) and not isinstance(value, bool):
-            return float(value)
+            number = float(value)
+            if math.isfinite(number):
+                return number
         if isinstance(value, str):
             text = value.strip().replace(",", "").replace("$", "")
             if re.fullmatch(r"-?\d+(?:\.\d+)?", text):
-                return float(text)
+                try:
+                    number = float(text)
+                except (OverflowError, ValueError):
+                    continue
+                if math.isfinite(number):
+                    return number
     return None
 
 
@@ -3009,21 +3953,31 @@ def enrich_history_with_dense_prices(payload, asset, range_name=""):
         )
         if not covers_request or not is_at_least_as_current:
             continue
-        should_replace = not existing
+        should_merge = not existing
         if incoming_latest is not None and existing_latest is not None and incoming_latest > existing_latest:
-            should_replace = True
+            should_merge = True
         elif key == "shortHistory" and range_name in {"1d", "5d", "1m"}:
-            should_replace = (
+            should_merge = (
                 not history_payload_has_range({"shortHistory": existing}, range_name)
                 or history_span_days(incoming) > history_span_days(existing) + 0.25
             )
         elif key == "denseHistory" and range_name in {"1y", "5y"}:
-            should_replace = history_span_days(incoming) > history_span_days(existing) + 7
+            should_merge = history_span_days(incoming) > history_span_days(existing) + 7
         elif key == "history" and range_name in {"all", ""}:
-            should_replace = history_span_days(incoming) > history_span_days(existing) + 30
-        if should_replace:
-            payload[key] = incoming
-            changed = True
+            should_merge = history_span_days(incoming) > history_span_days(existing) + 30
+        if should_merge:
+            merged_history = merge_history_series(existing, incoming) if existing else list(incoming)
+            if not merged_history:
+                merged_history = list(incoming)
+            if key == "denseHistory":
+                merged_history = limit_dense_history_points(merged_history, MARKET_DENSE_HISTORY_POINTS)
+            elif key == "shortHistory":
+                merged_history = limit_history_points(merged_history, MARKET_SHORT_HISTORY_POINTS)
+            else:
+                merged_history = limit_history_points(merged_history, MARKET_FULL_HISTORY_POINTS)
+            if payload.get(key) != merged_history:
+                payload[key] = merged_history
+                changed = True
         if enriched.get(source_key) and payload.get(source_key) != enriched[source_key]:
             payload[source_key] = enriched[source_key]
             changed = True
@@ -3058,6 +4012,11 @@ def refresh_market_history_async(url, asset=None, range_name=""):
     with MARKET_HISTORY_REFRESH_LOCK:
         if refresh_key in MARKET_HISTORY_REFRESH_IN_PROGRESS:
             return True
+        if not MARKET_HISTORY_REFRESH_SEMAPHORE.acquire(blocking=False):
+            # The caller treats True as a retryable refresh state. No worker is queued
+            # here, which keeps the number of threads bounded while allowing a later
+            # poll to claim a slot instead of leaving the chart on its baseline forever.
+            return True
         MARKET_HISTORY_REFRESH_IN_PROGRESS.add(refresh_key)
 
     def refresh():
@@ -3073,12 +4032,19 @@ def refresh_market_history_async(url, asset=None, range_name=""):
         finally:
             with MARKET_HISTORY_REFRESH_LOCK:
                 MARKET_HISTORY_REFRESH_IN_PROGRESS.discard(refresh_key)
+            MARKET_HISTORY_REFRESH_SEMAPHORE.release()
 
-    threading.Thread(
-        target=refresh,
-        name=f"market-history-{normalized_range}",
-        daemon=True,
-    ).start()
+    try:
+        threading.Thread(
+            target=refresh,
+            name=f"market-history-{normalized_range}",
+            daemon=True,
+        ).start()
+    except RuntimeError:
+        with MARKET_HISTORY_REFRESH_LOCK:
+            MARKET_HISTORY_REFRESH_IN_PROGRESS.discard(refresh_key)
+        MARKET_HISTORY_REFRESH_SEMAPHORE.release()
+        return False
     return True
 
 
@@ -3320,15 +4286,22 @@ def attach_currency_history(quote):
         long_history = currency_history_from_yahoo(code, range_name="max", interval="1mo")
     except Exception:
         long_history = []
-    try:
-        short = merge_history_series(
-            currency_history_from_yahoo(code, range_name="1mo", interval="2m"),
-            currency_history_from_yahoo(code, range_name="60d", interval="5m"),
-            currency_history_from_yahoo(code, range_name="5d", interval="1m"),
-            currency_history_from_yahoo(code, range_name="1d", interval="1m"),
-        )
-    except Exception:
-        short = []
+    short_series = []
+    for range_name, interval in (("1mo", "2m"), ("60d", "5m"), ("5d", "1m")):
+        try:
+            points = currency_history_from_yahoo(code, range_name=range_name, interval=interval)
+        except Exception:
+            points = []
+        if points:
+            short_series.append(points)
+    short = merge_history_series(*short_series)
+    if len(latest_intraday_session_points(short)) < MARKET_INTRADAY_SESSION_MIN_POINTS:
+        try:
+            latest_session = currency_history_from_yahoo(code, range_name="1d", interval="1m")
+        except Exception:
+            latest_session = []
+        if latest_session:
+            short = merge_history_series(short, latest_session)
 
     fetched_at = datetime.now(timezone.utc).isoformat()
     existing_long = quote.get("history")
@@ -3583,7 +4556,24 @@ def merge_currency_quotes(*quote_groups):
                 continue
             if code not in merged:
                 order.append(code)
-            merged[code] = {**quote, "code": code}
+            previous = merged.get(code, {})
+            combined = {**previous, **quote, "code": code}
+            for key in ("history", "denseHistory", "shortHistory"):
+                existing_history = previous.get(key)
+                incoming_history = quote.get(key)
+                if not existing_history and not incoming_history:
+                    continue
+                history = merge_history_series(existing_history, incoming_history)
+                if not history:
+                    history = list(incoming_history or existing_history or [])
+                if key == "denseHistory":
+                    history = limit_dense_history_points(history, MARKET_DENSE_HISTORY_POINTS)
+                elif key == "shortHistory":
+                    history = limit_history_points(history, MARKET_SHORT_HISTORY_POINTS)
+                else:
+                    history = limit_history_points(history, MARKET_FULL_HISTORY_POINTS)
+                combined[key] = history
+            merged[code] = combined
     return [merged[code] for code in order]
 
 
@@ -3712,9 +4702,20 @@ def load_markets():
         stale_cached["cacheReason"] = "stale-while-revalidate"
         return stale_cached
 
-    payload = build_live_market_payload()
-    if payload:
-        return payload
+    with MARKET_COLD_BUILD_LOCK:
+        cached = market_cache_payload()
+        if cached:
+            return cached
+        stale_cached = market_cache_payload(allow_stale=True)
+        if stale_cached:
+            refresh_market_cache_async()
+            stale_cached["stale"] = True
+            stale_cached["servedAt"] = datetime.now(timezone.utc).isoformat()
+            stale_cached["cacheReason"] = "stale-while-revalidate"
+            return stale_cached
+        payload = build_live_market_payload()
+        if payload:
+            return payload
 
     return {
         "source": "unavailable",
@@ -3935,24 +4936,25 @@ def translation_api_key():
 
 
 def load_translation_cache():
-    try:
-        if EVENT_TRANSLATION_CACHE.exists():
-            payload = json.loads(EVENT_TRANSLATION_CACHE.read_text(encoding="utf-8"))
-            return payload if isinstance(payload, dict) else {}
-    except (OSError, json.JSONDecodeError):
-        pass
+    with TRANSLATION_CACHE_LOCK:
+        try:
+            if EVENT_TRANSLATION_CACHE.exists():
+                payload = json.loads(EVENT_TRANSLATION_CACHE.read_text(encoding="utf-8"))
+                return payload if isinstance(payload, dict) else {}
+        except (OSError, json.JSONDecodeError):
+            pass
     return {}
 
 
 def save_translation_cache(cache):
-    try:
-        EVENT_TRANSLATION_CACHE.parent.mkdir(exist_ok=True)
-        EVENT_TRANSLATION_CACHE.write_text(
-            json.dumps(cache, ensure_ascii=False, indent=2, sort_keys=True),
-            encoding="utf-8",
-        )
-    except OSError:
-        pass
+    with TRANSLATION_CACHE_LOCK:
+        try:
+            atomic_write_text(
+                EVENT_TRANSLATION_CACHE,
+                json.dumps(cache, ensure_ascii=False, indent=2, sort_keys=True),
+            )
+        except OSError:
+            pass
 
 
 def translation_cache_key(text):
@@ -3979,8 +4981,7 @@ def google_translate_batch(texts, api_key, timeout=10, attempts=2):
     last_error = None
     for _ in range(max(1, attempts)):
         try:
-            with urllib.request.urlopen(request, timeout=timeout) as response:
-                payload = json.loads(response.read().decode("utf-8"))
+            payload = open_json_request(request, timeout, MAX_TRANSLATION_RESPONSE_BYTES)
             break
         except Exception as error:
             last_error = error
@@ -3995,18 +4996,39 @@ def google_translate_batch(texts, api_key, timeout=10, attempts=2):
 
 
 def translate_batch_resilient(texts, api_key):
+    return translate_batch_until(texts, api_key, time.monotonic() + 18.0)
+
+
+def translate_batch_until(texts, api_key, deadline):
     if not texts:
         return []
+    remaining = deadline - time.monotonic()
+    if remaining <= 0:
+        return ["" for _ in texts]
     try:
-        translations = google_translate_batch(texts, api_key, timeout=12, attempts=2)
+        translations = google_translate_batch(
+            texts,
+            api_key,
+            timeout=max(0.5, min(6.0, remaining)),
+            attempts=1,
+        )
         if len(translations) < len(texts):
             translations.extend([""] * (len(texts) - len(translations)))
         return translations[:len(texts)]
-    except Exception:
-        if len(texts) <= 1:
+    except urllib.error.HTTPError as exc:
+        if exc.code not in {400, 413} or len(texts) <= 1:
+            return ["" for _ in texts]
+        if deadline - time.monotonic() <= 0:
             return ["" for _ in texts]
         middle = max(1, len(texts) // 2)
-        return translate_batch_resilient(texts[:middle], api_key) + translate_batch_resilient(texts[middle:], api_key)
+        return (
+            translate_batch_until(texts[:middle], api_key, deadline)
+            + translate_batch_until(texts[middle:], api_key, deadline)
+        )
+    except Exception:
+        # Network failures and 5xx responses affect the service, not an individual
+        # item. Splitting those batches multiplies latency without improving results.
+        return ["" for _ in texts]
 
 
 def apply_translations(events):
@@ -4033,10 +5055,13 @@ def apply_translations(events):
 
     if missing:
         try:
+            translation_deadline = time.monotonic() + 18.0
             for start in range(0, len(missing), 16):
+                if time.monotonic() >= translation_deadline:
+                    break
                 batch = missing[start:start + 16]
                 batch_keys = missing_keys[start:start + 16]
-                translations = translate_batch_resilient(batch, api_key)
+                translations = translate_batch_until(batch, api_key, translation_deadline)
                 for translated, (event, field, key) in zip(translations, batch_keys):
                     if translated:
                         cache[key] = translated
@@ -4178,6 +5203,10 @@ def locate_event(title, summary=""):
 
 def parse_feed(source, xml_bytes):
     root = ET.fromstring(xml_bytes)
+    if root.tag not in {"rss", "{http://www.w3.org/2005/Atom}feed"}:
+        raise ValueError("response is not a supported RSS or Atom feed")
+    if root.tag == "rss" and root.find("channel") is None:
+        raise ValueError("RSS response is missing its channel")
     items = root.findall(".//item")
     if not items:
         items = root.findall("{http://www.w3.org/2005/Atom}entry")
@@ -4225,43 +5254,139 @@ def parse_feed(source, xml_bytes):
     return events
 
 
+def _refresh_event_cache():
+    global EVENT_CACHE_MEMORY, EVENT_CACHE_MONOTONIC, EVENT_CACHE_UPDATED
+    global EVENT_SOURCE_STATUS, EVENT_FAILED_SOURCES, EVENT_NEXT_RETRY_MONOTONIC
+    global EVENT_REFRESH_IN_PROGRESS
+    result = None
+    failed_sources = []
+    successful_sources = 0
+    try:
+        events = []
+        now = datetime.now(timezone.utc)
+
+        def fetch_feed(feed):
+            source, url = feed
+            try:
+                rows = parse_feed(source, fetch_url(url))
+                return source, [
+                    event for event in rows
+                    if event["severity"] >= 3 and event_is_recent_enough(event, now)
+                ], True
+            except Exception as exc:
+                LOGGER.info("event source %s unavailable (%s)", source, exc.__class__.__name__)
+                return source, [], False
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, len(NEWS_FEEDS))) as executor:
+            for source, rows, succeeded in executor.map(fetch_feed, NEWS_FEEDS):
+                if succeeded:
+                    successful_sources += 1
+                    events.extend(rows)
+                else:
+                    failed_sources.append(source)
+
+        if successful_sources:
+            events.sort(key=lambda item: (item["severity"], event_datetime(item["published"])), reverse=True)
+            result = dedupe_similar_events(events)[:24]
+            try:
+                result = apply_translations(result)
+            except Exception as exc:
+                # Translation availability does not change RSS freshness.
+                LOGGER.info("event translation unavailable (%s)", exc.__class__.__name__)
+    except Exception as exc:
+        result = None
+        LOGGER.info("event refresh unavailable (%s)", exc.__class__.__name__)
+    finally:
+        with EVENT_CACHE_LOCK:
+            finished = time.monotonic()
+            if result is not None:
+                EVENT_CACHE_MEMORY = list(result)
+                EVENT_CACHE_MONOTONIC = finished
+                EVENT_CACHE_UPDATED = datetime.now(timezone.utc).isoformat()
+                EVENT_SOURCE_STATUS = "partial" if failed_sources else "ok"
+            else:
+                # Keep both old reports and their success timestamp on failure.
+                EVENT_SOURCE_STATUS = "unavailable"
+            EVENT_FAILED_SOURCES = failed_sources
+            EVENT_NEXT_RETRY_MONOTONIC = (
+                finished + EVENT_RETRY_SECONDS if EVENT_SOURCE_STATUS != "ok" else 0.0
+            )
+            EVENT_REFRESH_IN_PROGRESS = False
+
+
+def _event_cache_is_fresh(now):
+    return (
+        EVENT_CACHE_MEMORY is not None
+        and EVENT_CACHE_UPDATED is not None
+        and EVENT_SOURCE_STATUS != "unavailable"
+        and now - EVENT_CACHE_MONOTONIC <= EVENT_CACHE_SECONDS
+    )
+
+
+def _event_payload_locked(now):
+    # The caller holds EVENT_CACHE_LOCK so reports and metadata share one snapshot.
+    return {
+        "events": list(EVENT_CACHE_MEMORY) if EVENT_CACHE_MEMORY is not None else list(FALLBACK_EVENTS),
+        "updated": EVENT_CACHE_UPDATED,
+        "servedAt": datetime.now(timezone.utc).isoformat(),
+        "stale": not _event_cache_is_fresh(now),
+        "refreshing": EVENT_REFRESH_IN_PROGRESS,
+        "sourceStatus": EVENT_SOURCE_STATUS,
+        "failedSources": list(EVENT_FAILED_SOURCES),
+    }
+
+
+def load_events_payload():
+    global EVENT_REFRESH_IN_PROGRESS, EVENT_SOURCE_STATUS, EVENT_NEXT_RETRY_MONOTONIC
+    with EVENT_CACHE_LOCK:
+        now = time.monotonic()
+        should_refresh = (
+            not EVENT_REFRESH_IN_PROGRESS
+            and now >= EVENT_NEXT_RETRY_MONOTONIC
+            and (not _event_cache_is_fresh(now) or EVENT_SOURCE_STATUS == "partial")
+        )
+        if should_refresh:
+            EVENT_REFRESH_IN_PROGRESS = True
+        payload = _event_payload_locked(now)
+
+    if not should_refresh:
+        return payload
+
+    try:
+        threading.Thread(
+            target=_refresh_event_cache,
+            name="event-cache-refresh",
+            daemon=True,
+        ).start()
+    except RuntimeError as exc:
+        LOGGER.info("event refresh could not start (%s)", exc.__class__.__name__)
+        with EVENT_CACHE_LOCK:
+            EVENT_REFRESH_IN_PROGRESS = False
+            EVENT_SOURCE_STATUS = "unavailable"
+            EVENT_NEXT_RETRY_MONOTONIC = time.monotonic() + EVENT_RETRY_SECONDS
+            payload = _event_payload_locked(time.monotonic())
+    return payload
+
+
 def load_events():
-    events = []
-    now = datetime.now(timezone.utc)
-    for source, url in NEWS_FEEDS:
-        try:
-            for event in parse_feed(source, fetch_url(url)):
-                if event["severity"] < 3:
-                    continue
-                if not event_is_recent_enough(event, now):
-                    continue
-                events.append(event)
-        except Exception:
-            continue
-
-    if not events:
-        return FALLBACK_EVENTS
-
-    events.sort(key=lambda item: (item["severity"], event_datetime(item["published"])), reverse=True)
-    return apply_translations(dedupe_similar_events(events)[:24])
+    return load_events_payload()["events"]
 
 
 def load_world_geojson():
-    if WORLD_CACHE.exists():
-        try:
-            return json.loads(WORLD_CACHE.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
-            pass
-
-    for url in WORLD_GEOJSON_URLS:
-        try:
-            data = fetch_url(url, timeout=8)
-            parsed = json.loads(data.decode("utf-8"))
-            WORLD_CACHE.parent.mkdir(exist_ok=True)
-            WORLD_CACHE.write_text(json.dumps(parsed), encoding="utf-8")
-            return parsed
-        except Exception:
-            continue
+    with WORLD_CACHE_LOCK:
+        if WORLD_CACHE.exists():
+            try:
+                return json.loads(WORLD_CACHE.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                pass
+        for url in WORLD_GEOJSON_URLS:
+            try:
+                data = fetch_url(url, timeout=8)
+                parsed = json.loads(data.decode("utf-8"))
+                atomic_write_text(WORLD_CACHE, json.dumps(parsed))
+                return parsed
+            except Exception:
+                continue
     return None
 
 
@@ -4343,9 +5468,14 @@ def main():
             open_console_window(url)
         return
 
+    migrate_legacy_source_config()
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    configure_logging()
+    install_bootstrap_cache()
     port = pick_port(args.port)
     url = f"http://127.0.0.1:{port}/index.html"
     server = ThreadingHTTPServer(("127.0.0.1", port), ConsoleHandler)
+    server.daemon_threads = True
 
     if sys.stdout:
         print()
@@ -4363,6 +5493,7 @@ def main():
         pass
     finally:
         server.server_close()
+        flush_market_history_cache()
 
 
 if __name__ == "__main__":

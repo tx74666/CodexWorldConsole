@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Codex World</title>
   <style>
+    :root { color-scheme: dark; }
     body {
       margin: 0;
       min-height: 100vh;
@@ -14,9 +15,24 @@
       color: #dff8ff;
       font: 16px system-ui, sans-serif;
     }
+    main {
+      width: min(34rem, calc(100% - 3rem));
+      padding: 2rem;
+      border: 1px solid #1f778b;
+      border-radius: 1rem;
+      background: #0a222d;
+      box-shadow: 0 1rem 3rem #0008;
+    }
+    h1 { margin-top: 0; font-size: 1.6rem; }
+    p { color: #acd4dd; line-height: 1.6; }
+    code { color: #7ee7c8; overflow-wrap: anywhere; }
   </style>
 </head>
 <body>
-  Codex World assets are prepared by the release workflow.
+  <main>
+    <h1>Codex World Android prototype</h1>
+    <p>This shell has no bundled live console. Build it with an HTTPS endpoint by setting <code>-PworldConsoleUrl=https://…</code>.</p>
+    <p>The supported desktop release remains the Windows x64 installer.</p>
+  </main>
 </body>
 </html>

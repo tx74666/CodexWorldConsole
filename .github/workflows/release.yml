@@ -1,60 +1,130 @@
 name: Release Windows x64 Setup
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: Release version, for example v0.3.3
-        required: true
-        default: v0.3.3
   push:
     tags:
       - "v*"
 
-permissions:
-  contents: write
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  release:
+  build:
     runs-on: windows-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    outputs:
+      release_tag: ${{ steps.version.outputs.tag }}
+      release_version: ${{ steps.version.outputs.version }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Checkout tagged source
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
 
-      - name: Resolve version
+      - name: Verify tag and manifest version
+        id: version
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          $tag = $env:RELEASE_TAG
+          if ($tag -notmatch '^v(\d+\.\d+\.\d+)$') { throw "Invalid release tag: $tag" }
+          $version = $Matches[1]
+          $manifest = Get-Content -LiteralPath app-manifest.json -Raw | ConvertFrom-Json
+          if ([string]$manifest.version -ne $version) {
+            throw "Tag $tag does not match app-manifest.json version $($manifest.version)."
+          }
+          "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Verify tagged commit belongs to main
         shell: pwsh
         run: |
-          $tag = "${{ github.event.inputs.version }}"
-          if ([string]::IsNullOrWhiteSpace($tag)) { $tag = "${{ github.ref_name }}" }
-          if (-not $tag.StartsWith("v")) { $tag = "v$tag" }
-          $version = $tag.Substring(1)
-          if ($version -notmatch '^\d+\.\d+\.\d+$') { throw "Invalid release version: $version" }
-          "RELEASE_TAG=$tag" | Out-File -FilePath $env:GITHUB_ENV -Append
-          "RELEASE_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
+          git rev-parse --verify origin/main
+          if ($LASTEXITCODE -ne 0) { throw "origin/main was not fetched" }
+          git merge-base --is-ancestor $env:GITHUB_SHA origin/main
+          if ($LASTEXITCODE -ne 0) { throw "Tagged commit is not reachable from main" }
 
       - name: Set up Python x64
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
         with:
           python-version: "3.12"
           architecture: x64
 
-      - name: Install build dependencies
-        shell: pwsh
-        run: python -m pip install --disable-pip-version-check pyinstaller
+      - name: Set up Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: "22"
+          cache: npm
 
-      - name: Verify market freshness logic
+      - name: Install pinned build dependencies
         shell: pwsh
         run: |
-          python scripts/check-market-freshness.py
-          node --check app.js
+          python -m pip install --disable-pip-version-check "pyinstaller==6.22.2"
+          if ($LASTEXITCODE -ne 0) { throw "Pinned Python build dependency installation failed" }
+          npm ci --ignore-scripts
+          if ($LASTEXITCODE -ne 0) { throw "Locked JavaScript dependency installation failed" }
 
-      - name: Install Inno Setup 7 x64
+      - name: Run release gates
+        shell: pwsh
+        run: |
+          python -m py_compile world_console.py
+          if ($LASTEXITCODE -ne 0) { throw "Python source compilation failed" }
+          python -m unittest discover -s tests -v
+          if ($LASTEXITCODE -ne 0) { throw "Python unit tests failed" }
+          python scripts/check-market-freshness.py
+          if ($LASTEXITCODE -ne 0) { throw "Market freshness checks failed" }
+          python scripts/check-package-resources.py --source-only --max-market-age-days 7
+          if ($LASTEXITCODE -ne 0) { throw "Source package resource checks failed" }
+          npm run check
+          if ($LASTEXITCODE -ne 0) { throw "JavaScript syntax checks failed" }
+
+      - name: Run responsive UI release gate
+        shell: pwsh
+        run: |
+          $port = 48797
+          if (Get-NetTCPConnection -State Listen -LocalPort $port -ErrorAction SilentlyContinue) {
+            throw "Responsive test port $port is already in use"
+          }
+          $previousDataDir = $env:CODEX_WORLD_DATA_DIR
+          $env:CODEX_WORLD_DATA_DIR = Join-Path $env:RUNNER_TEMP "CodexWorld-responsive-${{ github.run_id }}-${{ github.run_attempt }}"
+          $stdout = Join-Path $env:RUNNER_TEMP "codex-world-responsive.out.log"
+          $stderr = Join-Path $env:RUNNER_TEMP "codex-world-responsive.err.log"
+          $server = Start-Process -FilePath "python" -ArgumentList "world_console.py", "--no-browser", "--port", "$port" -PassThru -WindowStyle Hidden -RedirectStandardOutput $stdout -RedirectStandardError $stderr
+          try {
+            $ready = $false
+            for ($attempt = 0; $attempt -lt 40; $attempt++) {
+              if ($server.HasExited) { throw "Responsive test server exited early with $($server.ExitCode)" }
+              try {
+                Invoke-WebRequest -Uri "http://127.0.0.1:$port/api/config" -UseBasicParsing -TimeoutSec 1 | Out-Null
+                $ready = $true
+                break
+              } catch {
+                Start-Sleep -Milliseconds 250
+              }
+            }
+            if (-not $ready) { throw "Responsive test server did not become ready" }
+            node scripts/check-responsive-ui.mjs "http://127.0.0.1:$port/"
+            if ($LASTEXITCODE -ne 0) { throw "Responsive UI release gate failed" }
+          } finally {
+            if ($server -and -not $server.HasExited) { Stop-Process -Id $server.Id -Force }
+            if ($null -eq $previousDataDir) { Remove-Item Env:CODEX_WORLD_DATA_DIR -ErrorAction SilentlyContinue } else { $env:CODEX_WORLD_DATA_DIR = $previousDataDir }
+          }
+
+      - name: Install verified Inno Setup 7 x64
         shell: pwsh
         run: |
           $download = Join-Path $env:RUNNER_TEMP "innosetup-7.0.2-x64.exe"
           $installDir = Join-Path $env:RUNNER_TEMP "Inno Setup 7"
           Invoke-WebRequest "https://github.com/jrsoftware/issrc/releases/download/is-7_0_2/innosetup-7.0.2-x64.exe" -OutFile $download
+          $expected = "5AD54CA3DEF786F8F4212552E54CC6D8D61329E2D24A1CFEE0571D42C2684FF1"
+          $actual = (Get-FileHash -LiteralPath $download -Algorithm SHA256).Hash.ToUpperInvariant()
+          if ($actual -ne $expected) { throw "Inno Setup SHA-256 mismatch: $actual" }
           $process = Start-Process -FilePath $download -ArgumentList "/CURRENTUSER", "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-", "/DIR=`"$installDir`"" -Wait -PassThru
           if ($process.ExitCode -ne 0) { throw "Inno Setup installation failed: $($process.ExitCode)" }
           $compiler = Join-Path $installDir "ISCC.exe"
@@ -63,50 +133,184 @@ jobs:
 
       - name: Build Windows x64 Setup
         shell: pwsh
-        run: ./scripts/build-windows.ps1 -Version $env:RELEASE_VERSION -OutputDir release
+        run: ./scripts/build-windows.ps1 -Version "${{ steps.version.outputs.version }}" -OutputDir release -ExpectedPyInstallerVersion "6.22.2"
 
-      - name: Verify packaged resources and shortcuts
+      - name: Verify packaged resources
         shell: pwsh
-        run: python scripts/check-package-resources.py --expected-version $env:RELEASE_VERSION
+        run: python scripts/check-package-resources.py --expected-version "${{ steps.version.outputs.version }}" --max-market-age-days 7
 
-      - name: Verify single download
+      - name: Verify installed payload and installer metadata
         shell: pwsh
         run: |
-          $files = @(Get-ChildItem release -File)
-          if ($files.Count -ne 1 -or $files[0].Name -ne "Codex-World-Setup-x64.exe") {
-            throw "Release must contain exactly one Windows x64 Setup file."
+          $installer = (Resolve-Path -LiteralPath "release/Codex-World-Setup-x64.exe").Path
+          $expectedVersion = "${{ steps.version.outputs.version }}"
+          $productVersion = [string](Get-Item -LiteralPath $installer).VersionInfo.ProductVersion
+          $versionPattern = "^$([regex]::Escape($expectedVersion))(?:\.0)?$"
+          if ($productVersion.Trim() -notmatch $versionPattern) {
+            throw "Unexpected installer ProductVersion: $productVersion"
+          }
+          $smokeDir = Join-Path $env:RUNNER_TEMP "CodexWorld-installed-${{ github.run_id }}-${{ github.run_attempt }}"
+          $defaultDataDir = Join-Path $env:LOCALAPPDATA "CodexWorld"
+          $preservedConfig = Join-Path $defaultDataDir ".world-console.local.json"
+          New-Item -ItemType Directory -Force -Path (Join-Path $defaultDataDir "cache"), (Join-Path $defaultDataDir "logs") | Out-Null
+          '{"features":{"earning":false}}' | Set-Content -LiteralPath $preservedConfig -Encoding UTF8
+          'remove-on-uninstall' | Set-Content -LiteralPath (Join-Path $defaultDataDir "cache\smoke.txt") -Encoding UTF8
+          'remove-on-uninstall' | Set-Content -LiteralPath (Join-Path $defaultDataDir "logs\smoke.txt") -Encoding UTF8
+          $arguments = @("/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-", "/DIR=`"$smokeDir`"")
+          $process = Start-Process -FilePath $installer -ArgumentList $arguments -Wait -PassThru
+          if ($process.ExitCode -ne 0) { throw "Installer smoke installation failed: $($process.ExitCode)" }
+          try {
+            python scripts/check-package-resources.py --app-dir "$smokeDir" --expected-version $expectedVersion --max-market-age-days 7
+            if ($LASTEXITCODE -ne 0) { throw "Installed payload resource verification failed" }
+            $appExe = Join-Path $smokeDir "Codex World.exe"
+            $appVersionInfo = (Get-Item -LiteralPath $appExe).VersionInfo
+            if ([string]$appVersionInfo.ProductVersion -notmatch $versionPattern) {
+              throw "Unexpected app ProductVersion: $($appVersionInfo.ProductVersion)"
+            }
+            if ([string]$appVersionInfo.FileVersion -notmatch $versionPattern) {
+              throw "Unexpected app FileVersion: $($appVersionInfo.FileVersion)"
+            }
+            if ([string]$appVersionInfo.ProductName -ne "Codex World") {
+              throw "Unexpected app ProductName: $($appVersionInfo.ProductName)"
+            }
+            $appPort = 48798
+            if (Get-NetTCPConnection -State Listen -LocalPort $appPort -ErrorAction SilentlyContinue) {
+              throw "Installed-app smoke port $appPort is already in use"
+            }
+            $previousDataDir = $env:CODEX_WORLD_DATA_DIR
+            $env:CODEX_WORLD_DATA_DIR = Join-Path $env:RUNNER_TEMP "CodexWorld-installed-data-${{ github.run_id }}-${{ github.run_attempt }}"
+            $app = Start-Process -FilePath $appExe -ArgumentList "--no-browser", "--port", "$appPort" -PassThru -WindowStyle Hidden
+            try {
+              $ready = $false
+              for ($attempt = 0; $attempt -lt 60; $attempt++) {
+                if ($app.HasExited) { throw "Installed app exited early with $($app.ExitCode)" }
+                try {
+                  $config = Invoke-RestMethod -Uri "http://127.0.0.1:$appPort/api/config" -TimeoutSec 1
+                  if ($null -ne $config.ask) { $ready = $true; break }
+                } catch {
+                  Start-Sleep -Milliseconds 250
+                }
+              }
+              if (-not $ready) { throw "Installed app did not become ready" }
+              try {
+                Invoke-WebRequest -Uri "http://127.0.0.1:$appPort/world_console.py" -UseBasicParsing -TimeoutSec 2 | Out-Null
+                throw "Installed app exposed a non-public source file"
+              } catch {
+                if ([int]$_.Exception.Response.StatusCode -ne 404) { throw }
+              }
+            } finally {
+              if ($app -and -not $app.HasExited) { Stop-Process -Id $app.Id -Force }
+              if ($null -eq $previousDataDir) { Remove-Item Env:CODEX_WORLD_DATA_DIR -ErrorAction SilentlyContinue } else { $env:CODEX_WORLD_DATA_DIR = $previousDataDir }
+            }
+          } finally {
+            $uninstaller = Join-Path $smokeDir "unins000.exe"
+            if (-not (Test-Path -LiteralPath $uninstaller)) { throw "Smoke uninstaller was not created" }
+            $uninstall = Start-Process -FilePath $uninstaller -ArgumentList "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NORESTART", "/SP-" -Wait -PassThru
+            if ($uninstall.ExitCode -ne 0) { throw "Smoke uninstall failed: $($uninstall.ExitCode)" }
+            for ($attempt = 0; $attempt -lt 20 -and (Test-Path -LiteralPath $smokeDir); $attempt++) {
+              Start-Sleep -Milliseconds 250
+            }
+            if (Test-Path -LiteralPath $smokeDir) { throw "Smoke install directory remains after uninstall: $smokeDir" }
+            if (-not (Test-Path -LiteralPath $preservedConfig)) { throw "Uninstall removed the preserved user configuration" }
+            if (Test-Path -LiteralPath (Join-Path $defaultDataDir "cache")) { throw "Uninstall left the user cache directory behind" }
+            if (Test-Path -LiteralPath (Join-Path $defaultDataDir "logs")) { throw "Uninstall left the user log directory behind" }
           }
 
-      - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v2
+      - name: Verify release assets and checksum
+        shell: pwsh
+        run: |
+          $expected = @("Codex-World-Setup-x64.exe", "Codex-World-Setup-x64.exe.sha256")
+          $actual = @(Get-ChildItem release -File | Select-Object -ExpandProperty Name | Sort-Object)
+          if ((Compare-Object ($expected | Sort-Object) $actual).Count -ne 0) {
+            throw "Unexpected release assets: $($actual -join ', ')"
+          }
+          $recorded = ((Get-Content release/Codex-World-Setup-x64.exe.sha256 -Raw) -split '\s+')[0]
+          $actualHash = (Get-FileHash release/Codex-World-Setup-x64.exe -Algorithm SHA256).Hash
+          if ($recorded -ne $actualHash) { throw "Generated checksum does not match the installer" }
+
+      - name: Upload immutable build artifact
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         with:
-          tag_name: ${{ env.RELEASE_TAG }}
-          target_commitish: ${{ github.sha }}
-          name: Codex World ${{ env.RELEASE_TAG }}
-          make_latest: true
-          files: release/Codex-World-Setup-x64.exe
-          body: |
-            ## v0.3.3 highlights
+          name: windows-release-${{ github.sha }}
+          path: release/*
+          if-no-files-found: error
+          retention-days: 7
 
-            - Draws an immediate current-value baseline instead of blocking on an empty historical chart.
-            - Returns cached history immediately and refreshes stale or missing data in the background.
-            - Replaces provisional charts automatically when fresh company, metal, or cryptocurrency data arrives.
-            - Adds persistent history caching for metals and cryptocurrencies.
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
 
-            ## Windows x64
+    steps:
+      - name: Checkout tagged release notes
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+          sparse-checkout: RELEASE_NOTES.md
+          sparse-checkout-cone-mode: false
 
-            Download only **Codex-World-Setup-x64.exe**.
+      - name: Download verified build artifact
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        with:
+          name: windows-release-${{ github.sha }}
+          path: release
 
-            1. Double-click the downloaded Setup file.
-            2. Choose **Simplified Chinese** or **English**.
-            3. On the destination page, choose the drive and install folder.
-            4. Finish Setup, then launch **Codex World** from the desktop or Start menu.
+      - name: Refuse to overwrite an existing release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.build.outputs.release_tag }}
+        run: |
+          set +e
+          lookup=$(gh api --include "repos/$GH_REPO/releases/tags/$RELEASE_TAG" 2>&1)
+          lookup_status=$?
+          set -e
+          if [ "$lookup_status" -eq 0 ]; then
+            echo "Release $RELEASE_TAG already exists; refusing to overwrite it." >&2
+            exit 1
+          fi
+          if ! printf '%s' "$lookup" | grep -Eq 'HTTP[^[:digit:]]+404|\(HTTP 404\)'; then
+            echo "Could not safely determine whether release $RELEASE_TAG exists:" >&2
+            printf '%s\n' "$lookup" >&2
+            exit 1
+          fi
 
-            ## Windows 64 位
+      - name: Attest installer provenance
+        uses: actions/attest-build-provenance@43d14bc2b83dec42d39ecae14e916627a18bb661 # v3
+        with:
+          subject-path: release/Codex-World-Setup-x64.exe
 
-            只需下载 **Codex-World-Setup-x64.exe**。
+      - name: Prepare release notes
+        env:
+          RELEASE_TAG: ${{ needs.build.outputs.release_tag }}
+        run: |
+          checksum=$(cut -d' ' -f1 release/Codex-World-Setup-x64.exe.sha256)
+          cat > release-notes.md <<EOF
+          ## Codex World $RELEASE_TAG
 
-            1. 双击下载好的安装程序。
-            2. 选择 **简体中文** 或 **English**。
-            3. 在安装位置页面选择磁盘和目录。
-            4. 完成安装后，从桌面或开始菜单启动 **Codex World**。
+          Download **Codex-World-Setup-x64.exe**. The adjacent \`.sha256\` file and GitHub build attestation can be used to verify the download.
+
+          SHA-256: \`$checksum\`
+
+          This Windows x64 installer preserves user preferences and saved model configuration when the app is uninstalled.
+          EOF
+          printf '\n' >> release-notes.md
+          cat RELEASE_NOTES.md >> release-notes.md
+
+      - name: Publish immutable GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ needs.build.outputs.release_tag }}
+        run: |
+          gh release create "$RELEASE_TAG" \
+            release/Codex-World-Setup-x64.exe \
+            release/Codex-World-Setup-x64.exe.sha256 \
+            --verify-tag \
+            --latest \
+            --title "Codex World $RELEASE_TAG" \
+            --notes-file release-notes.md

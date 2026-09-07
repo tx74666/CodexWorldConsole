@@ -1435,6 +1435,7 @@ const MARKET_SPARKLINE_CACHE_POINTS = 1000;
 const MARKET_HISTORY_FRESH_MS = 30 * 60 * 1000;
 const MARKET_HISTORY_RETRY_MS = 30 * 1000;
 const MARKET_HISTORY_REFRESH_DELAYS_MS = [700, 1400, 2600, 4500, 7500, 12000];
+const EVENT_REFRESH_DELAYS_MS = [1500, 3000, 6000, 12000, 20000];
 const MAX_EARNING_OPPORTUNITIES = 10;
 const earningSourceFilters = [
   { key: "job-board", labelKey: "earningFilterJobBoard" },
@@ -1553,6 +1554,12 @@ let marketGroupFilters = {
   metals: viewState.includeMetals !== false,
   crypto: viewState.includeCrypto !== false
 };
+let marketSearchQuery = "";
+let marketFavoritesOnly = viewState.marketFavoritesOnly === true;
+const marketFavoriteIds = new Set(
+  (Array.isArray(viewState.marketFavoriteIds) ? viewState.marketFavoriteIds : [])
+    .filter(id => typeof id === "string" && id.length < 160)
+);
 let selectedMarketId = viewState.selectedMarketId || "aapl";
 let selectedMarketRange = viewState.selectedMarketRange || "1m";
 let marketLeadersScrollTop = 0;
@@ -1571,6 +1578,7 @@ let currentLanguage = loadLanguage();
 let currentTheme = loadTheme();
 let translationEnabled = loadTranslationToggle();
 let translationSelectionText = "";
+let translationContextText = "";
 let translationResultText = "";
 let translationExplanationText = "";
 let translationStatus = "idle";
@@ -1580,25 +1588,60 @@ let translationAbortController = null;
 let translationResultCache = loadTranslationResultCache();
 let marketAskQuestion = "";
 let marketAskAnswer = "";
+let marketAskCitations = [];
 let marketAskStatus = "idle";
-let marketAskSource = "";
 let marketAskRequestId = 0;
 let marketAskAbortController = null;
 let marketAskActiveContextKey = "";
 let marketAskMode = normalizeMarketAskMode(viewState.marketAskMode || "think");
+let marketAskConfigOpen = false;
+let marketAskConfigSaving = false;
+let marketAskConfigMessage = "";
+let marketAskConfigDraft = null;
+let marketAskConfigDraftDirty = false;
+let marketAskApiConfig = {
+  configured: false,
+  baseUrl: "https://api.openai.com/v1",
+  model: "gpt-5.6-terra",
+  protocol: "responses",
+  webSearch: false,
+  hasApiKey: false,
+  managedByEnvironment: false
+};
 let cityPhotoRangeMinutes = normalizeCityPhotoRange(viewState.cityPhotoRangeMinutes || 30);
 let weatherSourceKey = cachedWeather ? "cachedWeather" : "localWeather";
+let eventFreshness = {
+  updated: readStorageJson(eventCacheStorageKey, {})?.updated || null,
+  stale: true,
+  refreshing: false,
+  sourceStatus: "unavailable",
+  failedSources: [],
+  requestFailed: false
+};
 let eventSourceKey = reportSourceKey();
 let marketSourceKey = marketAssets.length ? "cachedMarketData" : "loadingMarkets";
 let currencySourceKey = marketCurrencies.length ? "cachedMarketData" : "loadingCurrencyData";
 let reportImageRequestId = 0;
 let cityPhotoActiveBucket = "";
-let marketHistoryRequestId = 0;
+let weatherFetchRequestId = 0;
+let weatherFetchAbortController = null;
+let eventFetchRequestId = 0;
+let eventFetchAbortController = null;
+let eventFreshRetryTimer = 0;
+let eventFreshRetryAttempts = 0;
+let eventFailedRefreshAttempts = 0;
+let marketFetchRequestId = 0;
+let marketFetchAbortController = null;
 let marketHistoryPreloadTimer = 0;
 let marketHistoryPreloadInFlight = 0;
 let marketHistoryCacheSaveTimer = 0;
 let marketFreshRetryTimer = 0;
 let marketFreshRetryAttempts = 0;
+const datasetRefreshState = {
+  weather: { attemptedAt: 0, completedAt: 0, succeededAt: 0 },
+  events: { attemptedAt: 0, completedAt: 0, succeededAt: Date.parse(eventFreshness.updated) || 0 },
+  markets: { attemptedAt: 0, completedAt: 0, succeededAt: Date.parse(marketUpdatedAt) || 0 }
+};
 const marketHistoryPreloadQueue = [];
 const marketHistoryPreloadKeys = new Set();
 const marketHistoryPreloadDone = new Set();
@@ -1606,6 +1649,11 @@ const marketHistoryRequests = new Set();
 const marketHistoryAttemptedAt = new Map();
 const marketHistoryRefreshTimers = new Map();
 const marketHistoryRefreshAttempts = new Map();
+const currencyHistoryRequests = new Set();
+const currencyHistoryAttemptedAt = new Map();
+const timeFormatterCache = new Map();
+const localTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+const reducedMotionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)") || null;
 
 const translations = {
   en: {
@@ -1723,6 +1771,19 @@ const translations = {
 };
 
 Object.assign(translations.en, {
+  marketSearch: "Search name or symbol",
+  marketFavorites: "Watchlist",
+  marketAddFavorite: "Add to watchlist",
+  marketRemoveFavorite: "Remove from watchlist",
+  marketSearchEmpty: "No matching assets. Try another name or symbol.",
+  marketFavoritesEmpty: "Your watchlist is empty. Use the star beside an asset to add it.",
+  marketClearFilters: "Show all assets",
+  partialRssReports: "Latest RSS · some sources unavailable",
+  failedRssReports: "Refresh failed · showing cached reports",
+  unavailableRssReports: "RSS unavailable · local fallback",
+  reportLastSuccess: "Last successful update",
+  reportNeverUpdated: "No successful update yet",
+  reportFailedSources: "Unavailable sources",
   markets: "Markets",
   earning: "Earning",
   earningMap: "Earning",
@@ -1806,15 +1867,36 @@ Object.assign(translations.en, {
   marketSymbol: "Symbol",
   marketRange: "Recent range",
   marketAskTitle: "Ask for details",
-  marketAskPlaceholder: "",
+  marketAskPlaceholder: "Ask about this asset",
   marketAskButton: "Send",
   marketAskLoading: "Thinking...",
   marketAskLoadingFast: "Reading context...",
   marketAskLoadingThink: "Researching...",
+  marketAskCancel: "Cancel",
   marketAskFast: "Fast",
   marketAskThink: "Think",
   marketAskEmpty: "",
   marketAskUnavailable: "Ask is not connected yet.",
+  marketAskApiSettings: "Model API settings",
+  marketAskApiTitle: "Model API",
+  marketAskApiProtocol: "Protocol",
+  marketAskApiResponses: "OpenAI Responses",
+  marketAskApiChat: "Chat Completions compatible",
+  marketAskApiBaseUrl: "Base URL",
+  marketAskApiModel: "Model",
+  marketAskApiKey: "API key",
+  marketAskApiWebSearch: "Let Think mode search the web",
+  marketAskSources: "Sources",
+  marketAskApiKeySaved: "A key is saved; leave blank to keep it",
+  marketAskApiKeyOptional: "Optional for local endpoints",
+  marketAskApiClearKey: "Remove saved API key",
+  marketAskApiManaged: "Managed by environment variables",
+  marketAskApiSave: "Save API",
+  marketAskApiSaving: "Saving...",
+  marketAskApiSaved: "API settings saved.",
+  marketAskApiSaveFailed: "Could not save API settings.",
+  marketAskApiConnected: "Configured",
+  marketAskApiNotConfigured: "Not configured",
   includeMetals: "Metals",
   includeCrypto: "Crypto",
   currencyAnchor: "Anchor",
@@ -1858,6 +1940,19 @@ Object.assign(translations.en, {
 });
 
 Object.assign(translations.zh, {
+  marketSearch: "搜索名称或代码",
+  marketFavorites: "自选",
+  marketAddFavorite: "加入自选",
+  marketRemoveFavorite: "移出自选",
+  marketSearchEmpty: "未找到匹配资产，请尝试其他名称或代码。",
+  marketFavoritesEmpty: "自选列表为空，点击资产旁的星标即可加入。",
+  marketClearFilters: "显示全部资产",
+  partialRssReports: "最新 RSS · 部分来源不可用",
+  failedRssReports: "刷新失败 · 显示缓存新闻",
+  unavailableRssReports: "RSS 暂不可用 · 本地备用新闻",
+  reportLastSuccess: "上次成功更新",
+  reportNeverUpdated: "尚无成功更新记录",
+  reportFailedSources: "不可用来源",
   markets: "市场",
   earning: "赚钱",
   earningMap: "赚钱",
@@ -1936,15 +2031,36 @@ Object.assign(translations.zh, {
   marketSymbol: "代码",
   marketRange: "近期区间",
   marketAskTitle: "询问详细情况",
-  marketAskPlaceholder: "",
+  marketAskPlaceholder: "询问当前资产",
   marketAskButton: "发送",
   marketAskLoading: "正在思考...",
   marketAskLoadingFast: "速算中...",
   marketAskLoadingThink: "查资料...",
+  marketAskCancel: "取消",
   marketAskFast: "Fast",
   marketAskThink: "Think",
   marketAskEmpty: "",
-  marketAskUnavailable: "问答还没有连接。"
+  marketAskUnavailable: "问答还没有连接。",
+  marketAskApiSettings: "模型接口设置",
+  marketAskApiTitle: "模型 API",
+  marketAskApiProtocol: "协议",
+  marketAskApiResponses: "OpenAI Responses",
+  marketAskApiChat: "兼容 Chat Completions",
+  marketAskApiBaseUrl: "接口地址",
+  marketAskApiModel: "模型",
+  marketAskApiKey: "API 密钥",
+  marketAskApiWebSearch: "允许 Think 模式联网搜索",
+  marketAskSources: "来源",
+  marketAskApiKeySaved: "密钥已保存；留空即保留",
+  marketAskApiKeyOptional: "本地接口可不填",
+  marketAskApiClearKey: "删除已保存的 API 密钥",
+  marketAskApiManaged: "由环境变量托管",
+  marketAskApiSave: "保存接口",
+  marketAskApiSaving: "正在保存...",
+  marketAskApiSaved: "接口设置已保存。",
+  marketAskApiSaveFailed: "接口设置保存失败。",
+  marketAskApiConnected: "已配置",
+  marketAskApiNotConfigured: "未配置"
 });
 
 Object.assign(translations.zh, {
@@ -2221,7 +2337,7 @@ function applyTheme(themeId = currentTheme) {
   currentTheme = validThemeId(themeId);
   document.body.dataset.theme = currentTheme;
   renderThemePicker();
-  drawMatrix();
+  drawMatrix({ force: true });
   if (isMarketMode()) {
     renderMarketBoard();
     renderMarketAssets();
@@ -2628,7 +2744,12 @@ function normalizeMarketAssets(items, existingItems = []) {
   });
 }
 
-function normalizeCurrencyQuotes(items) {
+function normalizeCurrencyQuotes(items, existingItems = []) {
+  const existingByCode = new Map(
+    (Array.isArray(existingItems) ? existingItems : [])
+      .filter(item => item && item.code)
+      .map(item => [String(item.code).toUpperCase(), item])
+  );
   const normalized = [];
   for (const incoming of Array.isArray(items) ? items : []) {
     const code = String(incoming?.code || "").toUpperCase();
@@ -2637,15 +2758,17 @@ function normalizeCurrencyQuotes(items) {
     if (!code || !Number.isFinite(usdValue) || usdValue <= 0 || !Number.isFinite(quotePerUsd) || quotePerUsd <= 0) {
       continue;
     }
+    const existing = existingByCode.get(code) || {};
     normalized.push({
+      ...existing,
       ...incoming,
       code,
       usdValue,
       quotePerUsd,
       changePct: Number.isFinite(Number(incoming.changePct)) ? Number(incoming.changePct) : null,
-      history: normalizeMarketHistory(incoming.history) || [],
-      denseHistory: normalizeMarketHistory(incoming.denseHistory) || [],
-      shortHistory: normalizeMarketHistory(incoming.shortHistory) || []
+      history: normalizeMarketHistory(incoming.history) || normalizeMarketHistory(existing.history) || [],
+      denseHistory: normalizeMarketHistory(incoming.denseHistory) || normalizeMarketHistory(existing.denseHistory) || [],
+      shortHistory: normalizeMarketHistory(incoming.shortHistory) || normalizeMarketHistory(existing.shortHistory) || []
     });
   }
   return normalized.sort((left, right) => {
@@ -2739,7 +2862,7 @@ function marketName(asset) {
 function marketDetailUrl(asset) {
   const raw = String(asset?.historyUrl || "").trim();
   if (!raw) return "";
-  if (/^https?:\/\//i.test(raw)) return raw;
+  if (/^https?:\/\//i.test(raw)) return safeHttpUrl(raw);
   return `https://companiesmarketcap.com${raw.startsWith("/") ? raw : `/${raw}`}`;
 }
 
@@ -2755,7 +2878,7 @@ function createMarketNameLink(asset, className = "market-name-link") {
   link.className = className;
   link.href = url;
   link.target = "_blank";
-  link.rel = "noreferrer";
+  link.rel = "noopener noreferrer";
   link.textContent = marketName(asset);
   link.addEventListener("click", event => {
     event.stopPropagation();
@@ -4421,7 +4544,7 @@ function updateReportImage(event) {
 }
 
 function applyLanguage() {
-  document.documentElement.lang = currentLanguage === "zh" ? "zh-Hant" : "en";
+  document.documentElement.lang = currentLanguage === "zh" ? "zh-Hans" : "en";
   document.querySelectorAll("[data-i18n]").forEach(node => {
     node.textContent = t(node.dataset.i18n);
   });
@@ -4439,6 +4562,21 @@ function applyLanguage() {
 }
 
 function rerenderLanguageSensitiveViews() {
+  const refreshTranslation = Boolean(
+    translationEnabled
+    && translationSelectionText
+    && !isCityMapMode()
+    && !isMarketMode()
+    && !isEarningMode()
+  );
+  if (refreshTranslation) {
+    translationRequestId += 1;
+    translationAbortController?.abort();
+    translationAbortController = null;
+    translationResultText = "";
+    translationExplanationText = "";
+    translationStatus = "loading";
+  }
   applyLanguage();
   renderCities();
   if (isMarketMode()) {
@@ -4452,6 +4590,9 @@ function rerenderLanguageSensitiveViews() {
   } else {
     selectEvent(selectedEventId);
   }
+  if (refreshTranslation) {
+    translateSelectedText(translationSelectionText, { force: true });
+  }
 }
 
 function loadCachedEvents() {
@@ -4461,9 +4602,10 @@ function loadCachedEvents() {
 }
 
 function saveCachedEvents(nextEvents) {
-  if (!Array.isArray(nextEvents) || !nextEvents.length) return;
+  if (!Array.isArray(nextEvents)) return;
   writeStorageJson(eventCacheStorageKey, {
     savedAt: new Date().toISOString(),
+    updated: eventFreshness.updated,
     events: nextEvents.slice(0, 30)
   });
 }
@@ -4650,7 +4792,9 @@ function saveViewState() {
     cityPhotoRangeMinutes,
     earningFilters,
     includeMetals: marketGroupFilters.metals,
-    includeCrypto: marketGroupFilters.crypto
+    includeCrypto: marketGroupFilters.crypto,
+    marketFavoriteIds: Array.from(marketFavoriteIds),
+    marketFavoritesOnly
   });
 }
 
@@ -4702,6 +4846,20 @@ async function loadRuntimeFeatures() {
     if (!response.ok) throw new Error("HTTP " + response.status);
     const payload = await response.json();
     applyEarningFeatureAvailability(payload?.features?.earning === true);
+    if (payload?.ask && typeof payload.ask === "object") {
+      marketAskApiConfig = {
+        configured: payload.ask.configured === true,
+        baseUrl: String(payload.ask.baseUrl || "https://api.openai.com/v1"),
+        model: String(payload.ask.model || "gpt-5.6-terra"),
+        protocol: payload.ask.protocol === "chat-completions" ? "chat-completions" : "responses",
+        webSearch: payload.ask.webSearch === true,
+        hasApiKey: payload.ask.hasApiKey === true,
+        managedByEnvironment: payload.ask.managedByEnvironment === true
+      };
+      if (!marketAskConfigSaving && !marketAskConfigDraftDirty) marketAskConfigDraft = null;
+      const active = visibleMarketAssetById(selectedMarketId);
+      if (active && isMarketMode()) renderMarketInspect(active);
+    }
   } catch {
     applyEarningFeatureAvailability(false);
   }
@@ -4747,19 +4905,25 @@ function boardPoint(index, width, height, customSlot) {
   };
 }
 
-function formatTime(zone) {
-  return new Intl.DateTimeFormat("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-    timeZone: zone
-  }).format(new Date());
+function formatTime(zone, date = new Date()) {
+  const key = String(zone || "UTC");
+  let formatter = timeFormatterCache.get(key);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+      timeZone: key
+    });
+    timeFormatterCache.set(key, formatter);
+  }
+  return formatter.format(date);
 }
 
 function formatDate(value) {
   try {
-    return new Intl.DateTimeFormat(currentLanguage === "zh" ? "zh-Hant" : "en-US", {
+    return new Intl.DateTimeFormat(currentLanguage === "zh" ? "zh-CN" : "en-US", {
       month: "short",
       day: "2-digit",
       hour: "2-digit",
@@ -4793,13 +4957,15 @@ function updateMarketRefreshTime() {
 }
 
 function scheduleMarketFreshRetry() {
+  if (document.hidden || !isMarketMode()) return;
   const retryDelays = [2500, 6000, 12000, 25000, 45000, 90000];
   if (marketFreshRetryAttempts >= retryDelays.length) return;
   const delay = retryDelays[marketFreshRetryAttempts];
   marketFreshRetryAttempts += 1;
   window.clearTimeout(marketFreshRetryTimer);
   marketFreshRetryTimer = window.setTimeout(() => {
-    fetchMarkets({ announce: false });
+    marketFreshRetryTimer = 0;
+    if (!document.hidden && isMarketMode() && !marketFetchAbortController) fetchMarkets({ announce: false });
   }, delay);
 }
 
@@ -4843,6 +5009,28 @@ function isMarketMode(mode = mapMode) {
   return mode === "markets";
 }
 
+function scheduleEventFreshRetry() {
+  if (document.hidden || mapMode !== "events") return;
+  if (eventFreshRetryAttempts >= EVENT_REFRESH_DELAYS_MS.length) return;
+  const delay = EVENT_REFRESH_DELAYS_MS[eventFreshRetryAttempts];
+  eventFreshRetryAttempts += 1;
+  window.clearTimeout(eventFreshRetryTimer);
+  eventFreshRetryTimer = window.setTimeout(() => {
+    eventFreshRetryTimer = 0;
+    if (!document.hidden && mapMode === "events" && !eventFetchAbortController) fetchEvents({ announce: false });
+  }, delay);
+}
+
+function updateEventFreshRetryState(payload) {
+  if (payload?.refreshing === true) {
+    scheduleEventFreshRetry();
+    return;
+  }
+  eventFreshRetryAttempts = 0;
+  window.clearTimeout(eventFreshRetryTimer);
+  eventFreshRetryTimer = 0;
+}
+
 function isEarningMode(mode = mapMode) {
   return earningFeatureEnabled && mode === "earning";
 }
@@ -4851,8 +5039,14 @@ function cityModeLabel() {
   return t("cityMode");
 }
 
+function formatCelsius(value) {
+  if (value === null || value === undefined || typeof value === "string" && !value.trim()) return "--";
+  const temperature = Number(value);
+  return Number.isFinite(temperature) ? `${Math.round(temperature)} °C` : "--";
+}
+
 function cityModeBadge(city, item) {
-  return `${Math.round(item.temperature)} C`;
+  return formatCelsius(item.temperature);
 }
 
 function cityModeTitle(city) {
@@ -4870,8 +5064,8 @@ function significantWeatherText(city, item) {
   else if ([65, 81, 82].includes(code)) parts.push(currentLanguage === "zh" ? "有较强降雨" : "has heavy rain");
   else if ([45, 48].includes(code)) parts.push(currentLanguage === "zh" ? "有雾" : "has fog");
   if (Number.isFinite(wind) && wind >= 40) parts.push(currentLanguage === "zh" ? `风速约 ${Math.round(wind)} km/h` : `wind around ${Math.round(wind)} km/h`);
-  if (Number.isFinite(temp) && temp >= 38) parts.push(currentLanguage === "zh" ? `高温约 ${Math.round(temp)} C` : `heat around ${Math.round(temp)} C`);
-  if (Number.isFinite(temp) && temp <= -5) parts.push(currentLanguage === "zh" ? `低温约 ${Math.round(temp)} C` : `cold around ${Math.round(temp)} C`);
+  if (Number.isFinite(temp) && temp >= 38) parts.push(currentLanguage === "zh" ? `高温约 ${formatCelsius(temp)}` : `heat around ${formatCelsius(temp)}`);
+  if (Number.isFinite(temp) && temp <= -5) parts.push(currentLanguage === "zh" ? `低温约 ${formatCelsius(temp)}` : `cold around ${formatCelsius(temp)}`);
   if (!parts.length) return "";
   return currentLanguage === "zh"
     ? `${place}${parts.join("，")}。`
@@ -4880,10 +5074,6 @@ function significantWeatherText(city, item) {
 
 function cityModeSummary(city, item) {
   return significantWeatherText(city, item);
-  if (currentLanguage === "zh") {
-    return `當地時間 ${formatTime(city.zone)}。天氣 ${weatherText(item.code)}。溫度 ${Math.round(item.temperature)} C。濕度 ${Math.round(item.humidity)}%。風速 ${Math.round(item.wind)} km/h。`;
-  }
-  return `Local time ${formatTime(city.zone)}. Weather ${weatherText(item.code)}. Temperature ${Math.round(item.temperature)} C. Humidity ${Math.round(item.humidity)}%. Wind ${Math.round(item.wind)} km/h.`;
 }
 
 function stableHash(text) {
@@ -5295,7 +5485,7 @@ function createClimateLabel(city, item) {
   details.className = "climate-details";
 
   const temp = document.createElement("span");
-  temp.textContent = `${Math.round(item.temperature)} C`;
+  temp.textContent = formatCelsius(item.temperature);
   details.appendChild(temp);
 
   const clock = document.createElement("span");
@@ -5493,13 +5683,24 @@ function makeLabelInteractive(label, pin, key) {
   label.appendChild(handle);
 
   let action = null;
+  const activate = event => {
+    if (!action || action.active) return;
+    action.active = true;
+    pin.dataset.suppressClick = "true";
+    pin.classList.add("label-is-adjusting");
+    label.classList.add("label-adjusting");
+    try {
+      label.setPointerCapture(event.pointerId);
+    } catch {
+      // Pointer capture can be unavailable for synthetic or already-cancelled pointers.
+    }
+  };
   const begin = (event, mode) => {
     if (event.button !== 0 && event.pointerType !== "touch") return;
-    event.preventDefault();
-    event.stopPropagation();
     const layout = currentLabelLayout(pin);
     action = {
       mode,
+      active: false,
       pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
@@ -5507,10 +5708,11 @@ function makeLabelInteractive(label, pin, key) {
       labelY: layout.y,
       scale: layout.scale
     };
-    pin.dataset.suppressClick = "true";
-    pin.classList.add("label-is-adjusting");
-    label.classList.add("label-adjusting");
-    label.setPointerCapture(event.pointerId);
+    if (mode === "resize") {
+      event.preventDefault();
+      event.stopPropagation();
+      activate(event);
+    }
   };
 
   label.addEventListener("pointerdown", event => {
@@ -5522,10 +5724,15 @@ function makeLabelInteractive(label, pin, key) {
 
   label.addEventListener("pointermove", event => {
     if (!action || action.pointerId !== event.pointerId) return;
-    event.preventDefault();
-    event.stopPropagation();
     const dx = event.clientX - action.startX;
     const dy = event.clientY - action.startY;
+    if (!action.active) {
+      if (Math.hypot(dx, dy) < 7) return;
+      if (event.pointerType === "touch" && Math.abs(dy) > Math.abs(dx)) return;
+      activate(event);
+    }
+    event.preventDefault();
+    event.stopPropagation();
 
     if (action.mode === "resize") {
       const scale = clamp(action.scale + (dx + dy) / labelResizeSensitivity, minLabelScale, maxLabelScale);
@@ -5538,15 +5745,20 @@ function makeLabelInteractive(label, pin, key) {
 
   const finish = event => {
     if (!action || action.pointerId !== event.pointerId) return;
-    event.preventDefault();
-    event.stopPropagation();
+    const wasActive = action.active;
+    if (wasActive) {
+      event.preventDefault();
+      event.stopPropagation();
+      rememberLabelLayout(key, pin);
+    }
     pin.classList.remove("label-is-adjusting");
     label.classList.remove("label-adjusting");
-    rememberLabelLayout(key, pin);
     action = null;
-    window.setTimeout(() => {
-      delete pin.dataset.suppressClick;
-    }, 0);
+    if (wasActive) {
+      window.setTimeout(() => {
+        delete pin.dataset.suppressClick;
+      }, 0);
+    }
   };
 
   label.addEventListener("pointerup", finish);
@@ -5719,14 +5931,14 @@ function applyLabelPlacement(pin, point, text, rect, occupiedLabels, markerPoint
   return best;
 }
 
-function updateClimateClocks() {
+function updateClimateClocks(date = new Date()) {
   document.querySelectorAll("[data-city-clock]").forEach(clock => {
     const city = cities.find(item => item.id === clock.dataset.cityClock);
-    if (city) clock.textContent = formatTime(city.zone);
+    if (city) clock.textContent = formatTime(city.zone, date);
   });
   document.querySelectorAll("[data-hover-clock]").forEach(clock => {
     const city = cities.find(item => item.id === clock.dataset.hoverClock);
-    if (city) clock.textContent = formatTime(city.zone);
+    if (city) clock.textContent = formatTime(city.zone, date);
   });
 }
 
@@ -5782,7 +5994,7 @@ function renderWeatherInspect(city, item) {
   const metrics = [
     [t("local"), formatTime(city.zone)],
     [t("weather"), weatherText(item.code)],
-    [t("temp"), `${Math.round(item.temperature)} C`]
+    [t("temp"), formatCelsius(item.temperature)]
   ];
 
   metrics.forEach(([label, value]) => {
@@ -6276,7 +6488,7 @@ function createMarketChart(asset) {
   overlay.setAttribute("height", chartHeight);
   overlay.setAttribute("fill", "transparent");
   overlay.style.cursor = "crosshair";
-  overlay.addEventListener("mousemove", event => {
+  overlay.addEventListener("pointermove", event => {
     const rect = svg.getBoundingClientRect();
     const localX = ((event.clientX - rect.left) / rect.width) * width;
     const index = nearestChartPointIndex(points, localX);
@@ -6289,11 +6501,11 @@ function createMarketChart(asset) {
     hoverDot.setAttribute("cy", y);
     tooltipDate.textContent = formatChartDate(point);
     tooltipValue.textContent = formatChartValue(asset, point);
-    const tooltipX = Math.max(8, x - 82);
+    const tooltipX = Math.min(width - 158, Math.max(8, x - 82));
     const tooltipY = y < 60 ? y + 12 : y - 56;
     tooltip.setAttribute("transform", `translate(${tooltipX.toFixed(1)} ${tooltipY.toFixed(1)})`);
   });
-  overlay.addEventListener("mouseleave", () => {
+  overlay.addEventListener("pointerleave", () => {
     hoverGroup.style.display = "none";
   });
   svg.appendChild(overlay);
@@ -6447,7 +6659,7 @@ function createCurrencyChart(anchor, quote) {
   overlay.setAttribute("height", chartHeight);
   overlay.setAttribute("fill", "transparent");
   overlay.style.cursor = "crosshair";
-  overlay.addEventListener("mousemove", event => {
+  overlay.addEventListener("pointermove", event => {
     const rect = svg.getBoundingClientRect();
     const localX = ((event.clientX - rect.left) / rect.width) * width;
     const index = nearestChartPointIndex(points, localX);
@@ -6460,11 +6672,11 @@ function createCurrencyChart(anchor, quote) {
     hoverDot.setAttribute("cy", y);
     tooltipDate.textContent = formatChartDate(point);
     tooltipValue.textContent = formatCurrencyChartValue(quote?.code, point.value);
-    const tooltipX = Math.max(8, x - 82);
+    const tooltipX = Math.min(width - 158, Math.max(8, x - 82));
     const tooltipY = y < 60 ? y + 12 : y - 56;
     tooltip.setAttribute("transform", `translate(${tooltipX.toFixed(1)} ${tooltipY.toFixed(1)})`);
   });
-  overlay.addEventListener("mouseleave", () => {
+  overlay.addEventListener("pointerleave", () => {
     hoverGroup.style.display = "none";
   });
   svg.appendChild(overlay);
@@ -6531,20 +6743,20 @@ function createCountryFlag(asset) {
 }
 
 function setMarketGroupFilter(group, enabled) {
+  cancelMarketAskRequest();
   marketGroupFilters = { ...marketGroupFilters, [group]: enabled };
   const visible = rankedVisibleMarketAssets();
   if (!visible.some(asset => asset.id === selectedMarketId)) {
     selectedMarketId = defaultMarketAsset(visible)?.id || "";
   }
-  renderMarketBoard();
-  renderFeed();
-  saveViewState();
+  selectMarket(selectedMarketId);
 }
 
 function createMarketFilterToggle(group, labelKey) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = `market-filter-toggle ${marketGroupFilters[group] ? "active" : ""}`;
+  button.dataset.marketGroupFilter = group;
   button.textContent = t(labelKey);
   button.setAttribute("aria-pressed", marketGroupFilters[group] ? "true" : "false");
   button.addEventListener("click", () => setMarketGroupFilter(group, !marketGroupFilters[group]));
@@ -6552,7 +6764,17 @@ function createMarketFilterToggle(group, labelKey) {
 }
 
 function marketNavigationAssets() {
-  const ranked = rankedVisibleMarketAssets();
+  const query = marketSearchQuery.trim().toLocaleLowerCase();
+  const ranked = rankedVisibleMarketAssets().filter(asset => {
+    if (marketFavoritesOnly && !marketFavoriteIds.has(asset.id)) return false;
+    if (!query) return true;
+    return [asset.id, asset.symbol, asset.name, asset.zhName, marketName(asset),
+      assetZhNamesBySymbol[String(asset.symbol || "").toUpperCase()],
+      assetZhNamesByName[String(asset.name || "").toLowerCase()]]
+      .some(value => String(value || "").toLocaleLowerCase().includes(query));
+  }).sort((left, right) => Number(marketFavoriteIds.has(right.id)) - Number(marketFavoriteIds.has(left.id))
+    || compareMarketRank(left, right));
+  if (query || marketFavoritesOnly) return ranked;
   const topAssets = ranked.slice(0, 50);
   const selected = ranked.find(asset => asset.id === selectedMarketId);
   if (!selected || topAssets.some(asset => asset.id === selected.id)) {
@@ -6561,8 +6783,72 @@ function marketNavigationAssets() {
   return topAssets.concat(selected);
 }
 
+function resetMarketListScroll() {
+  marketLeadersScrollTop = 0;
+  const list = els.marketBoard?.querySelector(".market-leaders");
+  if (list) list.scrollTop = 0;
+}
+
+function createMarketSearchControls() {
+  const controls = document.createElement("div");
+  controls.className = "market-search-controls";
+  const search = document.createElement("input");
+  search.type = "search";
+  search.id = "marketAssetSearch";
+  search.placeholder = t("marketSearch");
+  search.setAttribute("aria-label", t("marketSearch"));
+  search.autocomplete = "off";
+  search.value = marketSearchQuery;
+  search.addEventListener("input", () => {
+    marketSearchQuery = search.value;
+    resetMarketListScroll();
+    renderMarketBoard();
+  });
+  controls.appendChild(search);
+  const favorites = document.createElement("button");
+  favorites.type = "button";
+  favorites.id = "marketFavoritesFilter";
+  favorites.className = `market-filter-toggle ${marketFavoritesOnly ? "active" : ""}`;
+  favorites.textContent = `${t("marketFavorites")} (${marketFavoriteIds.size})`;
+  favorites.setAttribute("aria-pressed", String(marketFavoritesOnly));
+  favorites.addEventListener("click", () => {
+    marketFavoritesOnly = !marketFavoritesOnly;
+    resetMarketListScroll();
+    saveViewState();
+    renderMarketBoard();
+    els.marketBoard.querySelector("#marketFavoritesFilter")?.focus({ preventScroll: true });
+  });
+  controls.appendChild(favorites);
+  return controls;
+}
+
+function createMarketFavoriteToggle(asset) {
+  const favorite = document.createElement("button");
+  const selected = marketFavoriteIds.has(asset.id);
+  favorite.type = "button";
+  favorite.className = `market-favorite-toggle ${selected ? "active" : ""}`;
+  favorite.dataset.favoriteAssetId = asset.id;
+  favorite.textContent = selected ? "★" : "☆";
+  favorite.title = `${t(selected ? "marketRemoveFavorite" : "marketAddFavorite")}: ${marketName(asset)}`;
+  favorite.setAttribute("aria-label", favorite.title);
+  favorite.setAttribute("aria-pressed", String(selected));
+  favorite.addEventListener("keydown", event => event.stopPropagation());
+  favorite.addEventListener("click", event => {
+    event.stopPropagation();
+    if (marketFavoriteIds.has(asset.id)) marketFavoriteIds.delete(asset.id);
+    else marketFavoriteIds.add(asset.id);
+    saveViewState();
+    renderMarketBoard();
+    const target = Array.from(els.marketBoard.querySelectorAll(".market-favorite-toggle"))
+      .find(button => button.dataset.favoriteAssetId === asset.id);
+    (target || els.marketBoard.querySelector("#marketFavoritesFilter"))?.focus({ preventScroll: true });
+  });
+  return favorite;
+}
+
 function setMarketRange(range, options = {}) {
   if (!marketRangeOptions.includes(range)) return;
+  if (range !== selectedMarketRange) cancelMarketAskRequest();
   const active = visibleMarketAssetById(selectedMarketId);
   selectedMarketRange = range;
   if (options.focusList && active) {
@@ -6580,7 +6866,8 @@ function setMarketRange(range, options = {}) {
 }
 
 function navigateMarketAsset(direction) {
-  const assets = rankedVisibleMarketAssets();
+  const assets = marketSearchQuery.trim() || marketFavoritesOnly || marketFavoriteIds.size
+    ? marketNavigationAssets() : rankedVisibleMarketAssets();
   if (!assets.length) return;
   let currentIndex = assets.findIndex(asset => asset.id === selectedMarketId);
   if (currentIndex < 0) {
@@ -6603,6 +6890,8 @@ function navigateMarketRange(direction) {
 
 function handleMarketBoardKeydown(event) {
   if (!isMarketMode() || event.altKey || event.ctrlKey || event.metaKey) return;
+  if (!els.marketBoard?.contains(event.target)) return;
+  if (event.target.closest("input, textarea, select, button, a, [contenteditable='true']")) return;
   if (!["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) return;
   event.preventDefault();
   event.stopPropagation();
@@ -6614,7 +6903,7 @@ function handleMarketBoardKeydown(event) {
 
 function focusMarketBoardFromPointer(event) {
   if (!isMarketMode() || !els.marketBoard || !els.marketBoard.contains(event.target)) return;
-  if (event.target.closest("a, button, .market-leader-row")) return;
+  if (event.target.closest("input, textarea, select, a, button, .market-leader-row")) return;
   requestAnimationFrame(() => {
     try {
       els.marketBoard.focus({ preventScroll: true });
@@ -6802,13 +7091,13 @@ function holdMarketLeadersSnap(list) {
 
 function renderMarketBoard() {
   if (!els.marketBoard) return;
+  const searchFocused = document.activeElement?.id === "marketAssetSearch";
+  const searchSelection = searchFocused ? [document.activeElement.selectionStart, document.activeElement.selectionEnd] : null;
   const previousLeaders = els.marketBoard.querySelector(".market-leaders");
   const previousLeadersScrollTop = previousLeaders ? previousLeaders.scrollTop : marketLeadersScrollTop;
   const navigationAssets = marketNavigationAssets();
-  let active = visibleMarketAssetById(selectedMarketId);
-  if (active && !navigationAssets.some(asset => asset.id === active.id)) {
-    active = defaultMarketAsset(navigationAssets) || active;
-  }
+  const displayRanks = new Map(rankedVisibleMarketAssets().map((asset, index) => [asset.id, index + 1]));
+  const active = visibleMarketAssetById(selectedMarketId);
   if (!active) {
     renderNoMarketBoard();
     return;
@@ -6854,6 +7143,7 @@ function renderMarketBoard() {
     button.className = range === selectedMarketRange ? "active" : "";
     button.dataset.marketRange = range;
     button.textContent = marketRangeLabel(range);
+    button.setAttribute("aria-pressed", range === selectedMarketRange ? "true" : "false");
     button.addEventListener("click", () => setMarketRange(range));
     ranges.appendChild(button);
   });
@@ -6879,6 +7169,7 @@ function renderMarketBoard() {
   filters.appendChild(createMarketFilterToggle("crypto", "includeCrypto"));
   sideHead.appendChild(filters);
   side.appendChild(sideHead);
+  side.appendChild(createMarketSearchControls());
 
   const leaders = document.createElement("div");
   leaders.className = "market-leaders";
@@ -6896,7 +7187,6 @@ function renderMarketBoard() {
       row.className = `market-leader-row ${asset.id === selectedMarketId ? "active" : ""}`;
       row.addEventListener("click", () => selectMarket(asset.id));
       row.addEventListener("keydown", event => {
-        if (event.target?.closest?.("a")) return;
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
           selectMarket(asset.id);
@@ -6915,10 +7205,12 @@ function renderMarketBoard() {
 
       const nameWrap = document.createElement("div");
       nameWrap.className = "market-leader-name";
-      const name = createMarketNameLink(asset, "market-name-link market-leader-name-link");
+      const name = document.createElement("span");
+      name.className = "market-name-link market-leader-name-link";
+      name.textContent = marketName(asset);
       const rank = document.createElement("span");
       rank.className = "market-rank-badge";
-      rank.textContent = `#${marketDisplayRank(asset) || index + 1}`;
+      rank.textContent = `#${displayRanks.get(asset.id) || index + 1}`;
       nameWrap.appendChild(rank);
       const rankMove = formatMarketRankChange(asset, { compact: true });
       if (rankMove) {
@@ -6937,10 +7229,34 @@ function renderMarketBoard() {
       row.appendChild(cap);
 
       const meta = document.createElement("span");
+      meta.className = "market-leader-meta";
       meta.textContent = `${asset.symbol} - ${formatMarketChange(asset)}`;
       row.appendChild(meta);
+      row.appendChild(createMarketFavoriteToggle(asset));
       leaders.appendChild(row);
     });
+  if (!navigationAssets.length) {
+    const empty = document.createElement("div");
+    empty.className = "market-search-empty";
+    empty.setAttribute("role", "status");
+    const message = document.createElement("p");
+    message.textContent = t(marketFavoritesOnly && !marketFavoriteIds.size ? "marketFavoritesEmpty" : "marketSearchEmpty");
+    empty.appendChild(message);
+    const reset = document.createElement("button");
+    reset.type = "button";
+    reset.className = "market-filter-toggle";
+    reset.textContent = t("marketClearFilters");
+    reset.addEventListener("click", () => {
+      marketSearchQuery = "";
+      marketFavoritesOnly = false;
+      resetMarketListScroll();
+      saveViewState();
+      renderMarketBoard();
+      els.marketBoard.querySelector("#marketAssetSearch")?.focus();
+    });
+    empty.appendChild(reset);
+    leaders.appendChild(empty);
+  }
   side.appendChild(leaders);
   els.marketBoard.appendChild(side);
   updateMarketLeadersEndPadding(leaders);
@@ -6980,6 +7296,11 @@ function renderMarketBoard() {
     updateMarketLeadersEndPadding(leaders);
     restoreKeyboardFocus();
   });
+  if (searchFocused) {
+    const search = els.marketBoard.querySelector("#marketAssetSearch");
+    search?.focus({ preventScroll: true });
+    if (search && searchSelection.every(Number.isInteger)) search.setSelectionRange(...searchSelection);
+  }
 }
 
 function renderNoMarketBoard() {
@@ -7000,6 +7321,12 @@ function renderNoMarketBoard() {
 }
 
 function renderMarketInspect(asset) {
+  const activeConfigField = document.activeElement?.closest?.("#marketAskApiConfig [name]");
+  const focusSnapshot = activeConfigField ? {
+    name: activeConfigField.name,
+    selectionStart: Number.isInteger(activeConfigField.selectionStart) ? activeConfigField.selectionStart : null,
+    selectionEnd: Number.isInteger(activeConfigField.selectionEnd) ? activeConfigField.selectionEnd : null
+  } : null;
   els.placeReports.innerHTML = "";
   const grid = document.createElement("div");
   grid.className = "market-inspect-grid";
@@ -7031,6 +7358,16 @@ function renderMarketInspect(asset) {
   });
   els.placeReports.appendChild(grid);
   els.placeReports.appendChild(createMarketAskPanel(asset));
+  if (focusSnapshot) {
+    requestAnimationFrame(() => {
+      const field = els.placeReports?.querySelector(`#marketAskApiConfig [name="${focusSnapshot.name}"]`);
+      if (!field || field.disabled) return;
+      field.focus({ preventScroll: true });
+      if (focusSnapshot.selectionStart !== null && typeof field.setSelectionRange === "function") {
+        field.setSelectionRange(focusSnapshot.selectionStart, focusSnapshot.selectionEnd);
+      }
+    });
+  }
 }
 
 function marketAskContextKey(asset) {
@@ -7039,8 +7376,67 @@ function marketAskContextKey(asset) {
     selectedMarketRange,
     selectedCurrencyAnchor,
     selectedCurrencyCode,
-    selectedCurrencyRange
+    selectedCurrencyRange,
+    currentLanguage,
+    marketUpdatedAt || "",
+    asset?.rangeHistoryUpdatedAt?.[selectedMarketRange] || "",
+    marketDataStale ? "market-stale" : "market-fresh",
+    asset?.rangeHistoryStale?.[selectedMarketRange] === true ? "range-stale" : "range-fresh",
+    marketGroupFilters.metals ? "metals" : "",
+    marketGroupFilters.crypto ? "crypto" : ""
   ].join(":");
+}
+
+function marketAskRangeStats(asset) {
+  const history = rangedMarketHistory(asset, selectedMarketRange)
+    .map(point => ({
+      time: point?.time || point?.date || point?.label || "",
+      value: Number(point?.value),
+      valueKind: point?.valueKind || "",
+      relative: point?.relative === true
+    }))
+    .filter(point => Number.isFinite(point.value));
+  const valueKind = history.find(point => point.valueKind)?.valueKind
+    || (asset?.group === "companies" ? "marketCap" : "price");
+  const stale = marketDataStale || asset?.rangeHistoryStale?.[selectedMarketRange] === true;
+  if (history.length < 2) {
+    return {
+      range: selectedMarketRange,
+      pointCount: history.length,
+      available: false,
+      valueKind,
+      unit: asset?.unit || "USD",
+      relative: history.some(point => point.relative),
+      stale,
+      marketDataStale,
+      updatedAt: asset?.rangeHistoryUpdatedAt?.[selectedMarketRange] || marketUpdatedAt || ""
+    };
+  }
+  const values = history.map(point => point.value);
+  const start = history[0];
+  const end = history[history.length - 1];
+  const sampleIndexes = [...new Set(Array.from({ length: Math.min(8, history.length) }, (_, index) => (
+    Math.round(index * (history.length - 1) / Math.max(1, Math.min(8, history.length) - 1))
+  )))];
+  return {
+    range: selectedMarketRange,
+    available: true,
+    pointCount: history.length,
+    valueKind,
+    unit: asset?.unit || "USD",
+    relative: history.some(point => point.relative),
+    start: start.value,
+    end: end.value,
+    low: Math.min(...values),
+    high: Math.max(...values),
+    changePct: start.value ? ((end.value - start.value) / start.value) * 100 : null,
+    startTime: start.time,
+    endTime: end.time,
+    updatedAt: asset?.rangeHistoryUpdatedAt?.[selectedMarketRange] || marketUpdatedAt || "",
+    stale,
+    marketDataStale,
+    sample: sampleIndexes.map(index => ({ time: history[index].time, value: history[index].value }))
+  };
 }
 
 function selectedCurrencyAskContext() {
@@ -7068,8 +7464,6 @@ function selectedCurrencyAskContext() {
   };
 }
 
-const marketAskSemiconductorPattern = /(nvda|nvidia|英伟达|amd|avgo|broadcom|博通|tsm|tsmc|台积电|asml|mu|micron|美光|qcom|qualcomm|高通|intc|intel|英特尔|arm|samsung|三星|sk hynix|hynix|海力士|mediatek|联发科|marvell|mrvl|amat|applied materials|应用材料|lrcx|lam research|泛林|klac|kla|txn|adi|on semiconductor|stm|infineon|tokyo electron|半导体|芯片|chip|semiconductor)/i;
-
 function compactAskAsset(asset) {
   const displayRank = marketDisplayRank(asset);
   return {
@@ -7087,16 +7481,6 @@ function compactAskAsset(asset) {
   };
 }
 
-function isSemiconductorAskAsset(asset) {
-  const text = [
-    asset?.symbol,
-    asset?.name,
-    asset?.zhName,
-    asset?.id
-  ].map(value => String(value || "")).join(" ");
-  return marketAskSemiconductorPattern.test(text);
-}
-
 function marketAskSnapshot(asset) {
   const ranked = rankedVisibleMarketAssets();
   const activeIndex = ranked.findIndex(item => item.id === asset?.id);
@@ -7111,7 +7495,7 @@ function marketAskSnapshot(asset) {
     nearby,
     decliners: movers.slice(0, 10).map(compactAskAsset),
     gainers: movers.slice(-10).reverse().map(compactAskAsset),
-    semiconductorPeers: ranked.filter(isSemiconductorAskAsset).slice(0, 24).map(compactAskAsset)
+    marketUniverse: ranked.slice(0, 60).map(compactAskAsset)
   };
 }
 
@@ -7134,15 +7518,19 @@ function marketAskContext(asset) {
       move: formatMarketChange(asset),
       changePct: Number(asset?.changePct),
       country: asset?.country || "",
-      source: asset?.sourceName || t(marketSourceKey)
+      source: asset?.sourceName || t(marketSourceKey),
+      summary: asset?.summary || "",
+      zhSummary: asset?.zhSummary || "",
+      historyUrl: asset?.historyUrl || ""
     },
     currency: selectedCurrencyAskContext(),
+    rangeStats: marketAskRangeStats(asset),
     marketSnapshot: {
       nearby: snapshot.nearby,
       decliners: snapshot.decliners,
       gainers: snapshot.gainers
     },
-    semiconductorPeers: snapshot.semiconductorPeers
+    marketUniverse: snapshot.marketUniverse
   };
 }
 
@@ -7176,9 +7564,200 @@ function setMarketAskMode(mode) {
   saveViewState();
   if (marketAskStatus === "idle") {
     marketAskAnswer = "";
-    marketAskSource = "";
   }
   updateMarketAskModeControls();
+}
+
+function cancelMarketAskRequest() {
+  if (!marketAskAbortController) return;
+  marketAskRequestId += 1;
+  marketAskAbortController.abort();
+  marketAskAbortController = null;
+  if (marketAskStatus === "loading") {
+    marketAskStatus = "idle";
+    marketAskAnswer = "";
+    marketAskCitations = [];
+  }
+}
+
+function currentMarketAskConfigDraft() {
+  if (!marketAskConfigDraft) {
+    marketAskConfigDraft = {
+      protocol: marketAskApiConfig.protocol,
+      baseUrl: marketAskApiConfig.baseUrl,
+      model: marketAskApiConfig.model,
+      apiKey: "",
+      webSearch: marketAskApiConfig.webSearch === true,
+      clearApiKey: false
+    };
+  }
+  return marketAskConfigDraft;
+}
+
+async function saveMarketAskApiConfig(values) {
+  if (marketAskConfigSaving || marketAskApiConfig.managedByEnvironment) return;
+  marketAskConfigSaving = true;
+  marketAskConfigMessage = "";
+  const visibleSaveButton = els.placeReports?.querySelector("#marketAskApiConfig .market-ask-config-footer button");
+  if (visibleSaveButton) {
+    visibleSaveButton.disabled = true;
+    visibleSaveButton.textContent = t("marketAskApiSaving");
+  }
+  try {
+    const payload = {
+      protocol: values.protocol,
+      baseUrl: values.baseUrl.trim(),
+      model: values.model.trim(),
+      webSearch: values.webSearch === true
+    };
+    if (values.clearApiKey === true) {
+      payload.clearApiKey = true;
+    } else if (values.apiKey.trim()) {
+      payload.apiKey = values.apiKey.trim();
+    }
+    const response = await fetchWithTimeout("/api/ask-config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json; charset=utf-8" },
+      body: JSON.stringify(payload),
+      cache: "no-store"
+    }, 15000);
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || `HTTP ${response.status}`);
+    marketAskApiConfig = {
+      configured: result.configured === true,
+      baseUrl: String(result.baseUrl || payload.baseUrl),
+      model: String(result.model || payload.model),
+      protocol: result.protocol === "chat-completions" ? "chat-completions" : "responses",
+      webSearch: result.webSearch === true,
+      hasApiKey: result.hasApiKey === true,
+      managedByEnvironment: result.managedByEnvironment === true
+    };
+    marketAskConfigDraft = null;
+    marketAskConfigDraftDirty = false;
+    marketAskConfigMessage = t("marketAskApiSaved");
+  } catch (error) {
+    marketAskConfigMessage = normalizedSelectionText(error?.message || t("marketAskApiSaveFailed"));
+  } finally {
+    marketAskConfigSaving = false;
+    const active = visibleMarketAssetById(selectedMarketId);
+    if (active && isMarketMode()) {
+      renderMarketInspect(active);
+    }
+  }
+}
+
+function currencyHistoryIsComplete(currency) {
+  if (!currency || currency.code === "USD") return true;
+  return [currency.history, currency.denseHistory, currency.shortHistory]
+    .every(series => Array.isArray(series) && series.length >= 2);
+}
+
+async function fetchCurrencyHistory(code) {
+  const normalizedCode = String(code || "").toUpperCase();
+  const currency = currencyByCode(normalizedCode);
+  if (!currency || currencyHistoryIsComplete(currency) || currencyHistoryRequests.has(normalizedCode)) return;
+  const attemptedAt = currencyHistoryAttemptedAt.get(normalizedCode) || 0;
+  if (Date.now() - attemptedAt < 60_000) return;
+  currencyHistoryAttemptedAt.set(normalizedCode, Date.now());
+  currencyHistoryRequests.add(normalizedCode);
+  try {
+    const params = new URLSearchParams({ code: normalizedCode });
+    const response = await fetchWithTimeout(`/api/currency-history?${params.toString()}`, { cache: "no-store" }, 12000);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const payload = await response.json();
+    const current = currencyByCode(normalizedCode);
+    const merged = normalizeCurrencyQuotes([payload.quote], current ? [current] : [])[0];
+    if (!merged) return;
+    marketCurrencies = marketCurrencies.map(item => item.code === normalizedCode ? merged : item);
+    scheduleMarketHistorySnapshotSave();
+    if (isMarketMode() && [selectedCurrencyAnchor, selectedCurrencyCode].includes(normalizedCode)) {
+      renderMarketAssets();
+      const active = visibleMarketAssetById(selectedMarketId);
+      if (active) renderMarketInspect(active);
+    }
+  } catch {
+    // Keep the current quote usable and retry after the short cooldown.
+  } finally {
+    currencyHistoryRequests.delete(normalizedCode);
+  }
+}
+
+function ensureVisibleCurrencyHistories() {
+  if (!isMarketMode()) return;
+  fetchCurrencyHistory(selectedCurrencyAnchor);
+  if (selectedCurrencyCode !== selectedCurrencyAnchor) fetchCurrencyHistory(selectedCurrencyCode);
+}
+
+function safeHttpUrl(value) {
+  try {
+    const url = new URL(String(value || ""));
+    return (
+      (url.protocol === "http:" || url.protocol === "https:")
+      && !url.username
+      && !url.password
+    ) ? url.href : "";
+  } catch {
+    return "";
+  }
+}
+
+function renderMarketAskAnswerContent(element, text, citations) {
+  const answer = String(text || "");
+  const normalized = (Array.isArray(citations) ? citations : [])
+    .map(citation => ({
+      startIndex: Number(citation?.startIndex),
+      endIndex: Number(citation?.endIndex),
+      url: safeHttpUrl(citation?.url),
+      title: normalizedSelectionText(citation?.title || "")
+    }))
+    .filter(citation => (
+      Number.isInteger(citation.startIndex)
+      && Number.isInteger(citation.endIndex)
+      && citation.startIndex >= 0
+      && citation.endIndex > citation.startIndex
+      && citation.startIndex < answer.length
+      && citation.url
+    ))
+    .sort((left, right) => left.startIndex - right.startIndex || left.endIndex - right.endIndex);
+
+  let cursor = 0;
+  normalized.forEach(citation => {
+    if (citation.startIndex < cursor) return;
+    element.appendChild(document.createTextNode(answer.slice(cursor, citation.startIndex)));
+    const link = document.createElement("a");
+    link.href = citation.url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.textContent = answer.slice(citation.startIndex, Math.min(citation.endIndex, answer.length));
+    link.title = citation.title || citation.url;
+    element.appendChild(link);
+    cursor = Math.min(citation.endIndex, answer.length);
+  });
+  element.appendChild(document.createTextNode(answer.slice(cursor)));
+
+  const uniqueSources = [];
+  const seenUrls = new Set();
+  normalized.forEach(citation => {
+    if (seenUrls.has(citation.url)) return;
+    seenUrls.add(citation.url);
+    uniqueSources.push(citation);
+  });
+  if (uniqueSources.length) {
+    const sourceList = document.createElement("div");
+    sourceList.className = "market-ask-citations";
+    const label = document.createElement("span");
+    label.textContent = `${t("marketAskSources")}:`;
+    sourceList.appendChild(label);
+    uniqueSources.forEach((citation, index) => {
+      const link = document.createElement("a");
+      link.href = citation.url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.textContent = citation.title || `${t("marketAskSources")} ${index + 1}`;
+      sourceList.appendChild(link);
+    });
+    element.appendChild(sourceList);
+  }
 }
 
 function createMarketAskPanel(asset) {
@@ -7186,7 +7765,7 @@ function createMarketAskPanel(asset) {
   if (marketAskActiveContextKey !== contextKey && marketAskStatus !== "loading") {
     marketAskActiveContextKey = contextKey;
     marketAskAnswer = "";
-    marketAskSource = "";
+    marketAskCitations = [];
     marketAskStatus = "idle";
   }
 
@@ -7202,6 +7781,8 @@ function createMarketAskPanel(asset) {
   const title = document.createElement("strong");
   title.textContent = t("marketAskTitle");
   head.appendChild(title);
+  const headActions = document.createElement("div");
+  headActions.className = "market-ask-head-actions";
   const modeToggle = document.createElement("button");
   modeToggle.type = "button";
   modeToggle.className = `market-ask-mode ${marketAskMode === "think" ? "think" : "fast"}`;
@@ -7232,8 +7813,191 @@ function createMarketAskPanel(asset) {
   modeToggle.appendChild(drop);
   modeToggle.appendChild(fastLabel);
   modeToggle.appendChild(thinkLabel);
-  head.appendChild(modeToggle);
+  headActions.appendChild(modeToggle);
+  const configButton = document.createElement("button");
+  configButton.type = "button";
+  configButton.className = `market-ask-config-button ${marketAskApiConfig.configured ? "configured" : ""}`;
+  configButton.textContent = "API";
+  configButton.title = t("marketAskApiSettings");
+  configButton.setAttribute("aria-label", t("marketAskApiSettings"));
+  configButton.setAttribute("aria-expanded", marketAskConfigOpen ? "true" : "false");
+  configButton.setAttribute("aria-controls", "marketAskApiConfig");
+  configButton.addEventListener("click", () => {
+    marketAskConfigOpen = !marketAskConfigOpen;
+    if (marketAskConfigOpen) currentMarketAskConfigDraft();
+    marketAskConfigMessage = "";
+    const active = visibleMarketAssetById(selectedMarketId);
+    if (active && isMarketMode()) {
+      renderMarketInspect(active);
+      if (marketAskConfigOpen) {
+        requestAnimationFrame(() => els.placeReports?.querySelector("#marketAskApiConfig select")?.focus());
+      }
+    }
+  });
+  headActions.appendChild(configButton);
+  head.appendChild(headActions);
   panel.appendChild(head);
+
+  if (marketAskConfigOpen) {
+    const draft = currentMarketAskConfigDraft();
+    const config = document.createElement("div");
+    config.id = "marketAskApiConfig";
+    config.className = "market-ask-config";
+    const configHead = document.createElement("div");
+    configHead.className = "market-ask-config-head";
+    const configTitle = document.createElement("strong");
+    configTitle.textContent = t("marketAskApiTitle");
+    const configState = document.createElement("span");
+    configState.className = marketAskApiConfig.configured ? "configured" : "";
+    configState.textContent = t(marketAskApiConfig.managedByEnvironment
+      ? "marketAskApiManaged"
+      : marketAskApiConfig.configured ? "marketAskApiConnected" : "marketAskApiNotConfigured");
+    configHead.appendChild(configTitle);
+    configHead.appendChild(configState);
+    config.appendChild(configHead);
+
+    const fields = document.createElement("div");
+    fields.className = "market-ask-config-fields";
+    const protocolLabel = document.createElement("label");
+    protocolLabel.textContent = t("marketAskApiProtocol");
+    const protocol = document.createElement("select");
+    protocol.name = "protocol";
+    const responsesOption = document.createElement("option");
+    responsesOption.value = "responses";
+    responsesOption.textContent = t("marketAskApiResponses");
+    const chatOption = document.createElement("option");
+    chatOption.value = "chat-completions";
+    chatOption.textContent = t("marketAskApiChat");
+    protocol.appendChild(responsesOption);
+    protocol.appendChild(chatOption);
+    protocol.value = draft.protocol;
+    protocolLabel.appendChild(protocol);
+
+    const baseUrlLabel = document.createElement("label");
+    baseUrlLabel.textContent = t("marketAskApiBaseUrl");
+    const baseUrl = document.createElement("input");
+    baseUrl.name = "baseUrl";
+    baseUrl.type = "url";
+    baseUrl.spellcheck = false;
+    baseUrl.value = draft.baseUrl;
+    baseUrl.placeholder = "https://api.openai.com/v1";
+    baseUrlLabel.appendChild(baseUrl);
+
+    const modelLabel = document.createElement("label");
+    modelLabel.textContent = t("marketAskApiModel");
+    const model = document.createElement("input");
+    model.name = "model";
+    model.type = "text";
+    model.spellcheck = false;
+    model.value = draft.model;
+    model.placeholder = "gpt-5.6-terra";
+    modelLabel.appendChild(model);
+
+    const apiKeyLabel = document.createElement("label");
+    apiKeyLabel.textContent = t("marketAskApiKey");
+    const apiKey = document.createElement("input");
+    apiKey.name = "apiKey";
+    apiKey.type = "password";
+    apiKey.autocomplete = "off";
+    apiKey.placeholder = t(
+      marketAskApiConfig.hasApiKey ? "marketAskApiKeySaved" : "marketAskApiKeyOptional"
+    );
+    apiKey.value = draft.apiKey;
+    apiKeyLabel.appendChild(apiKey);
+    const clearKeyLabel = document.createElement("label");
+    clearKeyLabel.className = "market-ask-config-toggle";
+    const clearKey = document.createElement("input");
+    clearKey.name = "clearApiKey";
+    clearKey.type = "checkbox";
+    clearKey.checked = draft.clearApiKey === true;
+    clearKey.disabled = !marketAskApiConfig.hasApiKey;
+    const clearKeyText = document.createElement("span");
+    clearKeyText.textContent = t("marketAskApiClearKey");
+    clearKeyLabel.appendChild(clearKey);
+    clearKeyLabel.appendChild(clearKeyText);
+    const webSearchLabel = document.createElement("label");
+    webSearchLabel.className = "market-ask-config-toggle";
+    const webSearch = document.createElement("input");
+    webSearch.name = "webSearch";
+    webSearch.type = "checkbox";
+    webSearch.checked = draft.webSearch === true;
+    webSearch.disabled = protocol.value !== "responses";
+    const webSearchText = document.createElement("span");
+    webSearchText.textContent = t("marketAskApiWebSearch");
+    webSearchLabel.appendChild(webSearch);
+    webSearchLabel.appendChild(webSearchText);
+    const updateWebSearchAvailability = () => {
+      webSearch.disabled = protocol.value !== "responses";
+      webSearchLabel.classList.toggle("disabled", webSearch.disabled);
+    };
+    const updateDraft = () => {
+      marketAskConfigDraftDirty = true;
+      draft.protocol = protocol.value;
+      draft.baseUrl = baseUrl.value;
+      draft.model = model.value;
+      draft.apiKey = apiKey.value;
+      draft.webSearch = webSearch.checked;
+      draft.clearApiKey = clearKey.checked;
+    };
+    protocol.addEventListener("change", () => {
+      updateDraft();
+      updateWebSearchAvailability();
+    });
+    [baseUrl, model].forEach(field => field.addEventListener("input", updateDraft));
+    apiKey.addEventListener("input", () => {
+      if (apiKey.value) clearKey.checked = false;
+      updateDraft();
+    });
+    webSearch.addEventListener("change", updateDraft);
+    clearKey.addEventListener("change", () => {
+      if (clearKey.checked) apiKey.value = "";
+      apiKey.disabled = clearKey.checked || marketAskApiConfig.managedByEnvironment;
+      apiKeyLabel.classList.toggle("disabled", clearKey.checked);
+      updateDraft();
+    });
+    updateWebSearchAvailability();
+    [protocol, baseUrl, model, apiKey, webSearch, clearKey].forEach(field => {
+      field.disabled = field.disabled || marketAskApiConfig.managedByEnvironment;
+    });
+    apiKey.disabled = apiKey.disabled || clearKey.checked;
+    apiKeyLabel.classList.toggle("disabled", clearKey.checked);
+    fields.appendChild(protocolLabel);
+    fields.appendChild(baseUrlLabel);
+    fields.appendChild(modelLabel);
+    fields.appendChild(apiKeyLabel);
+    if (marketAskApiConfig.hasApiKey) fields.appendChild(clearKeyLabel);
+    fields.appendChild(webSearchLabel);
+    config.appendChild(fields);
+
+    const configFooter = document.createElement("div");
+    configFooter.className = "market-ask-config-footer";
+    const configMessage = document.createElement("span");
+    configMessage.textContent = marketAskConfigMessage;
+    configMessage.setAttribute("role", "status");
+    configMessage.setAttribute("aria-live", "polite");
+    const saveConfig = document.createElement("button");
+    saveConfig.type = "button";
+    saveConfig.disabled = marketAskConfigSaving || marketAskApiConfig.managedByEnvironment;
+    saveConfig.textContent = t(marketAskConfigSaving ? "marketAskApiSaving" : "marketAskApiSave");
+    const saveValues = () => saveMarketAskApiConfig({
+      protocol: protocol.value,
+      baseUrl: baseUrl.value,
+      model: model.value,
+      apiKey: apiKey.value,
+      webSearch: webSearch.checked,
+      clearApiKey: clearKey.checked
+    });
+    saveConfig.addEventListener("click", saveValues);
+    config.addEventListener("keydown", event => {
+      if (event.key !== "Enter" || event.isComposing) return;
+      event.preventDefault();
+      saveValues();
+    });
+    configFooter.appendChild(configMessage);
+    configFooter.appendChild(saveConfig);
+    config.appendChild(configFooter);
+    panel.appendChild(config);
+  }
 
   const row = document.createElement("div");
   row.className = "market-ask-row";
@@ -7242,11 +8006,12 @@ function createMarketAskPanel(asset) {
   input.rows = 2;
   input.value = marketAskQuestion;
   input.placeholder = t("marketAskPlaceholder");
+  input.setAttribute("aria-label", t("marketAskPlaceholder"));
   input.addEventListener("input", () => {
     marketAskQuestion = input.value;
   });
   input.addEventListener("keydown", event => {
-    if (event.key === "Enter" && !event.shiftKey) {
+    if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
       event.preventDefault();
       askMarketQuestion(asset);
     }
@@ -7270,11 +8035,25 @@ function createMarketAskPanel(asset) {
     const answer = document.createElement("div");
     answer.className = `market-ask-answer ${marketAskStatus}`;
     answer.textContent = marketAskLoadingText();
+    answer.setAttribute("role", "status");
+    answer.setAttribute("aria-live", "polite");
+    const cancel = document.createElement("button");
+    cancel.type = "button";
+    cancel.className = "market-ask-cancel";
+    cancel.textContent = t("marketAskCancel");
+    cancel.addEventListener("click", () => {
+      cancelMarketAskRequest();
+      const active = visibleMarketAssetById(selectedMarketId);
+      if (active && isMarketMode()) renderMarketInspect(active);
+    });
+    answer.appendChild(cancel);
     panel.appendChild(answer);
   } else if (marketAskAnswer) {
     const answer = document.createElement("div");
     answer.className = `market-ask-answer ${marketAskStatus}`;
-    answer.textContent = marketAskAnswer;
+    answer.setAttribute("role", marketAskStatus === "error" ? "alert" : "status");
+    answer.setAttribute("aria-live", "polite");
+    renderMarketAskAnswerContent(answer, marketAskAnswer, marketAskCitations);
     panel.appendChild(answer);
   }
 
@@ -7285,14 +8064,16 @@ async function askMarketQuestion(asset) {
   const question = marketAskQuestion.trim();
   if (!question || !asset) return;
   const requestId = ++marketAskRequestId;
+  const requestAssetId = asset.id;
+  const requestContextKey = marketAskContextKey(asset);
   marketAskAbortController?.abort();
   const requestController = new AbortController();
   marketAskAbortController = requestController;
   marketAskStatus = "loading";
   marketAskAnswer = "";
-  marketAskSource = "";
-  marketAskActiveContextKey = marketAskContextKey(asset);
-  renderMarketInspect(asset);
+  marketAskCitations = [];
+  marketAskActiveContextKey = requestContextKey;
+  if (isMarketMode() && selectedMarketId === requestAssetId) renderMarketInspect(asset);
 
   try {
     const response = await fetchWithTimeout("/api/market-ask", {
@@ -7305,22 +8086,34 @@ async function askMarketQuestion(asset) {
       }),
       cache: "no-store",
       signal: requestController.signal
-    }, 26000);
+    }, marketAskMode === "think" ? 90000 : 45000);
     const payload = await response.json().catch(() => ({}));
     if (requestId !== marketAskRequestId) return;
-    marketAskAnswer = normalizedSelectionText(payload.answer || payload.error || t("marketAskUnavailable"));
-    marketAskSource = "";
+    const hasAnswer = typeof payload.answer === "string" && payload.answer.length > 0;
+    marketAskAnswer = hasAnswer
+      ? payload.answer.replace(/\r\n?/g, "\n")
+      : normalizedSelectionText(payload.error || t("marketAskUnavailable"));
+    marketAskCitations = hasAnswer && Array.isArray(payload.citations) ? payload.citations : [];
     marketAskStatus = response.ok && payload.answer ? "done" : "error";
+    if (payload.code === "ask_not_configured") marketAskConfigOpen = true;
   } catch {
     if (requestId !== marketAskRequestId) return;
+    if (requestController.signal.aborted) return;
     marketAskAnswer = t("marketAskUnavailable");
+    marketAskCitations = [];
     marketAskStatus = "error";
   } finally {
     if (marketAskAbortController === requestController) {
       marketAskAbortController = null;
     }
     const active = visibleMarketAssetById(selectedMarketId);
-    if (active && requestId === marketAskRequestId) {
+    if (active && isMarketMode() && active.id === requestAssetId && requestId === marketAskRequestId) {
+      if (marketAskContextKey(active) !== requestContextKey) {
+        marketAskStatus = "idle";
+        marketAskAnswer = "";
+        marketAskCitations = [];
+        marketAskActiveContextKey = marketAskContextKey(active);
+      }
       renderMarketInspect(active);
     }
   }
@@ -7369,6 +8162,7 @@ function createCurrencyCard(currency, anchor) {
   const card = document.createElement("button");
   card.type = "button";
   card.className = `currency-card ${currency.code === selectedCurrencyCode ? "active" : ""}`;
+  card.setAttribute("aria-pressed", currency.code === selectedCurrencyCode ? "true" : "false");
   card.addEventListener("click", () => selectCurrency(currency.code));
 
   const top = document.createElement("div");
@@ -7443,6 +8237,7 @@ function renderMarketAssets() {
     button.type = "button";
     button.className = code === selectedCurrencyAnchor ? "active" : "";
     button.textContent = code;
+    button.setAttribute("aria-pressed", code === selectedCurrencyAnchor ? "true" : "false");
     button.addEventListener("click", () => setCurrencyAnchor(code));
     anchorTabs.appendChild(button);
   });
@@ -7455,6 +8250,7 @@ function renderMarketAssets() {
     button.type = "button";
     button.className = range === selectedCurrencyRange ? "active" : "";
     button.textContent = marketRangeLabel(range);
+    button.setAttribute("aria-pressed", range === selectedCurrencyRange ? "true" : "false");
     button.addEventListener("click", () => setCurrencyRange(range));
     rangeTabs.appendChild(button);
   });
@@ -7492,6 +8288,7 @@ function renderMarketAssets() {
     }
   });
   els.cityGrid.appendChild(list);
+  ensureVisibleCurrencyHistories();
 }
 
 function renderMarketFeed() {
@@ -7537,6 +8334,25 @@ function normalizedSelectionText(text) {
 function selectedTextForTranslation(candidate = null) {
   const text = normalizedSelectionText(candidate ?? window.getSelection?.().toString() ?? "");
   return text.length > 600 ? text.slice(0, 600).trim() : text;
+}
+
+function selectionIsInsideTranslationPanel(selection = window.getSelection?.()) {
+  const inputSelector = "input, textarea, select, [contenteditable]:not([contenteditable='false'])";
+  if (document.activeElement?.closest?.(inputSelector)) return true;
+  if (!selection || !selection.rangeCount) return false;
+  const excluded = Array.from(document.querySelectorAll(`.translation-card, ${inputSelector}`));
+  if (els.feed?.classList.contains("translation-feed")) {
+    const panel = els.feed.closest(".feed-panel");
+    if (panel) excluded.push(panel);
+  }
+  return excluded.some(element => {
+    if (element.contains(selection.anchorNode) || element.contains(selection.focusNode)) return true;
+    for (let index = 0; index < selection.rangeCount; index += 1) {
+      // A drag can start before the panel and finish after it, with neither endpoint inside.
+      if (selection.getRangeAt(index).intersectsNode(element)) return true;
+    }
+    return false;
+  });
 }
 
 function selectedContextForTranslation(candidate = null) {
@@ -7661,7 +8477,7 @@ function renderCityPhotoPanel() {
   const photo = chooseCityPhoto(city, item);
   const candidates = cityPhotoCandidates(city, item).filter(candidate => candidate.key !== photo.key);
   els.feedTitle.textContent = cityPhotoPanelTitle(city);
-  els.eventSource.textContent = `${weatherText(item.code)} - ${Math.round(item.temperature)} C - ${formatTime(city.zone)}`;
+  els.eventSource.textContent = `${weatherText(item.code)} - ${formatCelsius(item.temperature)} - ${formatTime(city.zone)}`;
 
   const tools = document.createElement("div");
   tools.className = "city-photo-tools";
@@ -7704,10 +8520,27 @@ function renderCityPhotoPanel() {
 function renderTranslationPanel() {
   els.feed.classList.add("translation-feed");
   els.feed.classList.remove("city-photo-feed");
+  const renderSignature = JSON.stringify([
+    currentLanguage,
+    translationSelectionText,
+    translationResultText,
+    translationExplanationText,
+    translationStatus
+  ]);
+  if (
+    els.feed.dataset.translationRenderSignature === renderSignature
+    && els.feed.querySelector(".translation-card")
+  ) {
+    return;
+  }
+  els.feed.dataset.translationRenderSignature = renderSignature;
   els.feed.innerHTML = "";
 
   const card = document.createElement("div");
   card.className = `translation-card ${translationSelectionText ? "" : "empty"}`;
+  card.setAttribute("role", "status");
+  card.setAttribute("aria-live", "polite");
+  card.setAttribute("aria-busy", translationStatus === "loading" ? "true" : "false");
   if (!translationSelectionText) {
     const empty = document.createElement("p");
     empty.className = "translation-source-text";
@@ -7730,14 +8563,18 @@ function renderTranslationPanel() {
   els.feed.appendChild(card);
 }
 
-async function translateSelectedText(text) {
+async function translateSelectedText(text, { force = false } = {}) {
   const sourceText = selectedTextForTranslation(text);
-  if (!sourceText || sourceText === translationSelectionText && translationStatus !== "error") return;
+  const sameSource = sourceText === translationSelectionText;
+  if (!sourceText || !force && sameSource && translationStatus !== "error") return;
 
+  const contextText = force && sameSource
+    ? translationContextText || sourceText
+    : selectedContextForTranslation(sourceText);
   translationSelectionText = sourceText;
+  translationContextText = contextText;
   const target = translationTargetForText(sourceText);
   const uiLanguage = currentLanguage === "zh" ? "zh" : "en";
-  const contextText = selectedContextForTranslation(sourceText);
   const cacheKey = translationCacheKeyFor(sourceText, target, uiLanguage, contextText);
   const requestId = ++translationRequestId;
   translationAbortController?.abort();
@@ -7767,7 +8604,7 @@ async function translateSelectedText(text) {
   translationStatus = "loading";
   renderFeed();
 
-  const params = new URLSearchParams({
+  const requestBody = JSON.stringify({
     text: sourceText,
     target,
     ui: uiLanguage,
@@ -7781,13 +8618,24 @@ async function translateSelectedText(text) {
     let lastError = null;
     for (const timeoutMs of [5200, 7600]) {
       try {
-        const response = await fetchWithTimeout(`/api/translate?${params.toString()}`, { cache: "no-store", signal: requestController.signal }, timeoutMs);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const response = await fetchWithTimeout("/api/translate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: requestBody,
+          cache: "no-store",
+          signal: requestController.signal
+        }, timeoutMs);
+        if (!response.ok) {
+          const error = new Error(`HTTP ${response.status}`);
+          error.status = response.status;
+          throw error;
+        }
         payload = await response.json();
         break;
       } catch (error) {
         lastError = error;
         if (requestController.signal.aborted || requestId !== translationRequestId) throw error;
+        if (Number(error?.status) >= 400 && Number(error?.status) < 500) break;
       }
     }
     if (!payload) throw lastError || new Error("Translation unavailable");
@@ -7812,9 +8660,10 @@ async function translateSelectedText(text) {
 }
 
 function scheduleSelectionTranslation() {
-  if (!translationEnabled || isCityMapMode()) return;
   window.clearTimeout(translationSelectionTimer);
+  if (!translationEnabled || isCityMapMode() || isMarketMode() || isEarningMode() || selectionIsInsideTranslationPanel()) return;
   translationSelectionTimer = window.setTimeout(() => {
+    if (!translationEnabled || isCityMapMode() || isMarketMode() || isEarningMode() || selectionIsInsideTranslationPanel()) return;
     const text = selectedTextForTranslation();
     if (text) translateSelectedText(text);
   }, 35);
@@ -7829,6 +8678,7 @@ function setTranslationEnabled(enabled) {
     translationAbortController = null;
     window.clearTimeout(translationSelectionTimer);
     translationSelectionText = "";
+    translationContextText = "";
     translationResultText = "";
     translationExplanationText = "";
     translationStatus = "idle";
@@ -7836,7 +8686,9 @@ function setTranslationEnabled(enabled) {
   updateTranslationToggleButton();
   updateModeChrome();
   renderFeed();
-  if (translationEnabled && !isCityMapMode()) scheduleSelectionTranslation();
+  if (translationEnabled && !isCityMapMode() && !isMarketMode() && !isEarningMode()) {
+    scheduleSelectionTranslation();
+  }
 }
 
 function marketHistoryRequestKey(asset, range = selectedMarketRange) {
@@ -8021,7 +8873,6 @@ async function fetchMarketHistory(asset, options = {}) {
   if (options.force !== true && Date.now() - attemptedAt < MARKET_HISTORY_RETRY_MS) return;
   marketHistoryRequests.add(requestKey);
   marketHistoryAttemptedAt.set(requestKey, Date.now());
-  const requestId = silent ? 0 : ++marketHistoryRequestId;
   if (!silent) {
     asset.historyLoading = true;
     asset.historyLoadFailed = false;
@@ -8031,24 +8882,21 @@ async function fetchMarketHistory(asset, options = {}) {
 
   try {
     const params = new URLSearchParams();
-    if (asset.historyUrl) params.set("url", asset.historyUrl);
-    if (asset.symbol) params.set("symbol", asset.symbol);
-    if (asset.group) params.set("group", asset.group);
+    params.set("id", asset.id);
     params.set("range", range);
-    if (Number.isFinite(Number(asset.marketCap))) params.set("marketCap", String(asset.marketCap));
-    if (Number.isFinite(Number(asset.value))) params.set("value", String(asset.value));
     const historyTimeout = range === "1d" ? 12000 : range === "1m" ? 20000 : 16000;
     const response = await fetchWithTimeout(`/api/market-history?${params.toString()}`, { cache: "no-store" }, historyTimeout);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const payload = await response.json();
-    const updated = applyMarketHistoryPayload(asset, payload, range);
-    if (hasFreshMarketHistoryForRange(asset, range)) {
-      clearMarketHistoryRefreshRetry(asset, range);
+    const targetAsset = marketAssets.find(candidate => candidate.id === asset.id) || asset;
+    const updated = applyMarketHistoryPayload(targetAsset, payload, range);
+    if (hasFreshMarketHistoryForRange(targetAsset, range)) {
+      clearMarketHistoryRefreshRetry(targetAsset, range);
     } else if (payload.refreshing === true) {
-      scheduleMarketHistoryRefreshRetry(asset, range);
+      scheduleMarketHistoryRefreshRetry(targetAsset, range);
     } else if (!silent) {
-      asset.historyLoadFailed = true;
-      asset.historyLoadFailedRange = range;
+      targetAsset.historyLoadFailed = true;
+      targetAsset.historyLoadFailedRange = range;
     }
     if (updated) {
       if (silent) {
@@ -8058,20 +8906,22 @@ async function fetchMarketHistory(asset, options = {}) {
       }
     }
   } catch {
+    const targetAsset = marketAssets.find(candidate => candidate.id === asset.id) || asset;
     if (!silent) {
-      asset.historyLoadFailed = true;
-      asset.historyLoadFailedRange = range;
+      targetAsset.historyLoadFailed = true;
+      targetAsset.historyLoadFailedRange = range;
     }
-    if (options.force === true || asset.historyRefreshing === true) {
-      scheduleMarketHistoryRefreshRetry(asset, range);
+    if (options.force === true || targetAsset.historyRefreshing === true) {
+      scheduleMarketHistoryRefreshRetry(targetAsset, range);
     }
     // Keep the chart honest. If history is not available, the panel says so.
   } finally {
     marketHistoryRequests.delete(requestKey);
-    if (!silent) asset.historyLoading = false;
-    const shouldRender = selectedMarketId === asset.id && isMarketMode() && range === selectedMarketRange;
-    if (shouldRender && (silent || requestId === marketHistoryRequestId)) {
-      renderMarketInspect(asset);
+    const targetAsset = marketAssets.find(candidate => candidate.id === asset.id) || asset;
+    if (!silent) targetAsset.historyLoading = false;
+    const shouldRender = selectedMarketId === targetAsset.id && isMarketMode() && range === selectedMarketRange;
+    if (shouldRender) {
+      renderMarketInspect(targetAsset);
       renderMarketBoard();
     }
   }
@@ -8089,7 +8939,10 @@ function resizeCanvas(canvas) {
   return { width, height, dpr };
 }
 
-function drawMatrix() {
+function drawMatrix({ force = false } = {}) {
+  if (document.hidden && !force) return;
+  const reducedMotion = reducedMotionQuery?.matches === true;
+  if (reducedMotion && drawMatrix.staticDrawn && !force) return;
   const { width, height, dpr } = resizeCanvas(els.matrix);
   const ctx = els.matrix.getContext("2d");
   ctx.clearRect(0, 0, width, height);
@@ -8097,13 +8950,16 @@ function drawMatrix() {
   ctx.fillRect(0, 0, width, height);
   ctx.font = `${11 * dpr}px Consolas, monospace`;
   ctx.fillStyle = themeRgba("green", 0.18);
-  const tick = Date.now() / 650;
+  const tick = reducedMotion ? 0 : Date.now() / 650;
   const step = 22 * dpr;
   for (let x = 0; x < width; x += step) {
     const y = (Math.sin(x * 0.011 + tick) * 0.5 + 0.5) * height;
-    ctx.fillText(Math.random() > 0.5 ? "1" : "0", x, y);
+    const bit = reducedMotion ? Math.sin(x * 0.071) > 0 : Math.random() > 0.5;
+    ctx.fillText(bit ? "1" : "0", x, y);
   }
+  drawMatrix.staticDrawn = reducedMotion;
 }
+drawMatrix.staticDrawn = false;
 
 function drawGrid(ctx, width, height, dpr) {
   ctx.strokeStyle = themeRgba("blue", 0.13);
@@ -8198,7 +9054,9 @@ function drawEventArcs(ctx, width, height, dpr) {
 
 function updateMapModeButtons() {
   els.modeButtons.forEach(button => {
-    button.classList.toggle("active", button.dataset.mapMode === mapMode);
+    const active = button.dataset.mapMode === mapMode;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", active ? "true" : "false");
   });
 }
 
@@ -8303,7 +9161,6 @@ function positionEventPins() {
   updateModeChrome();
 
   if (isMarketMode()) {
-    renderMarketBoard();
     return;
   }
 
@@ -8358,7 +9215,7 @@ function positionEventPins() {
       pin.style.left = `${p.x}px`;
       pin.style.top = `${p.y}px`;
       const labelKey = `city:${city.id}`;
-      const climateText = `${cityName(city)} ${Math.round(item.temperature)} C ${formatTime(city.zone)} ${weatherText(item.code)}`;
+      const climateText = `${cityName(city)} ${formatCelsius(item.temperature)} ${formatTime(city.zone)} ${weatherText(item.code)}`;
       const autoLabelRect = applyLabelPlacement(pin, p, climateText, rect, occupiedLabels, cityPoints, 54);
       const finalLabelRect = applySavedLabelLayout(pin, labelKey, p, climateText, rect, 54, autoLabelRect);
       occupiedLabels.push(finalLabelRect);
@@ -8433,29 +9290,34 @@ function restoreFeedScroll(scrollTop) {
 }
 
 function setMapMode(mode) {
+  if (!isMarketMode(mode) && isMarketMode()) cancelMarketAskRequest();
   if (mode === "earning" && !earningFeatureEnabled) {
     mode = "events";
   }
   mapMode = mode === "earning" ? "earning" : mapMode;
   if (isMarketMode(mode)) {
     selectMarket(selectedMarketId, { focusList: true });
+    refreshVisibleDatasets();
     return;
   }
 
   if (isCityMapMode(mode)) {
     mapMode = "stats";
     selectCity(selectedCityId);
+    refreshVisibleDatasets();
     return;
   }
 
   if (isEarningMode(mode)) {
     setMapMenuOpen(false);
     selectEarning(selectedEarningId);
+    refreshVisibleDatasets();
     return;
   }
 
   if (mode === "events") {
     selectEvent(selectedEventId);
+    refreshVisibleDatasets();
     return;
   }
 
@@ -8511,10 +9373,11 @@ function selectEvent(id) {
   els.reportSummary.hidden = false;
   els.reportSummary.textContent = reportSummaryText(event);
   updateReportImage(event);
-  els.reportLink.href = event.url || "#";
+  const eventUrl = safeHttpUrl(event.url);
+  els.reportLink.href = eventUrl || "#";
   els.reportLink.textContent = t("openSource");
-  els.reportLink.hidden = !event.url;
-  els.reportLink.style.visibility = event.url ? "visible" : "hidden";
+  els.reportLink.hidden = !eventUrl;
+  els.reportLink.style.visibility = eventUrl ? "visible" : "hidden";
   renderPlaceReports(related, event.id);
   renderCities();
   renderFeed();
@@ -8576,6 +9439,7 @@ function selectMarket(id, options = {}) {
     return;
   }
 
+  if (selectedMarketId && selectedMarketId !== asset.id) cancelMarketAskRequest();
   selectedMarketId = asset.id;
   if (options.focusList) {
     marketPendingFocusAssetId = asset.id;
@@ -8662,8 +9526,9 @@ function selectEarning(id) {
   els.reportSummary.hidden = false;
   els.reportSummary.textContent = clampUiText(earningDisplaySummary(chosen), 180);
   clearReportImage();
-  if (chosen.link) {
-    els.reportLink.href = chosen.link;
+  const earningUrl = safeHttpUrl(chosen.link);
+  if (earningUrl) {
+    els.reportLink.href = earningUrl;
     els.reportLink.textContent = t("earningOpenListing");
     els.reportLink.hidden = false;
     els.reportLink.style.visibility = "visible";
@@ -8703,6 +9568,7 @@ function renderEarningFilters() {
   allBtn.type = "button";
   allBtn.className = `earning-filter-btn ${allActive ? "active" : ""}`;
   allBtn.innerHTML = `<strong>*</strong>${t("earningAllFilters")}`;
+  allBtn.setAttribute("aria-pressed", allActive ? "true" : "false");
   allBtn.addEventListener("click", () => {
     setEarningFilterState(earningSourceFilters.reduce((next, item) => {
       next[item.key] = true;
@@ -8717,6 +9583,7 @@ function renderEarningFilters() {
     btn.type = "button";
     btn.className = `earning-filter-btn ${active ? "active" : ""}`;
     btn.innerHTML = `<strong>${active ? "&#10003;" : ""}</strong>${t(item.labelKey)}`;
+    btn.setAttribute("aria-pressed", active ? "true" : "false");
     btn.addEventListener("click", () => toggleEarningFilter(item.key));
     actions.appendChild(btn);
   });
@@ -8755,15 +9622,8 @@ function renderEarningGrid() {
     const card = document.createElement("button");
     card.className = `city-card earning-card ${item.id === selectedEarningId ? "active" : ""}`;
     card.type = "button";
-    card.setAttribute("role", "button");
-    card.tabIndex = 0;
+    if (item.id === selectedEarningId) card.setAttribute("aria-current", "true");
     card.addEventListener("click", () => selectEarning(item.id));
-    card.addEventListener("keydown", event => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        selectEarning(item.id);
-      }
-    });
     const name = document.createElement("div");
     name.className = "earning-name";
     const left = document.createElement("span");
@@ -8989,7 +9849,7 @@ function renderCities() {
     card.innerHTML = `
       <div class="city-name"><span>${cityName(city)}</span><small>${formatTime(city.zone)}</small></div>
       <div class="weather-row">
-        <span>${t("temp")}<strong>${Math.round(item.temperature)} C</strong></span>
+        <span>${t("temp")}<strong>${formatCelsius(item.temperature)}</strong></span>
         <span>${t("hum")}<strong>${Math.round(item.humidity)}%</strong></span>
         <span>${t("wind")}<strong>${Math.round(item.wind)} km/h</strong></span>
       </div>
@@ -8999,6 +9859,12 @@ function renderCities() {
 }
 
 function reportSourceKey() {
+  if (eventFreshness.refreshing) return "refreshingReports";
+  if (eventFreshness.requestFailed || eventFreshness.sourceStatus === "unavailable") {
+    return eventFreshness.updated || reportsLoadedFromCache ? "failedRssReports" : "unavailableRssReports";
+  }
+  if (eventFreshness.stale || !eventFreshness.updated) return "cachedReports";
+  if (eventFreshness.sourceStatus === "partial") return "partialRssReports";
   const firstSource = events[0]?.source || "";
   if (/fallback/i.test(firstSource)) return "localFallbackReports";
   if (reportsLoadedFromCache) return "cachedReports";
@@ -9006,7 +9872,10 @@ function reportSourceKey() {
 }
 
 function reportSourceLabel() {
-  return t(reportSourceKey());
+  const timestamp = eventFreshness.updated
+    ? `${t("reportLastSuccess")}: ${formatRefreshDateTime(eventFreshness.updated)}`
+    : t("reportNeverUpdated");
+  return `${t(eventSourceKey)} · ${timestamp}`;
 }
 
 function setWeatherSource(key) {
@@ -9021,11 +9890,12 @@ function setEventSource(key) {
 
 function updateSourceLabels() {
   updateMarketRefreshTime();
+  els.eventSource.title = "";
   if (els.weatherSource) els.weatherSource.hidden = false;
   if (isCityMapMode()) {
     const city = cities.find(item => item.id === selectedCityId) || cities[0];
     const item = weather[city.id] || fallbackWeather[city.id];
-    els.eventSource.textContent = `${weatherText(item.code)} - ${Math.round(item.temperature)} C - ${formatTime(city.zone)}`;
+    els.eventSource.textContent = `${weatherText(item.code)} - ${formatCelsius(item.temperature)} - ${formatTime(city.zone)}`;
     els.weatherSource.textContent = t(weatherSourceKey);
     return;
   }
@@ -9039,7 +9909,9 @@ function updateSourceLabels() {
     return;
   }
   if (translationEnabled && !isMarketMode()) {
-    els.eventSource.textContent = t("translationSource");
+    els.eventSource.textContent = reportSourceLabel();
+    els.eventSource.title = eventFreshness.failedSources.length
+      ? `${t("reportFailedSources")}: ${eventFreshness.failedSources.join(", ")}` : "";
     els.weatherSource.textContent = isMarketMode() ? t(currencySourceKey) : t(weatherSourceKey);
     return;
   }
@@ -9049,7 +9921,9 @@ function updateSourceLabels() {
     els.weatherSource.hidden = true;
     return;
   }
-  els.eventSource.textContent = t(eventSourceKey);
+  els.eventSource.textContent = reportSourceLabel();
+  els.eventSource.title = eventFreshness.failedSources.length
+    ? `${t("reportFailedSources")}: ${eventFreshness.failedSources.join(", ")}` : "";
   els.weatherSource.textContent = t(weatherSourceKey);
 }
 
@@ -9071,6 +9945,11 @@ function renderInitialConsole() {
 }
 
 async function fetchWeather() {
+  datasetRefreshState.weather.attemptedAt = Date.now();
+  const requestId = ++weatherFetchRequestId;
+  weatherFetchAbortController?.abort();
+  const requestController = typeof AbortController === "undefined" ? null : new AbortController();
+  weatherFetchAbortController = requestController;
   const url = "https://api.open-meteo.com/v1/forecast"
     + `?latitude=${cities.map(c => c.lat).join(",")}`
     + `&longitude=${cities.map(c => c.lon).join(",")}`
@@ -9078,24 +9957,47 @@ async function fetchWeather() {
     + "&timezone=auto";
 
   try {
-    const response = await fetchWithTimeout(url, { cache: "no-store" }, 10000);
+    const response = await fetchWithTimeout(url, {
+      cache: "no-store",
+      signal: requestController?.signal
+    }, 10000);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const payload = await response.json();
+    if (requestId !== weatherFetchRequestId) return;
     const rows = Array.isArray(payload) ? payload : [payload];
+    let validCities = 0;
     rows.forEach((row, index) => {
       const city = cities[index];
       if (!city || !row.current) return;
+      const previous = weather[city.id] || fallbackWeather[city.id] || {};
+      const finiteWeatherValue = (value, min, max) => {
+        if (value === null || value === undefined || typeof value === "string" && !value.trim()) return null;
+        const number = Number(value);
+        return Number.isFinite(number) && number >= min && number <= max ? number : null;
+      };
+      const temperature = finiteWeatherValue(row.current.temperature_2m, -100, 70);
+      const humidity = finiteWeatherValue(row.current.relative_humidity_2m, 0, 100);
+      const wind = finiteWeatherValue(row.current.wind_speed_10m, 0, 500);
+      const code = finiteWeatherValue(row.current.weather_code, 0, 99);
+      if ([temperature, humidity, wind, code].some(value => value === null)) return;
+      validCities += 1;
       weather[city.id] = {
-        temperature: row.current.temperature_2m,
-        humidity: row.current.relative_humidity_2m,
-        wind: row.current.wind_speed_10m,
-        code: row.current.weather_code
+        temperature: temperature ?? previous.temperature,
+        humidity: humidity ?? previous.humidity,
+        wind: wind ?? previous.wind,
+        code: code ?? previous.code
       };
     });
+    if (!validCities) throw new Error("No valid weather observations");
     saveCachedWeather(weather);
-    setWeatherSource("openMeteoLive");
+    datasetRefreshState.weather.succeededAt = Date.now();
+    setWeatherSource(validCities === cities.length ? "openMeteoLive" : "cachedWeather");
   } catch {
-    setWeatherSource(cachedWeather ? "cachedWeather" : "localWeather");
+    if (requestId !== weatherFetchRequestId) return;
+    setWeatherSource(datasetRefreshState.weather.succeededAt || cachedWeather ? "cachedWeather" : "localWeather");
+  } finally {
+    if (weatherFetchAbortController === requestController) weatherFetchAbortController = null;
+    if (requestId === weatherFetchRequestId) datasetRefreshState.weather.completedAt = Date.now();
   }
   renderCities();
   if (isCityMapMode()) {
@@ -9106,36 +10008,69 @@ async function fetchWeather() {
 }
 
 async function fetchEvents({ announce = true } = {}) {
+  datasetRefreshState.events.attemptedAt = Date.now();
+  const requestId = ++eventFetchRequestId;
+  eventFetchAbortController?.abort();
+  const requestController = typeof AbortController === "undefined" ? null : new AbortController();
+  eventFetchAbortController = requestController;
   if (announce) {
     setEventSource("refreshingReports");
   }
   try {
-    const response = await fetchWithTimeout("/api/events", { cache: "no-store" }, 12000);
+    const response = await fetchWithTimeout("/api/events", {
+      cache: "no-store",
+      signal: requestController?.signal
+    }, 12000);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const payload = await response.json();
+    if (requestId !== eventFetchRequestId) return;
+    const validUpdated = typeof payload.updated === "string" && Number.isFinite(Date.parse(payload.updated));
+    eventFreshness = {
+      updated: validUpdated ? payload.updated : null,
+      servedAt: payload.servedAt || null,
+      stale: payload.stale !== false || !validUpdated,
+      refreshing: payload.refreshing === true,
+      sourceStatus: ["ok", "partial", "unavailable"].includes(payload.sourceStatus) ? payload.sourceStatus : "unavailable",
+      failedSources: Array.isArray(payload.failedSources) ? payload.failedSources.filter(source => typeof source === "string") : [],
+      requestFailed: false
+    };
+    const hasSuccessfulReports = validUpdated && !eventFreshness.stale
+      && ["ok", "partial"].includes(eventFreshness.sourceStatus);
+    if (hasSuccessfulReports) {
+      datasetRefreshState.events.succeededAt = Date.parse(eventFreshness.updated);
+      eventFailedRefreshAttempts = 0;
+    } else if (!eventFreshness.refreshing && eventFreshness.sourceStatus === "unavailable") {
+      eventFailedRefreshAttempts = Math.min(5, eventFailedRefreshAttempts + 1);
+    }
+    updateEventFreshRetryState(payload);
     const nextEvents = normalizeEventList(payload.events);
     if (nextEvents.length) {
       const previousEventId = selectedEventId;
       events = nextEvents;
-      reportsLoadedFromCache = false;
+      reportsLoadedFromCache = !hasSuccessfulReports && (validUpdated || !/fallback/i.test(nextEvents[0].source));
       saveCachedEvents(events);
       selectedEventId = events.some(event => event.id === previousEventId) ? previousEventId : events[0].id;
-      setEventSource(payload.events[0].source === "Fallback brief"
-        ? "localFallbackReports"
-        : "liveRssReports");
-    } else {
+    } else if (hasSuccessfulReports) {
       events = [];
       selectedEventId = "";
       reportsLoadedFromCache = false;
-      setEventSource("liveRssReports");
+      saveCachedEvents(events);
     }
+    setEventSource(reportSourceKey());
   } catch {
+    if (requestId !== eventFetchRequestId) return;
+    eventFailedRefreshAttempts = Math.min(5, eventFailedRefreshAttempts + 1);
+    eventFreshness = { ...eventFreshness, stale: true, refreshing: false, requestFailed: true };
+    if (eventFreshRetryAttempts > 0) scheduleEventFreshRetry();
     if (!events.length) {
       events = normalizeEventList(fallbackEvents);
       selectedEventId = events[0]?.id || "";
       reportsLoadedFromCache = false;
     }
     setEventSource(reportSourceKey());
+  } finally {
+    if (eventFetchAbortController === requestController) eventFetchAbortController = null;
+    if (requestId === eventFetchRequestId) datasetRefreshState.events.completedAt = Date.now();
   }
   els.eventCount.textContent = String(events.length);
   const keepCityOpen = isCityMapMode();
@@ -9143,7 +10078,7 @@ async function fetchEvents({ announce = true } = {}) {
   const keepEarningOpen = isEarningMode();
   renderFeed();
   if (keepMarketOpen) {
-    selectMarket(selectedMarketId);
+    updateSourceLabels();
   } else if (keepCityOpen) {
     selectCity(selectedCityId);
   } else if (keepEarningOpen) {
@@ -9156,18 +10091,27 @@ async function fetchEvents({ announce = true } = {}) {
 }
 
 async function fetchMarkets({ announce = false } = {}) {
+  datasetRefreshState.markets.attemptedAt = Date.now();
+  const requestId = ++marketFetchRequestId;
+  marketFetchAbortController?.abort();
+  const requestController = typeof AbortController === "undefined" ? null : new AbortController();
+  marketFetchAbortController = requestController;
   if (announce) {
     marketSourceKey = "refreshingMarkets";
     updateSourceLabels();
   }
 
   try {
-    const response = await fetchWithTimeout("/api/markets", { cache: "no-store" }, 18000);
+    const response = await fetchWithTimeout("/api/markets", {
+      cache: "no-store",
+      signal: requestController?.signal
+    }, 18000);
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const payload = await response.json();
+    if (requestId !== marketFetchRequestId) return;
     updateMarketFreshRetryState(payload);
     const nextAssets = normalizeMarketAssets(payload.assets, marketAssets);
-    const nextCurrencies = normalizeCurrencyQuotes(payload.currencies?.quotes);
+    const nextCurrencies = normalizeCurrencyQuotes(payload.currencies?.quotes, marketCurrencies);
     if (hasCompleteCurrencySet(nextCurrencies)) {
       marketCurrencies = nextCurrencies;
       currencyAnchors = Array.isArray(payload.currencies?.anchors) && payload.currencies.anchors.length
@@ -9185,6 +10129,7 @@ async function fetchMarkets({ announce = false } = {}) {
       marketUpdatedAt = payload.updated || marketUpdatedAt;
       marketServedAt = payload.servedAt || "";
       marketDataStale = payload.stale === true;
+      if (!marketDataStale) datasetRefreshState.markets.succeededAt = Date.parse(payload.updated) || Date.now();
       const visibleAssets = rankedVisibleMarketAssets();
       selectedMarketId = visibleAssets.some(asset => asset.id === previousMarketId)
         ? previousMarketId
@@ -9219,6 +10164,7 @@ async function fetchMarkets({ announce = false } = {}) {
       marketSourceKey = "marketUnavailable";
     }
   } catch {
+    if (requestId !== marketFetchRequestId) return;
     if (marketAssets.length) {
       marketDataStale = true;
       marketSourceKey = "cachedMarketData";
@@ -9226,6 +10172,9 @@ async function fetchMarkets({ announce = false } = {}) {
       marketSourceKey = "marketUnavailable";
     }
     currencySourceKey = marketCurrencies.length ? currencySourceKey : "marketUnavailable";
+  } finally {
+    if (marketFetchAbortController === requestController) marketFetchAbortController = null;
+    if (requestId === marketFetchRequestId) datasetRefreshState.markets.completedAt = Date.now();
   }
 
   updateSourceLabels();
@@ -9246,24 +10195,66 @@ async function fetchWorldMap() {
   positionEventPins();
 }
 
+function automaticRefreshInterval(dataset, { hidden = document.hidden, mode = mapMode } = {}) {
+  if (hidden) return Infinity;
+  const active = dataset === "markets" ? isMarketMode(mode)
+    : dataset === "weather" ? isCityMapMode(mode) : mode === "events";
+  if (!active) return 30 * 60 * 1000;
+  if (dataset === "events" && (eventFreshness.requestFailed || eventFreshness.sourceStatus === "unavailable")) {
+    return Math.min(10 * 60 * 1000, 60_000 * 2 ** Math.max(0, eventFailedRefreshAttempts - 1));
+  }
+  return (dataset === "markets" ? 5 : 10) * 60 * 1000;
+}
+
+function refreshVisibleDatasets() {
+  if (document.hidden) return;
+  const now = Date.now();
+  const refreshers = {
+    weather: [weatherFetchAbortController, fetchWeather],
+    events: [eventFetchAbortController, () => fetchEvents({ announce: false })],
+    markets: [marketFetchAbortController, () => fetchMarkets({ announce: false })]
+  };
+  for (const [dataset, [inFlight, refresh]] of Object.entries(refreshers)) {
+    const state = datasetRefreshState[dataset];
+    const interval = automaticRefreshInterval(dataset);
+    const active = !document.hidden && interval < 30 * 60 * 1000;
+    const failedEvents = dataset === "events" && (eventFreshness.requestFailed || eventFreshness.sourceStatus === "unavailable");
+    const lastUpdate = active && !failedEvents ? state.succeededAt || state.completedAt : state.completedAt;
+    // Mode switches share this cooldown with polling so they cannot duplicate a request.
+    if (!inFlight && now - state.attemptedAt >= 60_000 && now - lastUpdate >= interval) refresh();
+  }
+  if (mapMode === "events" && eventFreshness.refreshing && !eventFreshRetryTimer && !eventFetchAbortController) {
+    scheduleEventFreshRetry();
+  }
+  if (isMarketMode() && marketDataStale && !marketFreshRetryTimer && !marketFetchAbortController) {
+    scheduleMarketFreshRetry();
+  }
+}
+
 function tick() {
-  els.localTime.textContent = formatTime(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  if (document.hidden) return;
+  const now = new Date();
+  els.localTime.textContent = formatTime(localTimeZone, now);
   if (isCityMapMode()) {
     const city = cities.find(item => item.id === selectedCityId) || cities[0];
-    els.feedClock.textContent = formatTime(city.zone);
+    els.feedClock.textContent = formatTime(city.zone, now);
     const bucket = `${city.id}:${cityPhotoRangeMinutes}:${cityPhotoBucket()}`;
     if (bucket !== cityPhotoActiveBucket) renderFeed();
   } else {
-    els.feedClock.textContent = new Date().toLocaleTimeString("en-US", { hour12: false });
+    els.feedClock.textContent = formatTime(localTimeZone, now);
   }
-  updateClimateClocks();
+  updateClimateClocks(now);
   drawMatrix();
 }
 
-els.mapMenuToggle.addEventListener("pointerdown", event => {
+els.mapMenuToggle.addEventListener("click", event => {
   event.preventDefault();
   event.stopPropagation();
-  toggleMapMenu();
+  const opening = !isMapMenuOpen();
+  setMapMenuOpen(opening);
+  if (opening) {
+    requestAnimationFrame(() => els.mapActionMenu.querySelector("button:not([disabled])")?.focus());
+  }
 });
 els.refreshEvents.addEventListener("click", () => {
   setMapMenuOpen(false);
@@ -9279,14 +10270,7 @@ els.languageToggle.addEventListener("click", () => {
   setMapMenuOpen(false);
   rerenderLanguageSensitiveViews();
 });
-els.translationToggle?.addEventListener("pointerdown", event => {
-  event.preventDefault();
-  event.stopPropagation();
-  setTranslationEnabled(!translationEnabled);
-  setMapMenuOpen(false);
-});
-els.translationToggle?.addEventListener("keydown", event => {
-  if (event.key !== "Enter" && event.key !== " ") return;
+els.translationToggle?.addEventListener("click", event => {
   event.preventDefault();
   event.stopPropagation();
   setTranslationEnabled(!translationEnabled);
@@ -9305,26 +10289,45 @@ document.addEventListener("click", event => {
     setMapMenuOpen(false);
   }
 });
-document.addEventListener("keydown", handleMarketBoardKeydown, true);
 document.addEventListener("keydown", event => {
-  if (event.key === "Escape") setMapMenuOpen(false);
+  if (event.key === "Escape" && isMapMenuOpen()) {
+    setMapMenuOpen(false);
+    els.mapMenuToggle.focus();
+  }
 });
 document.addEventListener("selectionchange", scheduleSelectionTranslation);
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) {
+    tick();
+    refreshVisibleDatasets();
+  } else {
+    window.clearTimeout(eventFreshRetryTimer);
+    window.clearTimeout(marketFreshRetryTimer);
+    eventFreshRetryTimer = 0;
+    marketFreshRetryTimer = 0;
+  }
+});
+reducedMotionQuery?.addEventListener?.("change", () => drawMatrix({ force: true }));
 applyTheme(currentTheme);
 applyLanguage();
 if (shouldOpenMapMenu()) setMapMenuOpen(true);
+let resizeFrameId = 0;
 window.addEventListener("resize", () => {
-  drawWorld();
-  drawMatrix();
-  positionEventPins();
-  if (isMarketMode()) {
-    const leaders = els.marketBoard?.querySelector(".market-leaders");
-    if (leaders) {
-      updateMarketLeadersEndPadding(leaders);
-      leaders.scrollTop = Math.min(leaders.scrollTop, Math.max(0, leaders.scrollHeight - leaders.clientHeight));
-      snapMarketLeadersToRow(leaders, { force: true });
+  if (resizeFrameId) return;
+  resizeFrameId = requestAnimationFrame(() => {
+    resizeFrameId = 0;
+    drawWorld();
+    drawMatrix({ force: true });
+    positionEventPins();
+    if (isMarketMode()) {
+      const leaders = els.marketBoard?.querySelector(".market-leaders");
+      if (leaders) {
+        updateMarketLeadersEndPadding(leaders);
+        leaders.scrollTop = Math.min(leaders.scrollTop, Math.max(0, leaders.scrollHeight - leaders.clientHeight));
+        snapMarketLeadersToRow(leaders, { force: true });
+      }
     }
-  }
+  });
 });
 
 renderInitialConsole();
@@ -9333,8 +10336,6 @@ fetchWeather();
 fetchWorldMap();
 fetchEvents({ announce: false });
 fetchMarkets({ announce: false });
-setInterval(fetchWeather, 10 * 60 * 1000);
-setInterval(fetchEvents, 10 * 60 * 1000);
-setInterval(fetchMarkets, 5 * 60 * 1000);
+setInterval(refreshVisibleDatasets, 60 * 1000);
 setInterval(tick, 1000);
 tick();

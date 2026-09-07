@@ -2,7 +2,33 @@ plugins {
     id "com.android.application"
 }
 
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+
 def configuredUrl = project.findProperty("worldConsoleUrl") ?: ""
+def allowCleartext = (project.findProperty("worldConsoleAllowCleartext") ?: "false").toBoolean()
+def appManifest = new JsonSlurper().parse(file("../../app-manifest.json"))
+def appVersion = appManifest.version as String
+if (!(appVersion ==~ /^\d+\.\d+\.\d+$/)) {
+    throw new GradleException("app-manifest.json must contain a three-part semantic version")
+}
+def versionParts = appVersion.split(/\./).collect { Long.parseLong(it) }
+if (versionParts[1] >= 1000L || versionParts[2] >= 1000L) {
+    throw new GradleException("version components exceed the collision-free Android versionCode range")
+}
+def androidVersionCode = versionParts[0] * 1000000L + versionParts[1] * 1000L + versionParts[2]
+if (androidVersionCode < 1L || androidVersionCode > 2100000000L) {
+    throw new GradleException("versionCode must be between 1 and 2,100,000,000")
+}
+if (configuredUrl) {
+    def configuredUri = new URI(configuredUrl)
+    if (!configuredUri.host || !(configuredUri.scheme in ["https", "http"])) {
+        throw new GradleException("worldConsoleUrl must be an absolute HTTP(S) URL")
+    }
+    if (configuredUri.scheme == "http" && !allowCleartext) {
+        throw new GradleException("HTTP worldConsoleUrl requires -PworldConsoleAllowCleartext=true")
+    }
+}
 
 android {
     namespace "com.codex.worldconsole"
@@ -16,8 +42,9 @@ android {
         applicationId "com.codex.worldconsole"
         minSdk 23
         targetSdk 35
-        versionCode 4
-        versionName "0.1.4"
-        buildConfigField "String", "WORLD_CONSOLE_URL", "\"${configuredUrl}\""
+        versionCode androidVersionCode.intValue()
+        versionName appVersion
+        buildConfigField "String", "WORLD_CONSOLE_URL", JsonOutput.toJson(configuredUrl)
+        manifestPlaceholders = [usesCleartextTraffic: allowCleartext ? "true" : "false"]
     }
 }

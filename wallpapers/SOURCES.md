@@ -20,11 +20,3 @@ Unsplash images are free to download and use under the Unsplash License.
 
 - `palm-sky-reflection.jpg`  
   Source: https://images.unsplash.com/photo-1507187632231-5beb21a654a2
-
-- `kobayashi-dragon-maid-online.jpg`  
-  Source page: https://wall.alphacoders.com/big.php?i=833926  
-  Image URL: https://images3.alphacoders.com/833/833926.jpg
-
-- `elaina-wandering-witch-online.jpg`  
-  Source page: https://wall.alphacoders.com/big.php?i=1211134  
-  Image URL: https://images7.alphacoders.com/121/1211134.jpg
