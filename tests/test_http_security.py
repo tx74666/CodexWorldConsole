@@ -100,8 +100,18 @@ class ConsoleHttpSecurityTests(unittest.TestCase):
                 world_console.socket,
                 "getaddrinfo",
                 return_value=[result],
-            ):
+            ) as resolver:
                 self.assertFalse(world_console.is_public_http_url("https://example.com/image.png"))
+                resolver.assert_called_once()
+
+    def test_public_proxy_accepts_a_valid_public_dns_result(self):
+        with mock.patch.object(
+            world_console.socket,
+            "getaddrinfo",
+            return_value=[(2, 1, 6, "", ("93.184.215.14", 443))],
+        ) as resolver:
+            self.assertTrue(world_console.is_public_http_url("https://example.com/image.png"))
+            resolver.assert_called_once()
 
     def test_cross_site_read_or_cost_trigger_is_rejected(self):
         status, _headers, _payload = self.request(

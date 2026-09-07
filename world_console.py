@@ -927,7 +927,9 @@ def normalized_http_url(value, *, allow_loopback_http=False):
     return candidate
 
 
-def resolve_public_target(value, resolver=socket.getaddrinfo):
+def resolve_public_target(value, resolver=None):
+    if resolver is None:
+        resolver = socket.getaddrinfo
     try:
         parsed = urllib.parse.urlsplit(str(value or "").strip())
     except ValueError as exc:
