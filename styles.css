@@ -712,7 +712,7 @@ h3 {
 
 .market-side {
   display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
   gap: 10px;
   min-height: 0;
   overflow: hidden;
@@ -1028,22 +1028,44 @@ h3 {
 }
 
 .market-search-controls {
+  position: relative;
   display: flex;
-  gap: 6px;
   min-width: 0;
+  flex: 0 0 auto;
 }
 
 .market-search-controls input {
-  width: 100%;
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 5px);
+  right: 0;
+  width: min(240px, calc(100vw - 80px));
   min-width: 0;
   min-height: 30px;
   padding: 5px 8px;
   border: 1px solid var(--line-strong);
   border-radius: 5px;
-  background: var(--card-bg);
+  background: var(--bg);
   color: var(--text);
   font: inherit;
   font-size: 12px;
+}
+
+.market-search-toggle.market-filter-toggle {
+  width: 26px;
+  height: 26px;
+  padding: 4px;
+  display: grid;
+  place-items: center;
+}
+
+.market-search-toggle svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
 }
 
 .market-search-controls > button {
@@ -1058,34 +1080,13 @@ h3 {
   overflow-wrap: anywhere;
 }
 
-.market-favorite-toggle {
-  grid-column: 3;
-  grid-row: 2;
-  justify-self: end;
-  min-width: 26px;
-  min-height: 24px;
-  padding: 0 4px;
-  border: 0;
-  border-radius: 4px;
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-  font-size: 17px;
-  line-height: 1;
-}
-
-.market-favorite-toggle.active {
-  color: var(--amber);
-}
-
-.market-favorite-toggle:focus-visible,
 .market-search-controls input:focus-visible {
   outline: 2px solid var(--line-strong);
   outline-offset: 1px;
 }
 
 .market-leader-row > .market-leader-meta {
-  grid-column: 2;
+  grid-column: 2 / -1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2327,6 +2328,8 @@ body[data-theme="dawn"] .market-ask-button:focus-visible {
 
 .feed {
   display: grid;
+  grid-auto-rows: max-content;
+  align-content: start;
   gap: 8px;
   min-height: 0;
   overflow-x: hidden;

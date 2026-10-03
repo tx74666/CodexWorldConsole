@@ -1555,16 +1555,11 @@ let marketGroupFilters = {
   crypto: viewState.includeCrypto !== false
 };
 let marketSearchQuery = "";
-let marketFavoritesOnly = viewState.marketFavoritesOnly === true;
-const marketFavoriteIds = new Set(
-  (Array.isArray(viewState.marketFavoriteIds) ? viewState.marketFavoriteIds : [])
-    .filter(id => typeof id === "string" && id.length < 160)
-);
+let marketSearchOpen = false;
 let selectedMarketId = viewState.selectedMarketId || "aapl";
 let selectedMarketRange = viewState.selectedMarketRange || "1m";
 let marketLeadersScrollTop = 0;
-let marketLeadersSnapTimer = 0;
-let marketLeadersPointerDown = false;
+const marketLeaderContentKeys = new WeakMap();
 let marketPendingFocusAssetId = "";
 let marketPendingFocusDirection = 0;
 let earningOpportunities = normalizeEarningOpportunities(fallbackEarningSources);
@@ -4792,9 +4787,7 @@ function saveViewState() {
     cityPhotoRangeMinutes,
     earningFilters,
     includeMetals: marketGroupFilters.metals,
-    includeCrypto: marketGroupFilters.crypto,
-    marketFavoriteIds: Array.from(marketFavoriteIds),
-    marketFavoritesOnly
+    includeCrypto: marketGroupFilters.crypto
   });
 }
 
@@ -6766,15 +6759,13 @@ function createMarketFilterToggle(group, labelKey) {
 function marketNavigationAssets() {
   const query = marketSearchQuery.trim().toLocaleLowerCase();
   const ranked = rankedVisibleMarketAssets().filter(asset => {
-    if (marketFavoritesOnly && !marketFavoriteIds.has(asset.id)) return false;
     if (!query) return true;
     return [asset.id, asset.symbol, asset.name, asset.zhName, marketName(asset),
       assetZhNamesBySymbol[String(asset.symbol || "").toUpperCase()],
       assetZhNamesByName[String(asset.name || "").toLowerCase()]]
       .some(value => String(value || "").toLocaleLowerCase().includes(query));
-  }).sort((left, right) => Number(marketFavoriteIds.has(right.id)) - Number(marketFavoriteIds.has(left.id))
-    || compareMarketRank(left, right));
-  if (query || marketFavoritesOnly) return ranked;
+  });
+  if (query) return ranked;
   const topAssets = ranked.slice(0, 50);
   const selected = ranked.find(asset => asset.id === selectedMarketId);
   if (!selected || topAssets.some(asset => asset.id === selected.id)) {
@@ -6792,6 +6783,25 @@ function resetMarketListScroll() {
 function createMarketSearchControls() {
   const controls = document.createElement("div");
   controls.className = "market-search-controls";
+  const toggle = document.createElement("button");
+  toggle.type = "button";
+  toggle.id = "marketSearchToggle";
+  toggle.className = "market-filter-toggle market-search-toggle";
+  toggle.title = t("marketSearch");
+  toggle.setAttribute("aria-label", t("marketSearch"));
+  toggle.setAttribute("aria-expanded", String(marketSearchOpen));
+  toggle.setAttribute("aria-controls", "marketAssetSearch");
+  toggle.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>';
+  toggle.addEventListener("click", () => {
+    marketSearchOpen = !marketSearchOpen;
+    if (!marketSearchOpen) {
+      marketSearchQuery = "";
+      resetMarketListScroll();
+    }
+    renderMarketBoard();
+    els.marketBoard.querySelector(marketSearchOpen ? "#marketAssetSearch" : "#marketSearchToggle")?.focus();
+  });
+  controls.appendChild(toggle);
   const search = document.createElement("input");
   search.type = "search";
   search.id = "marketAssetSearch";
@@ -6799,52 +6809,26 @@ function createMarketSearchControls() {
   search.setAttribute("aria-label", t("marketSearch"));
   search.autocomplete = "off";
   search.value = marketSearchQuery;
+  search.hidden = !marketSearchOpen;
+  search.addEventListener("keydown", event => {
+    if (event.key !== "Escape") return;
+    event.preventDefault();
+    event.stopPropagation();
+    marketSearchOpen = false;
+    marketSearchQuery = "";
+    resetMarketListScroll();
+    renderMarketBoard();
+    els.marketBoard.querySelector("#marketSearchToggle")?.focus();
+  });
   search.addEventListener("input", () => {
     marketSearchQuery = search.value;
     resetMarketListScroll();
     renderMarketBoard();
   });
   controls.appendChild(search);
-  const favorites = document.createElement("button");
-  favorites.type = "button";
-  favorites.id = "marketFavoritesFilter";
-  favorites.className = `market-filter-toggle ${marketFavoritesOnly ? "active" : ""}`;
-  favorites.textContent = `${t("marketFavorites")} (${marketFavoriteIds.size})`;
-  favorites.setAttribute("aria-pressed", String(marketFavoritesOnly));
-  favorites.addEventListener("click", () => {
-    marketFavoritesOnly = !marketFavoritesOnly;
-    resetMarketListScroll();
-    saveViewState();
-    renderMarketBoard();
-    els.marketBoard.querySelector("#marketFavoritesFilter")?.focus({ preventScroll: true });
-  });
-  controls.appendChild(favorites);
   return controls;
 }
 
-function createMarketFavoriteToggle(asset) {
-  const favorite = document.createElement("button");
-  const selected = marketFavoriteIds.has(asset.id);
-  favorite.type = "button";
-  favorite.className = `market-favorite-toggle ${selected ? "active" : ""}`;
-  favorite.dataset.favoriteAssetId = asset.id;
-  favorite.textContent = selected ? "★" : "☆";
-  favorite.title = `${t(selected ? "marketRemoveFavorite" : "marketAddFavorite")}: ${marketName(asset)}`;
-  favorite.setAttribute("aria-label", favorite.title);
-  favorite.setAttribute("aria-pressed", String(selected));
-  favorite.addEventListener("keydown", event => event.stopPropagation());
-  favorite.addEventListener("click", event => {
-    event.stopPropagation();
-    if (marketFavoriteIds.has(asset.id)) marketFavoriteIds.delete(asset.id);
-    else marketFavoriteIds.add(asset.id);
-    saveViewState();
-    renderMarketBoard();
-    const target = Array.from(els.marketBoard.querySelectorAll(".market-favorite-toggle"))
-      .find(button => button.dataset.favoriteAssetId === asset.id);
-    (target || els.marketBoard.querySelector("#marketFavoritesFilter"))?.focus({ preventScroll: true });
-  });
-  return favorite;
-}
 
 function setMarketRange(range, options = {}) {
   if (!marketRangeOptions.includes(range)) return;
@@ -6866,7 +6850,7 @@ function setMarketRange(range, options = {}) {
 }
 
 function navigateMarketAsset(direction) {
-  const assets = marketSearchQuery.trim() || marketFavoritesOnly || marketFavoriteIds.size
+  const assets = marketSearchQuery.trim()
     ? marketNavigationAssets() : rankedVisibleMarketAssets();
   if (!assets.length) return;
   let currentIndex = assets.findIndex(asset => asset.id === selectedMarketId);
@@ -6979,12 +6963,6 @@ function marketLeaderBottomInset(list) {
   return Number.isFinite(value) ? value : 0;
 }
 
-function marketLeaderScrollTarget(list, row) {
-  const maxTop = Math.max(0, list.scrollHeight - list.clientHeight);
-  const rowTop = marketLeaderRowTop(list, row);
-  return clamp(rowTop - marketLeaderTopInset(list), 0, maxTop);
-}
-
 function marketLeaderBasePaddingBottom(list) {
   if (!list) return 0;
   const saved = Number(list.dataset.basePaddingBottom);
@@ -7047,47 +7025,6 @@ function keepMarketRowInView(list, row, direction = 0) {
   list.scrollTop = clamp(nextTop, 0, maxTop);
 }
 
-function snapMarketLeadersToRow(list, { force = false } = {}) {
-  if (!list || (marketLeadersPointerDown && !force)) return;
-  const rows = Array.from(list.querySelectorAll(".market-leader-row"));
-  if (!rows.length) return;
-  const topInset = marketLeaderTopInset(list);
-  const currentTop = list.scrollTop + topInset;
-  let targetRow = rows[0];
-  let targetDistance = Math.abs(marketLeaderRowTop(list, targetRow) - currentTop);
-
-  rows.forEach(row => {
-    const distance = Math.abs(marketLeaderRowTop(list, row) - currentTop);
-    if (distance < targetDistance) {
-      targetDistance = distance;
-      targetRow = row;
-    }
-  });
-
-  const nextTop = marketLeaderScrollTarget(list, targetRow);
-  if (Math.abs(nextTop - list.scrollTop) > 1) {
-    list.scrollTop = nextTop;
-  }
-  marketLeadersScrollTop = list.scrollTop;
-}
-
-function scheduleMarketLeadersSnap(list) {
-  clearTimeout(marketLeadersSnapTimer);
-  marketLeadersSnapTimer = setTimeout(() => snapMarketLeadersToRow(list), 180);
-}
-
-function holdMarketLeadersSnap(list) {
-  marketLeadersPointerDown = true;
-  clearTimeout(marketLeadersSnapTimer);
-  const release = () => {
-    window.removeEventListener("pointerup", release);
-    window.removeEventListener("pointercancel", release);
-    marketLeadersPointerDown = false;
-    scheduleMarketLeadersSnap(list);
-  };
-  window.addEventListener("pointerup", release);
-  window.addEventListener("pointercancel", release);
-}
 
 function renderMarketBoard() {
   if (!els.marketBoard) return;
@@ -7105,8 +7042,7 @@ function renderMarketBoard() {
   selectedMarketId = active.id;
   const activeIndex = Math.max(0, navigationAssets.findIndex(asset => asset.id === active.id));
 
-  els.marketBoard.innerHTML = "";
-
+  els.marketBoard.querySelector(".market-empty")?.remove();
   const main = document.createElement("section");
   main.className = "market-main";
 
@@ -7153,9 +7089,11 @@ function renderMarketBoard() {
   chart.className = "market-chart";
   chart.appendChild(createMarketChart(active));
   main.appendChild(chart);
-  els.marketBoard.appendChild(main);
+  const previousMain = els.marketBoard.querySelector(".market-main");
+  if (previousMain) previousMain.replaceWith(main);
+  else els.marketBoard.prepend(main);
 
-  const side = document.createElement("aside");
+  const side = els.marketBoard.querySelector(".market-side") || document.createElement("aside");
   side.className = "market-side";
   const sideHead = document.createElement("div");
   sideHead.className = "market-side-head";
@@ -7167,16 +7105,16 @@ function renderMarketBoard() {
   filters.className = "market-filter-toggles";
   filters.appendChild(createMarketFilterToggle("metals", "includeMetals"));
   filters.appendChild(createMarketFilterToggle("crypto", "includeCrypto"));
+  filters.appendChild(createMarketSearchControls());
   sideHead.appendChild(filters);
-  side.appendChild(sideHead);
-  side.appendChild(createMarketSearchControls());
+  const previousSideHead = side.querySelector(".market-side-head");
+  if (previousSideHead) previousSideHead.replaceWith(sideHead);
+  else side.prepend(sideHead);
 
-  const leaders = document.createElement("div");
+  let leaders = document.createElement("div");
   leaders.className = "market-leaders";
-  leaders.addEventListener("pointerdown", () => holdMarketLeadersSnap(leaders));
   leaders.addEventListener("scroll", () => {
     marketLeadersScrollTop = leaders.scrollTop;
-    scheduleMarketLeadersSnap(leaders);
   }, { passive: true });
   navigationAssets
     .forEach((asset, index) => {
@@ -7186,6 +7124,12 @@ function renderMarketBoard() {
       row.dataset.assetId = asset.id;
       row.className = `market-leader-row ${asset.id === selectedMarketId ? "active" : ""}`;
       row.addEventListener("click", () => selectMarket(asset.id));
+      row.addEventListener("dblclick", event => {
+        event.preventDefault();
+        event.stopPropagation();
+        const url = marketDetailUrl(visibleMarketAssetById(asset.id));
+        if (url) window.open(url, "_blank", "noopener,noreferrer");
+      });
       row.addEventListener("keydown", event => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
@@ -7232,7 +7176,7 @@ function renderMarketBoard() {
       meta.className = "market-leader-meta";
       meta.textContent = `${asset.symbol} - ${formatMarketChange(asset)}`;
       row.appendChild(meta);
-      row.appendChild(createMarketFavoriteToggle(asset));
+      marketLeaderContentKeys.set(row, row.innerHTML);
       leaders.appendChild(row);
     });
   if (!navigationAssets.length) {
@@ -7240,7 +7184,7 @@ function renderMarketBoard() {
     empty.className = "market-search-empty";
     empty.setAttribute("role", "status");
     const message = document.createElement("p");
-    message.textContent = t(marketFavoritesOnly && !marketFavoriteIds.size ? "marketFavoritesEmpty" : "marketSearchEmpty");
+    message.textContent = t("marketSearchEmpty");
     empty.appendChild(message);
     const reset = document.createElement("button");
     reset.type = "button";
@@ -7248,7 +7192,6 @@ function renderMarketBoard() {
     reset.textContent = t("marketClearFilters");
     reset.addEventListener("click", () => {
       marketSearchQuery = "";
-      marketFavoritesOnly = false;
       resetMarketListScroll();
       saveViewState();
       renderMarketBoard();
@@ -7257,18 +7200,31 @@ function renderMarketBoard() {
     empty.appendChild(reset);
     leaders.appendChild(empty);
   }
-  side.appendChild(leaders);
-  els.marketBoard.appendChild(side);
-  updateMarketLeadersEndPadding(leaders);
-  if (previousLeadersScrollTop > 0) {
-    const restoreTop = () => {
-      updateMarketLeadersEndPadding(leaders);
-      leaders.scrollTop = Math.min(previousLeadersScrollTop, Math.max(0, leaders.scrollHeight - leaders.clientHeight));
-      snapMarketLeadersToRow(leaders, { force: true });
-    };
-    restoreTop();
-    requestAnimationFrame(restoreTop);
+  if (previousLeaders) {
+    // Keep unchanged rows attached so selection does not interrupt a native double-click.
+    const existingRows = new Map(Array.from(previousLeaders.children)
+      .filter(row => row.dataset.assetId).map(row => [row.dataset.assetId, row]));
+    const nextRows = Array.from(leaders.children);
+    nextRows.forEach((nextRow, index) => {
+      const existing = existingRows.get(nextRow.dataset.assetId);
+      if (existing) existing.classList.toggle("active", nextRow.classList.contains("active"));
+      // Compare original content, not image fallbacks that may change after loading.
+      const row = existing && marketLeaderContentKeys.get(existing) === marketLeaderContentKeys.get(nextRow)
+        ? existing : nextRow;
+      if (previousLeaders.children[index] !== row) {
+        previousLeaders.insertBefore(row, previousLeaders.children[index] || null);
+      }
+    });
+    while (previousLeaders.children.length > nextRows.length) {
+      previousLeaders.lastElementChild.remove();
+    }
+    leaders = previousLeaders;
+  } else {
+    side.appendChild(leaders);
   }
+  if (!side.isConnected) els.marketBoard.appendChild(side);
+  updateMarketLeadersEndPadding(leaders);
+  leaders.scrollTop = Math.min(previousLeadersScrollTop, Math.max(0, leaders.scrollHeight - leaders.clientHeight));
   const pendingAssetId = marketPendingFocusAssetId;
   const pendingDirection = marketPendingFocusDirection;
   marketPendingFocusAssetId = "";
@@ -7292,10 +7248,6 @@ function renderMarketBoard() {
     }
   };
   restoreKeyboardFocus();
-  requestAnimationFrame(() => {
-    updateMarketLeadersEndPadding(leaders);
-    restoreKeyboardFocus();
-  });
   if (searchFocused) {
     const search = els.marketBoard.querySelector("#marketAssetSearch");
     search?.focus({ preventScroll: true });
@@ -9890,6 +9842,8 @@ function setEventSource(key) {
 
 function updateSourceLabels() {
   updateMarketRefreshTime();
+  const translationPanelVisible = translationEnabled && !isCityMapMode() && !isMarketMode() && !isEarningMode();
+  els.feedClock.hidden = translationPanelVisible;
   els.eventSource.title = "";
   if (els.weatherSource) els.weatherSource.hidden = false;
   if (isCityMapMode()) {
@@ -9909,9 +9863,7 @@ function updateSourceLabels() {
     return;
   }
   if (translationEnabled && !isMarketMode()) {
-    els.eventSource.textContent = reportSourceLabel();
-    els.eventSource.title = eventFreshness.failedSources.length
-      ? `${t("reportFailedSources")}: ${eventFreshness.failedSources.join(", ")}` : "";
+    els.eventSource.textContent = t("translationSource");
     els.weatherSource.textContent = isMarketMode() ? t(currencySourceKey) : t(weatherSourceKey);
     return;
   }
@@ -10322,9 +10274,9 @@ window.addEventListener("resize", () => {
     if (isMarketMode()) {
       const leaders = els.marketBoard?.querySelector(".market-leaders");
       if (leaders) {
+        const previousTop = leaders.scrollTop;
         updateMarketLeadersEndPadding(leaders);
-        leaders.scrollTop = Math.min(leaders.scrollTop, Math.max(0, leaders.scrollHeight - leaders.clientHeight));
-        snapMarketLeadersToRow(leaders, { force: true });
+        leaders.scrollTop = Math.min(previousTop, Math.max(0, leaders.scrollHeight - leaders.clientHeight));
       }
     }
   });

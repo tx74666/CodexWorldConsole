@@ -237,6 +237,11 @@ try {
   await page.waitForSelector("#eventPins .event-pin");
   await page.waitForFunction(() => eventSourceKey === "liveRssReports");
   const successfulEventTime = await page.evaluate(() => eventFreshness.updated);
+  const translationWasEnabled = await page.evaluate(() => {
+    const enabled = translationEnabled;
+    setTranslationEnabled(false);
+    return enabled;
+  });
   for (const [scenario, expectedKey] of [["stale", "cachedReports"], ["unavailable", "failedRssReports"],
     ["partial", "partialRssReports"], ["failure", "failedRssReports"]]) {
     eventScenario = scenario;
@@ -276,6 +281,7 @@ try {
     refreshVisibleDatasets();
   });
   await page.waitForFunction(() => eventSourceKey === "liveRssReports" && eventFailedRefreshAttempts === 0);
+  await page.evaluate(enabled => setTranslationEnabled(enabled), translationWasEnabled);
 
   for (const viewport of [
     { width: 390, height: 844 },
@@ -842,6 +848,8 @@ try {
     body: JSON.stringify(marketHistoryFixture(route.request().url()))
   }));
   const selectedBeforeSearch = await page.evaluate(() => selectedMarketId);
+  assert(await page.locator("#marketAssetSearch").isHidden(), "search should start collapsed");
+  await page.locator("#marketSearchToggle").click();
   for (const query of ["AAPL", "Apple", "苹果"]) {
     await page.locator("#marketAssetSearch").fill(query);
     const searchState = await page.evaluate(() => ({
@@ -857,31 +865,21 @@ try {
   assert(await page.locator(".market-leader-row").count() === 0, "empty search still shows unrelated assets");
   assert(await page.locator(".market-search-empty").isVisible(), "empty search has no recovery message");
   await page.locator(".market-search-empty button").click();
-  const favoriteAsset = await page.evaluate(() => {
-    const asset = rankedVisibleMarketAssets()[65];
-    return { id: asset.id, symbol: asset.symbol, rank: marketDisplayRank(asset) };
-  });
-  await page.locator("#marketAssetSearch").fill(favoriteAsset.symbol);
-  const favoriteButton = page.locator(`[data-favorite-asset-id="${favoriteAsset.id}"]`);
-  await favoriteButton.focus();
-  await favoriteButton.press("Space");
-  assert(await page.evaluate(() => selectedMarketId) === selectedBeforeSearch, "Space on a favorite button selected its parent row");
-  assert(await favoriteButton.getAttribute("aria-pressed") === "true", "Space did not add an asset to the watchlist");
-  await page.locator("#marketAssetSearch").fill("");
-  assert(await page.locator(".market-leader-row").first().getAttribute("data-asset-id") === favoriteAsset.id,
-    "favorite outside the top 50 was not pinned to the top");
-  assert((await page.locator(".market-leader-row").first().locator(".market-rank-badge").textContent()) === `#${favoriteAsset.rank}`,
-    "watchlist pinning changed the original market rank");
-  await page.locator("#marketFavoritesFilter").click();
-  assert(await page.locator(".market-leader-row").count() === 1, "watchlist filter shows nonfavorite assets");
-  await page.reload({ waitUntil: "domcontentloaded" });
-  await page.waitForSelector(`[data-favorite-asset-id="${favoriteAsset.id}"]`);
-  assert(await page.locator("#marketFavoritesFilter").getAttribute("aria-pressed") === "true", "watchlist filter was not restored after reload");
-  assert(await page.locator(`[data-favorite-asset-id="${favoriteAsset.id}"]`).getAttribute("aria-pressed") === "true",
-    "favorite was not restored after reload");
-  await page.locator(`[data-favorite-asset-id="${favoriteAsset.id}"]`).press("Enter");
-  assert(await page.locator(".market-search-empty").isVisible(), "removing the last favorite did not show the empty watchlist");
-  await page.locator(".market-search-empty button").click();
+  const lowerRankedSymbol = await page.evaluate(() => rankedVisibleMarketAssets()[65].symbol);
+  await page.locator("#marketAssetSearch").fill(lowerRankedSymbol);
+  assert(await page.locator(".market-leader-row").count() > 0, "search cannot find an asset outside the top 50");
+  await page.locator("#marketAssetSearch").press("Escape");
+  assert(await page.locator("#marketAssetSearch").isHidden(), "Escape did not close search");
+  assert(await page.locator("#marketSearchToggle").getAttribute("aria-expanded") === "false", "search button did not reset");
+  assert(await page.locator(".market-favorite-toggle, #marketFavoritesFilter").count() === 0, "removed watchlist controls remain");
+  const feedRows = await page.locator("#feed .feed-line").evaluateAll(rows => rows.map(row => ({
+    height: row.getBoundingClientRect().height,
+    textHeight: row.querySelector("strong").getBoundingClientRect().height,
+    title: row.querySelector("strong").textContent.trim()
+  })));
+  assert(feedRows.length > 10 && feedRows.every(row => row.height >= 40 && row.textHeight >= 12 && row.title),
+    `Market Watch rows are collapsed or blank: ${JSON.stringify(feedRows.slice(0, 3))}`);
+
 
   for (const viewport of [{ width: 390, height: 844 }, { width: 1280, height: 800 }]) {
     await page.setViewportSize(viewport);
@@ -893,11 +891,106 @@ try {
       clipped: Array.from(element.querySelectorAll("button")).some(button => button.scrollWidth > button.clientWidth + 1)
     }));
     assert(controls.left >= 0 && controls.right <= controls.width + 1 && controls.scrollWidth <= controls.width && !controls.clipped,
-      `search/watchlist controls overflow at ${viewport.width}px: ${JSON.stringify(controls)}`);
+      `search controls overflow at ${viewport.width}px: ${JSON.stringify(controls)}`);
+    await page.locator("#marketSearchToggle").click();
+    const searchBounds = await page.locator("#marketAssetSearch").boundingBox();
+    assert(searchBounds && searchBounds.x >= 0 && searchBounds.x + searchBounds.width <= viewport.width,
+      `expanded search overflows at ${viewport.width}px: ${JSON.stringify(searchBounds)}`);
+    await page.locator("#marketAssetSearch").fill("Apple");
+    const appleId = await page.evaluate(() => marketNavigationAssets().find(asset => asset.symbol === "AAPL")?.id);
+    assert(appleId && await page.locator(`.market-leader-row[data-asset-id="${appleId}"]`).count() === 1, "expanded search did not find Apple");
+    await page.locator("#marketAssetSearch").press("Escape");
     if (process.env.CODEX_WORLD_SCREENSHOT_DIR) {
       mkdirSync(process.env.CODEX_WORLD_SCREENSHOT_DIR, { recursive: true });
       await page.screenshot({ path: join(process.env.CODEX_WORLD_SCREENSHOT_DIR, `market-upgrade-${viewport.width}.png`), fullPage: true });
     }
+  }
+
+  await page.evaluate(() => window.scrollTo(0, 0));
+  const marketClickFixture = await page.evaluate(() => {
+    const list = document.querySelector(".market-leaders");
+    const rows = Array.from(list.querySelectorAll(".market-leader-row"));
+    const targetRow = rows[Math.max(0, rows.length - 9)];
+    const maxTop = Math.max(0, list.scrollHeight - list.clientHeight);
+    // Deliberately stop between rows: selecting an asset must not snap this offset.
+    list.scrollTop = Math.min(maxTop - 7, marketLeaderRowTop(list, targetRow) + 7);
+    const bounds = list.getBoundingClientRect();
+    const visibleRows = rows.filter(row => {
+      const rect = row.getBoundingClientRect();
+      return rect.top >= Math.max(bounds.top + 2, 0)
+        && rect.bottom <= Math.min(bounds.bottom - 2, window.innerHeight);
+    });
+    window.__marketClickRegression = {
+      list,
+      rows,
+      scrollTop: list.scrollTop,
+      pageX: window.scrollX,
+      pageY: window.scrollY,
+      opened: [],
+      originalOpen: window.open
+    };
+    window.open = (...args) => {
+      window.__marketClickRegression.opened.push(args);
+      return null;
+    };
+    return {
+      ids: visibleRows.slice(0, 2).map(row => row.dataset.assetId),
+      expectedUrl: marketDetailUrl(visibleMarketAssetById(visibleRows[0]?.dataset.assetId)),
+      scrollTop: list.scrollTop
+    };
+  });
+  try {
+    assert(marketClickFixture.ids.length === 2 && marketClickFixture.scrollTop > 0 && marketClickFixture.expectedUrl,
+      `market click fixture lacks visible scrolled assets: ${JSON.stringify(marketClickFixture)}`);
+    const marketRowCenter = assetId => page.evaluate(id => {
+      const row = Array.from(document.querySelectorAll(".market-leader-row"))
+        .find(item => item.dataset.assetId === id);
+      const rect = row.getBoundingClientRect();
+      return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    }, assetId);
+    const assertStableMarketRows = async label => {
+      // Cover the former 180 ms pointer/scroll snap and asynchronous chart refresh.
+      await page.waitForTimeout(250);
+      const state = await page.evaluate(() => {
+        const saved = window.__marketClickRegression;
+        const list = document.querySelector(".market-leaders");
+        const rows = Array.from(list.querySelectorAll(".market-leader-row"));
+        return {
+          sameList: list === saved.list,
+          sameRows: rows.length === saved.rows.length && rows.every((row, index) => row === saved.rows[index]),
+          listDelta: list.scrollTop - saved.scrollTop,
+          pageDeltaX: window.scrollX - saved.pageX,
+          pageDeltaY: window.scrollY - saved.pageY,
+          opened: saved.opened.length
+        };
+      });
+      assert(state.sameList && state.sameRows && Math.abs(state.listDelta) <= 1
+        && Math.abs(state.pageDeltaX) <= 1 && Math.abs(state.pageDeltaY) <= 1,
+      `${label} moved the market list/page or replaced its rows: ${JSON.stringify(state)}`);
+      return state;
+    };
+    for (const assetId of [marketClickFixture.ids[0], marketClickFixture.ids[1], marketClickFixture.ids[1]]) {
+      const point = await marketRowCenter(assetId);
+      // Native mouse events avoid locator auto-scrolling masking a page-scroll regression.
+      await page.mouse.click(point.x, point.y);
+      const state = await assertStableMarketRows(`single click on ${assetId}`);
+      assert(await page.evaluate(() => selectedMarketId) === assetId, `click did not select ${assetId}`);
+      assert(state.opened === 0, "a single market click opened an external website");
+    }
+    await page.evaluate(() => renderMarketBoard());
+    await assertStableMarketRows("background market render");
+    const doubleClickPoint = await marketRowCenter(marketClickFixture.ids[0]);
+    await page.mouse.dblclick(doubleClickPoint.x, doubleClickPoint.y, { delay: 80 });
+    await assertStableMarketRows("native double click on an unselected asset");
+    const opened = await page.evaluate(() => window.__marketClickRegression.opened);
+    assert(opened.length === 1 && opened[0][0] === marketClickFixture.expectedUrl
+      && opened[0][1] === "_blank" && opened[0][2] === "noopener,noreferrer",
+    `market double click did not safely open the expected website once: ${JSON.stringify(opened)}`);
+  } finally {
+    await page.evaluate(() => {
+      window.open = window.__marketClickRegression.originalOpen;
+      delete window.__marketClickRegression;
+    });
   }
 
   await page.waitForFunction(() => !marketFetchAbortController && !eventFetchAbortController && !weatherFetchAbortController);
@@ -933,7 +1026,7 @@ try {
 
   assert(errors.length === 0, `page errors: ${errors.join("; ")}`);
 
-  console.log("PASS Codex World responsive UI, watchlist/search, RSS freshness, visibility polling and non-blocking market history (390-2560 px)");
+  console.log("PASS Codex World responsive UI, compact search, visible Market Watch rows, RSS freshness, visibility polling and non-blocking market history (390-2560 px)");
 } finally {
   try {
     await withTimeout(browser.close(), "browser close", 5_000);
